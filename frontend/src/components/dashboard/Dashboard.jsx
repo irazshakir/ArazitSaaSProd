@@ -42,7 +42,7 @@ const Dashboard = () => {
     // Get user from localStorage
     const fetchUser = async () => {
       try {
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('access_token');
         if (!token) {
           navigate('/login');
           return;

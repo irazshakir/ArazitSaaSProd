@@ -23,6 +23,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/', include('users.urls')),
     path('api/', include('rest_framework.urls')),
+    path('api/', include('hajjPackages.urls')),  # Hajj Packages API endpoints
 ]
 
 # Serve media files in development

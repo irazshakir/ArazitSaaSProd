@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     
     # Local apps
     'users',  # We'll create this app for user authentication
+    'hajjPackages',  # Hajj Packages app
 ]
 
 MIDDLEWARE = [

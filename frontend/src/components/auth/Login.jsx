@@ -248,6 +248,20 @@ const Login = () => {
               </MuiLink>
             </Box>
             
+            {/* Development testing link */}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+              <MuiLink 
+                component={Link} 
+                to="/test-auth" 
+                underline="none" 
+                color="secondary" 
+                variant="body2"
+                sx={{ fontWeight: 500, fontSize: '0.75rem' }}
+              >
+                Test Auth Page
+              </MuiLink>
+            </Box>
+            
             <Button
               type="submit"
               fullWidth

@@ -1,12 +1,9 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router } from 'react-router-dom';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
-// Components
-import Login from './components/auth/Login';
-import Register from './components/auth/Register';
-import DashboardLayout from './components/layout/DashboardLayout';
-import Dashboard from './components/dashboard/Dashboard';
+// Import the AppRoutes component
+import AppRoutes from './routes/index';
 
 // Create a theme instance
 const theme = createTheme({
@@ -129,24 +126,7 @@ function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          
-          {/* Dashboard routes */}
-          <Route path="/dashboard" element={<DashboardLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="users" element={<div>Users Management (Coming Soon)</div>} />
-            <Route path="departments" element={<div>Departments Management (Coming Soon)</div>} />
-            <Route path="settings" element={<div>Settings (Coming Soon)</div>} />
-            <Route path="profile" element={<div>User Profile (Coming Soon)</div>} />
-          </Route>
-          
-          {/* Redirect to login for unknown routes */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
+        <AppRoutes />
       </Router>
     </ThemeProvider>
   );
