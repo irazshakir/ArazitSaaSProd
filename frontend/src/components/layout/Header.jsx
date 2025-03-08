@@ -111,12 +111,13 @@ const Header = ({ mobileOpen, handleDrawerToggle, user }) => {
       sx={{
         width: { sm: `calc(100% - ${drawerWidth}px)` },
         ml: { sm: `${drawerWidth}px` },
-        backgroundColor: 'white',
+        backgroundColor: '#f5f7fa',
         color: 'text.primary',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+        boxShadow: 'none',
+        borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
       }}
     >
-      <Toolbar>
+      <Toolbar sx={{ minHeight: { xs: '56px', sm: '64px' }, px: 2 }}>
         <IconButton
           color="inherit"
           aria-label="open drawer"
@@ -126,16 +127,6 @@ const Header = ({ mobileOpen, handleDrawerToggle, user }) => {
         >
           <MenuIcon />
         </IconButton>
-        
-        <Search>
-          <SearchIconWrapper>
-            <SearchIcon />
-          </SearchIconWrapper>
-          <StyledInputBase
-            placeholder="Search…"
-            inputProps={{ 'aria-label': 'search' }}
-          />
-        </Search>
         
         <Box sx={{ flexGrow: 1 }} />
         
@@ -228,12 +219,6 @@ const Header = ({ mobileOpen, handleDrawerToggle, user }) => {
             <PersonIcon fontSize="small" />
           </ListItemIcon>
           Profile
-        </MenuItem>
-        <MenuItem onClick={() => navigate('/dashboard/settings')}>
-          <ListItemIcon>
-            <SettingsIcon fontSize="small" />
-          </ListItemIcon>
-          Settings
         </MenuItem>
         <MenuItem onClick={() => navigate('/dashboard/help')}>
           <ListItemIcon>
