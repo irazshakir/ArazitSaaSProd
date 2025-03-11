@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Upload, Button, message, Card, Typography, Space } from 'antd';
 import { UploadOutlined, FileImageOutlined, FilePdfOutlined, FileOutlined } from '@ant-design/icons';
 
@@ -9,6 +9,7 @@ import { UploadOutlined, FileImageOutlined, FilePdfOutlined, FileOutlined } from
  * @param {string} accept - File types to accept (e.g., 'image/*,application/pdf')
  * @param {boolean} multiple - Whether to allow multiple file uploads
  * @param {array} fileList - List of already uploaded files
+ * @param {array} initialValue - Initial files to display (for edit mode)
  * @param {number} maxCount - Maximum number of files allowed
  * @param {string} buttonText - Text to display on upload button
  * @param {object} style - Additional styling for the component
@@ -19,11 +20,25 @@ const UploadIcon = ({
   accept = 'image/*',
   multiple = false,
   fileList = [],
+  initialValue = [],
   maxCount = 1,
   buttonText = 'Upload',
   style = {},
 }) => {
-  const [files, setFiles] = useState(fileList);
+  const [files, setFiles] = useState(fileList.length > 0 ? fileList : initialValue);
+
+  // Update files when initialValue or fileList changes
+  useEffect(() => {
+    if (fileList && fileList.length > 0) {
+      setFiles(fileList);
+    } else if (initialValue && initialValue.length > 0 && files.length === 0) {
+      setFiles(initialValue);
+      // Notify parent component about initial files
+      if (onChange && initialValue.length > 0) {
+        onChange(initialValue);
+      }
+    }
+  }, [fileList, initialValue]);
 
   // Get appropriate icon based on file type
   const getFileIcon = (file) => {

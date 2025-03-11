@@ -14,13 +14,80 @@ const api = axios.create({
 // Add a request interceptor to add the auth token to requests
 api.interceptors.request.use(
   (config) => {
+    // Check multiple possible token locations
     const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    const accessToken = localStorage.getItem('access_token');
+    
+    // Log what we found
+    console.log('API Interceptor - Token check:', {
+      token,
+      accessToken,
+      configUrl: config.url
+    });
+    
+    // Use the token that exists
+    const authToken = token || accessToken;
+    
+    if (authToken) {
+      console.log('API Interceptor - Setting Authorization header:', `Bearer ${authToken}`);
+      config.headers.Authorization = `Bearer ${authToken}`;
+    } else {
+      console.warn('API Interceptor - No token found in storage');
     }
+    
     return config;
   },
   (error) => {
+    console.error('API Interceptor - Request error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add a response interceptor to handle errors
+api.interceptors.response.use(
+  (response) => {
+    // Log successful responses for debugging
+    console.log(`API Response [${response.status}] for ${response.config.url}:`, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+      data: response.data ? 'Data received' : 'No data'
+    });
+    return response;
+  },
+  (error) => {
+    // Log detailed error information
+    console.error('API Error Response:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      url: error.config?.url,
+      method: error.config?.method,
+      headers: error.config?.headers,
+      data: error.response?.data
+    });
+    
+    // Handle 401 Unauthorized errors
+    if (error.response && error.response.status === 401) {
+      console.error('401 Unauthorized Error - Token details:', {
+        token: localStorage.getItem('token'),
+        accessToken: localStorage.getItem('access_token'),
+        authHeader: error.config?.headers?.Authorization
+      });
+      
+      // Check if we're already on the login page to avoid redirect loops
+      if (!window.location.pathname.includes('/login')) {
+        console.log('Redirecting to login page due to 401 error');
+        // Clear auth data
+        localStorage.removeItem('token');
+        localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
+        
+        // Redirect to login
+        window.location.href = '/login';
+      }
+    }
+    
     return Promise.reject(error);
   }
 );

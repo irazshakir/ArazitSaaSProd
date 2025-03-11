@@ -14,10 +14,17 @@ import {
   Chip,
   TableSortLabel,
   Paper,
-  Pagination
+  Pagination,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  Button
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const TableList = ({
   columns = [],
@@ -25,6 +32,7 @@ const TableList = ({
   onRowClick,
   onViewClick,
   onEditClick,
+  onDeleteClick,
   selectable = true,
   pagination = true,
   rowsPerPage = 10,
@@ -35,7 +43,11 @@ const TableList = ({
   const [page, setPage] = useState(1);
   const [sortField, setSortField] = useState(defaultSortField);
   const [sortDirection, setSortDirection] = useState(defaultSortDirection);
-
+  
+  // State for delete confirmation dialog
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  
   // Handle row selection
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
@@ -171,6 +183,28 @@ const TableList = ({
     }
   };
 
+  // Handle delete dialog open
+  const handleDeleteClick = (event, row) => {
+    event.stopPropagation();
+    setItemToDelete(row);
+    setDeleteDialogOpen(true);
+  };
+  
+  // Handle delete confirmation
+  const handleDeleteConfirm = () => {
+    if (itemToDelete && onDeleteClick) {
+      onDeleteClick(itemToDelete);
+    }
+    setDeleteDialogOpen(false);
+    setItemToDelete(null);
+  };
+  
+  // Handle delete dialog close
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setItemToDelete(null);
+  };
+
   return (
     <Box sx={{ width: '100%' }}>
       <Paper 
@@ -228,7 +262,7 @@ const TableList = ({
                   </TableCell>
                 ))}
                 
-                {(onViewClick || onEditClick) && (
+                {(onViewClick || onEditClick || onDeleteClick) && (
                   <TableCell 
                     align="right" 
                     style={{ 
@@ -280,21 +314,9 @@ const TableList = ({
                       </TableCell>
                     ))}
                     
-                    {(onViewClick || onEditClick) && (
+                    {(onViewClick || onEditClick || onDeleteClick) && (
                       <TableCell align="right">
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                          {onViewClick && (
-                            <IconButton 
-                              size="small" 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onViewClick(row);
-                              }}
-                            >
-                              <VisibilityIcon fontSize="small" />
-                            </IconButton>
-                          )}
-                          
                           {onEditClick && (
                             <IconButton 
                               size="small" 
@@ -304,6 +326,16 @@ const TableList = ({
                               }}
                             >
                               <EditIcon fontSize="small" />
+                            </IconButton>
+                          )}
+                          
+                          {onDeleteClick && (
+                            <IconButton 
+                              size="small" 
+                              onClick={(e) => handleDeleteClick(e, row)}
+                              sx={{ color: 'error.main' }}
+                            >
+                              <DeleteIcon fontSize="small" />
                             </IconButton>
                           )}
                         </Box>
@@ -316,7 +348,7 @@ const TableList = ({
               {data.length === 0 && (
                 <TableRow>
                   <TableCell 
-                    colSpan={columns.length + (selectable ? 1 : 0) + ((onViewClick || onEditClick) ? 1 : 0)} 
+                    colSpan={columns.length + (selectable ? 1 : 0) + ((onViewClick || onEditClick || onDeleteClick) ? 1 : 0)} 
                     align="center"
                     sx={{ py: 3 }}
                   >
@@ -347,6 +379,32 @@ const TableList = ({
           </Box>
         )}
       </Paper>
+      
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={handleDeleteCancel}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          Confirm Delete
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Are you sure you want to delete {itemToDelete?.package_name || itemToDelete?.name || 'this item'}? 
+            This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDeleteCancel} color="primary">
+            Cancel
+          </Button>
+          <Button onClick={handleDeleteConfirm} color="error" autoFocus>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

@@ -40,7 +40,18 @@ const HajjPackageForm = ({
   const [form] = Form.useForm();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [packageImage, setPackageImage] = useState([]);
+  const [packageImage, setPackageImage] = useState(
+    initialData?.image ? [
+      {
+        uid: '-1',
+        name: initialData.image.split('/').pop() || 'package-image.jpg',
+        status: 'done',
+        url: initialData.image.startsWith('http') 
+          ? initialData.image 
+          : `${API_BASE_URL}${initialData.image}`
+      }
+    ] : []
+  );
   
   // Get field options from the form builder or define them here
   const options = {
@@ -85,7 +96,8 @@ const HajjPackageForm = ({
     handleBlur,
     validateForm,
     resetForm,
-    setValues
+    setValues,
+    setFieldValue
   } = useFormValidation(
     createInitialValues('hajjPackage', initialData),
     createValidationRules('hajjPackage')
@@ -99,7 +111,24 @@ const HajjPackageForm = ({
 
   // Handle image change
   const handleImageChange = (fileList) => {
+    console.log('Image file list:', fileList);
     setPackageImage(fileList);
+    
+    // Update the values state with the image file
+    if (fileList && fileList.length > 0) {
+      const file = fileList[0];
+      // Store the file in the form values
+      setFieldValue('image', file);
+      console.log('Image file set in form values:', file);
+      console.log('File has originFileObj:', !!file.originFileObj);
+      if (file.originFileObj) {
+        console.log('File type:', file.originFileObj.type);
+        console.log('File size:', file.originFileObj.size);
+      }
+    } else {
+      setFieldValue('image', null);
+      console.log('Image file cleared from form values');
+    }
   };
 
   // Format date for API
@@ -283,6 +312,12 @@ const HajjPackageForm = ({
         makkah_room_type: values.makkah_room_type || 'Standard',
         madinah_room_type: values.madinah_room_type || 'Standard',
         
+        // Makkah and Madinah check-in/check-out dates
+        makkah_check_in: values.makkah_check_in ? formatDate(values.makkah_check_in) : null,
+        makkah_check_out: values.makkah_check_out ? formatDate(values.makkah_check_out) : null,
+        madinah_check_in: values.madinah_check_in ? formatDate(values.madinah_check_in) : null,
+        madinah_check_out: values.madinah_check_out ? formatDate(values.madinah_check_out) : null,
+        
         // Flight and star ratings
         flight_carrier: values.flight_carrier || 'Default Carrier',
         package_star: values.package_star ? parseInt(values.package_star) : 3,
@@ -299,7 +334,10 @@ const HajjPackageForm = ({
         // Additional fields required by the backend
         is_active: values.is_active !== undefined ? values.is_active : true,
         visa: values.visa || 'included',
-        ziyarat: values.ziyarat || 'makkah_medinah'
+        ziyarat: values.ziyarat || 'makkah_medinah',
+        
+        // Maktab number
+        maktab_no: values.maktab_no || ''
       };
       
       // Log the final data being submitted
@@ -308,9 +346,20 @@ const HajjPackageForm = ({
       
       // Get the auth token
       const token = localStorage.getItem('token');
-      if (!token) {
+      console.log('Token from localStorage:', token);
+      
+      // Check other possible token locations
+      const accessToken = localStorage.getItem('access_token');
+      console.log('access_token from localStorage:', accessToken);
+      
+      // Check if token exists
+      if (!token && !accessToken) {
         throw new Error('Authentication token not found. Please log in again.');
       }
+      
+      // Use the token that exists
+      const authToken = token || accessToken;
+      console.log('Using auth token:', authToken);
       
       // Prepare the API endpoint - ensure it matches the correct backend path
       const endpoint = isEditMode 
@@ -319,18 +368,59 @@ const HajjPackageForm = ({
       
       console.log(`Submitting to endpoint: ${endpoint}`);
       console.log(`Request method: ${isEditMode ? 'PUT' : 'POST'}`);
-      console.log(`API_BASE_URL: ${API_BASE_URL}`);
-      console.log(`API_ENDPOINTS.HAJJ_PACKAGES.LIST: ${API_ENDPOINTS.HAJJ_PACKAGES.LIST}`);
       
-      // Make the API request using axios instead of fetch for more reliable handling
+      // Check if we have an image to upload
+      const hasImage = values.image || (packageImage && packageImage.length > 0);
+      console.log('Has image to upload:', hasImage);
+      console.log('values.image:', values.image);
+      console.log('packageImage:', packageImage);
+      
+      // Always use FormData for consistency between image and non-image submissions
+      const formData = new FormData();
+      
+      // Add all the JSON data to FormData
+      Object.entries(simplifiedData).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          formData.append(key, value);
+          console.log(`Added to FormData: ${key} = ${value}`);
+        }
+      });
+      
+      // Handle image upload if present
+      if (hasImage) {
+        // Add the image file
+        if (values.image && values.image.originFileObj) {
+          formData.append('image', values.image.originFileObj);
+          console.log('Added image from values.image');
+        } else if (packageImage && packageImage.length > 0) {
+          // If it's a new file upload
+          if (packageImage[0].originFileObj) {
+            formData.append('image', packageImage[0].originFileObj);
+            console.log('Added image from packageImage');
+          } 
+          // If it's an existing file and we're in edit mode
+          else if (isEditMode && initialData?.image && !packageImage[0].originFileObj) {
+            // Don't append anything - keep the existing image
+            console.log('Using existing image:', initialData.image);
+          }
+        }
+      }
+      
+      // Log the FormData (for debugging)
+      console.log('Submitting with FormData');
+      
+      // Log the authorization header
+      console.log('Authorization header:', `Bearer ${authToken}`);
+      
+      // Make the API request with FormData
       const response = await axios({
         method: isEditMode ? 'PUT' : 'POST',
         url: endpoint,
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${authToken}`,
+          'Content-Type': 'multipart/form-data'
         },
-        data: simplifiedData
+        data: formData
       });
       
       // Process successful response
@@ -827,12 +917,11 @@ const HajjPackageForm = ({
                   />
                 </Col>
                 <Col xs={24} md={12}>
-                  <FormNumberInput
+                  <FormTextInput
                     label="Maktab No#"
                     name="maktab_no"
                     value={values.maktab_no}
                     onChange={(value) => debugHandleChange('maktab_no', value)}
-                    min={0}
                   />
                 </Col>
               </Row>
@@ -991,6 +1080,17 @@ const HajjPackageForm = ({
               maxCount={1}
               buttonText="Upload Image"
               onChange={handleImageChange}
+              fileList={packageImage}
+              initialValue={initialData?.image ? [
+                {
+                  uid: '-1',
+                  name: initialData.image.split('/').pop() || 'package-image.jpg',
+                  status: 'done',
+                  url: initialData.image.startsWith('http') 
+                    ? initialData.image 
+                    : `${API_BASE_URL}${initialData.image}`
+                }
+              ] : []}
             />
             
             {/* Additional Information Card */}

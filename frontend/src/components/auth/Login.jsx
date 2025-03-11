@@ -65,8 +65,23 @@ const Login = () => {
       }
       
       // Store auth tokens
+      console.log('Storing authentication tokens:', {
+        token: response.token,
+        refreshToken: response.refreshToken
+      });
+      
       localStorage.setItem('token', response.token);
       localStorage.setItem('refreshToken', response.refreshToken);
+      
+      // Also store as access_token for compatibility with some systems
+      localStorage.setItem('access_token', response.token);
+      
+      // Verify tokens were stored correctly
+      console.log('Verifying stored tokens:', {
+        token: localStorage.getItem('token'),
+        access_token: localStorage.getItem('access_token'),
+        refreshToken: localStorage.getItem('refreshToken')
+      });
       
       // Process user data to ensure we have tenant info
       const userData = response.user;
