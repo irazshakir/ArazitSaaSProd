@@ -29,12 +29,65 @@ api.interceptors.request.use(
 export const authService = {
   // Login user
   login: async (email, password) => {
+    // Get the authentication token
     const response = await api.post('/auth/token/', { email, password });
     
-    // The backend now returns user data directly in the response
+    // Extract user data from response
     const userData = response.data.user || { email };
     
-    // Store complete user data including industry
+    // Log all user data properties to debug
+    console.log('Raw user data from token response:', response.data);
+    console.log('User data properties:', Object.keys(userData));
+    
+    // Check if tenant_id exists in user data
+    if (userData.tenant_id) {
+      console.log('Found tenant_id in user data:', userData.tenant_id);
+    } else {
+      console.warn('tenant_id not found in user data from token response');
+    }
+    
+    // If no user data from token response, fetch user details
+    if (!userData.id) {
+      try {
+        // Set token to make authenticated requests
+        api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
+        
+        // Get user details
+        const userResponse = await api.get('/auth/me/');
+        Object.assign(userData, userResponse.data);
+        
+        console.log('Retrieved user data:', userData);
+      } catch (err) {
+        console.error('Error fetching user details:', err);
+      }
+    }
+    
+    // Try to get tenant information for the user
+    try {
+      if (userData.id) {
+        // Try to get user tenants
+        const tenantsResponse = await api.get('/auth/user-tenants/');
+        
+        if (tenantsResponse.data && Array.isArray(tenantsResponse.data) && tenantsResponse.data.length > 0) {
+          // Add first tenant to user data
+          userData.tenant_id = tenantsResponse.data[0].tenant.id;
+          userData.tenant_details = tenantsResponse.data[0].tenant;
+          userData.tenant_role = tenantsResponse.data[0].role;
+          
+          console.log('User tenant information:', {
+            tenant_id: userData.tenant_id,
+            role: userData.tenant_role
+          });
+          
+          // Store current tenant in session storage
+          sessionStorage.setItem('currentTenant', JSON.stringify(userData.tenant_details));
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching tenant data:', err);
+    }
+    
+    // Return complete user data
     return {
       token: response.data.access,
       refreshToken: response.data.refresh,

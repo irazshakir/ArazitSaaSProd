@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Container, Typography, Stack, Grid, Paper } from '@mui/material';
+import { Box, Container, Typography, Stack, Grid, Paper, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../services/api';
+import { message } from 'antd';
+import { API_BASE_URL, API_ENDPOINTS } from '../../config/api';
 
 // Import universal components
 import SearchBar from '../universalComponents/searchBar';
@@ -12,7 +14,6 @@ import TableList from '../universalComponents/tableList';
 
 // API configuration
 import { getToken, isAuthenticated, ensureAuthenticated } from '../../utils/auth';
-import { API_BASE_URL } from '../../config/api';
 
 const HajjPackagesIndex = () => {
   const navigate = useNavigate();
@@ -109,26 +110,44 @@ const HajjPackagesIndex = () => {
     const fetchPackages = async () => {
       try {
         setLoading(true);
-        // Get token directly from localStorage
-        const token = localStorage.getItem('token');
         
-        // Add debugging
-        console.log('HajjPackagesIndex - API Call - Token:', token);
+        // The API_ENDPOINTS.HAJJ_PACKAGES.LIST already includes '/api/' prefix
+        // But the api instance also adds '/api/' because of its baseURL configuration
+        // So we need to remove the '/api/' prefix from the endpoint to avoid duplication
         
-        if (!token) {
-          console.error('No token available for API request');
-          setLoading(false);
-          return;
+        // Extract the path without the '/api/' prefix
+        const endpoint = API_ENDPOINTS.HAJJ_PACKAGES.LIST.replace(/^\/api\//, '');
+        console.log('Using API endpoint (without /api/ prefix):', endpoint);
+        
+        const response = await api.get(endpoint);
+        
+        // Debug: Log the full response object and structure
+        console.log('API Response:', response);
+        console.log('Response data type:', typeof response.data);
+        console.log('Response data structure:', response.data);
+        
+        // Check if response.data is directly an array or has a results property (DRF pagination)
+        let packagesArray = Array.isArray(response.data) 
+          ? response.data
+          : (response.data?.results && Array.isArray(response.data.results))
+            ? response.data.results
+            : [];
+            
+        console.log('Extracted packages array:', packagesArray);
+        
+        // If we couldn't find an array, log a warning
+        if (packagesArray.length === 0 && response.data) {
+          console.warn('Could not identify package data in response. Using empty array.');
+          
+          // If response.data has package-like properties, treat it as a single item
+          if (response.data.id && response.data.package_name) {
+            console.log('Response appears to be a single package. Converting to array.');
+            packagesArray = [response.data];
+          }
         }
         
-        const response = await axios.get(`${API_BASE_URL}/api/hajj-packages/`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
         // Transform data for UI representation
-        const formattedData = response.data.map(pkg => ({
+        const formattedData = packagesArray.map(pkg => ({
           ...pkg,
           id: pkg.id // Ensure id field for table operations
         }));
@@ -139,6 +158,7 @@ const HajjPackagesIndex = () => {
       } catch (error) {
         console.error('Error fetching Hajj packages:', error);
         setLoading(false);
+        message.error('Failed to load packages. Check the console for details.');
       }
     };
 
@@ -203,6 +223,76 @@ const HajjPackagesIndex = () => {
     navigate(`/dashboard/hajj-umrah/hajj-packages/${pkg.id}/edit`);
   };
 
+  // Add a debug function to directly test the API
+  const debugApiEndpoint = async () => {
+    try {
+      message.info('Testing Hajj Packages API endpoints...');
+      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        message.error('No authentication token found. Please log in.');
+        return;
+      }
+      
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+      
+      // Test with both axios and fetch for comparison
+      console.log('1. Testing with axios using configured endpoint');
+      try {
+        // Remove '/api/' prefix to avoid duplication
+        const endpoint = API_ENDPOINTS.HAJJ_PACKAGES.LIST.replace(/^\/api\//, '');
+        console.log('Using endpoint for axios:', endpoint);
+        
+        const axiosResponse = await api.get(endpoint);
+        console.log('Axios response:', axiosResponse);
+      } catch (error) {
+        console.error('Axios request failed:', error);
+      }
+      
+      // Try both endpoint options
+      const endpointOptions = [
+        API_ENDPOINTS.HAJJ_PACKAGES.LIST,
+        '/api/hajj-packages/',
+        '/hajj-packages/',
+        '/packages/hajj-packages/'
+      ];
+      
+      for (const endpointPath of endpointOptions) {
+        try {
+          const fullUrl = `${API_BASE_URL}${endpointPath}`;
+          console.log(`Testing hajj packages endpoint: ${fullUrl}`);
+          
+          const fetchResponse = await fetch(fullUrl, { headers });
+          console.log(`Status for ${endpointPath}:`, fetchResponse.status);
+          
+          if (fetchResponse.ok) {
+            const jsonData = await fetchResponse.json();
+            console.log(`Data from ${endpointPath}:`, jsonData);
+            
+            // Check data structure
+            if (Array.isArray(jsonData)) {
+              console.log(`✅ VALID ARRAY RESPONSE from ${endpointPath} with ${jsonData.length} items`);
+            } else if (jsonData && Array.isArray(jsonData.results)) {
+              console.log(`✅ VALID PAGINATED RESPONSE from ${endpointPath} with ${jsonData.results.length} items`);
+            } else {
+              console.log(`⚠️ UNKNOWN DATA STRUCTURE from ${endpointPath}:`, jsonData);
+            }
+          }
+        } catch (error) {
+          console.error(`Error with ${endpointPath}:`, error);
+        }
+      }
+      
+      message.success('API testing complete. Check browser console for details.');
+    } catch (error) {
+      console.error('Debug function error:', error);
+      message.error('API testing failed.');
+    }
+  };
+
   return (
     <Container maxWidth="xl" sx={{ pt: 2, pb: 4 }}>
       <Grid container spacing={3}>
@@ -223,13 +313,19 @@ const HajjPackagesIndex = () => {
               
               <Stack direction="row" spacing={2}>
                 <DownloadButton 
-                  data={filteredPackages} 
+                  data={filteredPackages}
                   filename="hajj-packages"
                   onExport={handleExport}
                 />
                 <CreateButton 
-                  onClick={handleCreatePackage} 
+                  onClick={handleCreatePackage}
                   buttonText="Add new"
+                />
+                <CreateButton 
+                  onClick={debugApiEndpoint}
+                  buttonText="Debug API"
+                  variant="outlined"
+                  color="info"
                 />
               </Stack>
             </Box>

@@ -13,6 +13,8 @@ import Dashboard from '../components/dashboard/Dashboard';
 
 // Hajj & Umrah Pages
 import HajjPackagesIndex from '../components/hajjPackages/hajjPackagesIndex';
+import HajjPackageCreate from '../components/forms/products/hajjPackages/HajjPackageCreate';
+import HajjPackageEdit from '../components/forms/products/hajjPackages/HajjPackageEdit';
 
 // Testing/Debug Pages
 import TestAuthPage from '../components/TestAuthPage';
@@ -41,6 +43,8 @@ const AppRoutes = () => {
           {/* Hajj & Umrah Routes */}
           <Route path="hajj-umrah">
             <Route path="hajj-packages" element={<HajjPackagesIndex />} />
+            <Route path="hajj-packages/create" element={<HajjPackageCreate />} />
+            <Route path="hajj-packages/:id/edit" element={<HajjPackageEdit />} />
             {/* Add other hajj-umrah routes here */}
           </Route>
           

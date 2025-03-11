@@ -50,9 +50,83 @@ const Login = () => {
       console.log('Login response:', response);
       console.log('User data:', response.user);
       
+      // Add more detailed logging of user properties
+      if (response.user) {
+        console.log('User ID:', response.user.id);
+        console.log('Tenant properties:');
+        console.log('- tenant_id:', response.user.tenant_id);
+        console.log('- tenant:', response.user.tenant);
+        console.log('- tenant_users:', response.user.tenant_users);
+        
+        // If tenant_users exists, log the first one's tenant property
+        if (response.user.tenant_users && response.user.tenant_users.length > 0) {
+          console.log('- First tenant_user.tenant:', response.user.tenant_users[0].tenant);
+        }
+      }
+      
+      // Store auth tokens
       localStorage.setItem('token', response.token);
       localStorage.setItem('refreshToken', response.refreshToken);
-      localStorage.setItem('user', JSON.stringify(response.user));
+      
+      // Process user data to ensure we have tenant info
+      const userData = response.user;
+      
+      // Try to ensure we have tenant ID information
+      if (userData) {
+        // Store the user object
+        localStorage.setItem('user', JSON.stringify(userData));
+        
+        // If we have tenant information, store it separately too
+        let tenantId = null;
+        
+        if (userData.tenant_id) {
+          tenantId = userData.tenant_id;
+        } else if (userData.tenant) {
+          tenantId = userData.tenant;
+        } else if (userData.tenant_users && userData.tenant_users.length > 0) {
+          tenantId = userData.tenant_users[0].tenant;
+        }
+        
+        if (tenantId) {
+          console.log('Storing tenant_id in localStorage:', tenantId);
+          localStorage.setItem('tenant_id', tenantId);
+          
+          // Also store in sessionStorage for redundancy
+          sessionStorage.setItem('tenant_id', tenantId);
+          
+          // Store as current_tenant object for compatibility
+          const currentTenant = { id: tenantId, name: userData.tenant_name || 'Default Tenant' };
+          sessionStorage.setItem('current_tenant', JSON.stringify(currentTenant));
+        } else {
+          console.warn('No tenant information found in user data');
+          
+          // Attempt to explicitly fetch user details including tenant_id
+          try {
+            console.log('Attempting to fetch user details directly...');
+            const userDetailsResponse = await fetch(`http://localhost:8000/api/auth/me/`, {
+              headers: {
+                'Authorization': `Bearer ${response.token}`
+              }
+            });
+            
+            if (userDetailsResponse.ok) {
+              const userDetailsData = await userDetailsResponse.json();
+              console.log('User details response:', userDetailsData);
+              
+              if (userDetailsData.tenant_id) {
+                console.log('Found tenant_id in user details:', userDetailsData.tenant_id);
+                localStorage.setItem('tenant_id', userDetailsData.tenant_id);
+                sessionStorage.setItem('tenant_id', userDetailsData.tenant_id);
+              }
+            } else {
+              console.error('Failed to fetch user details:', userDetailsResponse.status);
+            }
+          } catch (error) {
+            console.error('Error fetching user details:', error);
+          }
+        }
+      }
+      
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.detail || 'Login failed. Please check your credentials.');

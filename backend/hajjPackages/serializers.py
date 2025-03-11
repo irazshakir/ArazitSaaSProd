@@ -12,10 +12,12 @@ class HajjPackageSerializer(serializers.ModelSerializer):
         model = HajjPackage
         fields = (
             'id', 'tenant', 'created_by', 'assigned_to', 'created_by_details', 'assigned_to_details',
-            'package_name', 'hujjaj', 'hajj_days', 'hajj_star', 'hajj_start_date', 'hajj_end_date',
-            'hotel_makkah', 'hotel_medina', 'maktab_no', 'room_type',
-            'flight', 'flight_carrier', 'visa',
-            'buying_price', 'selling_price',
+            'package_name', 'visa', 'ziyarat', 'flight_carrier',
+            'package_star', 'hajj_days', 'departure_date', 'return_date', 'maktab_no',
+            'hotel_makkah', 'makkah_star', 'makkah_check_in', 'makkah_check_out', 'makkah_room_type', 'makkah_nights',
+            'hotel_madinah', 'madinah_star', 'madinah_check_in', 'madinah_check_out', 'madinah_room_type', 'madinah_nights',
+            'total_cost', 'selling_price',
+            'tags', 'image',
             'created_at', 'updated_at', 'is_active'
         )
         read_only_fields = ('id', 'created_at', 'updated_at', 'created_by')
