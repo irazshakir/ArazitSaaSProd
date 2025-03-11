@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Typography } from 'antd';
+import { Typography, Breadcrumb } from 'antd';
+import { HomeOutlined } from '@ant-design/icons';
 import HajjPackageForm from './HajjPackageForm';
 
 /**
@@ -20,6 +21,22 @@ const HajjPackageCreate = () => {
   
   return (
     <div style={{ padding: '24px' }}>
+      {/* Breadcrumbs navigation */}
+      <Breadcrumb 
+        style={{ marginBottom: '16px' }}
+        items={[
+          {
+            title: <span onClick={() => navigate('/dashboard')} style={{ cursor: 'pointer' }}><HomeOutlined /> Dashboard</span>,
+          },
+          {
+            title: <span onClick={() => navigate('/dashboard/hajj-umrah/hajj-packages')} style={{ cursor: 'pointer' }}>Hajj Packages</span>,
+          },
+          {
+            title: 'Create',
+          },
+        ]}
+      />
+      
       <Typography.Title level={3} style={{ marginBottom: '24px' }}>
         Create Hajj Package
       </Typography.Title>

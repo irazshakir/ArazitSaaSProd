@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Row, Col, Typography, Card, Alert, Affix, Space, Button, Spin, Form } from 'antd';
-import { SaveOutlined } from '@ant-design/icons';
+import { SaveOutlined, ArrowLeftOutlined } from '@ant-design/icons';
 import api from '../../../../services/api'; // Import the configured API instance
 import { API_BASE_URL, API_ENDPOINTS } from '../../../../config/api'; // Import API configuration
 
@@ -1113,10 +1113,15 @@ const HajjPackageForm = ({
           display: 'flex',
           justifyContent: 'space-between'
         }}>
-          {/* Left side - Test API button */}
+          {/* Left side - Return button */}
           <div>
-            <Button onClick={testApiConnection} type="dashed" style={{ marginRight: 8 }}>
-              Test API
+            <Button 
+              onClick={() => navigate('/dashboard/hajj-umrah/hajj-packages')} 
+              type="default" 
+              icon={<ArrowLeftOutlined />}
+              style={{ marginRight: 8 }}
+            >
+              Back to List
             </Button>
           </div>
           

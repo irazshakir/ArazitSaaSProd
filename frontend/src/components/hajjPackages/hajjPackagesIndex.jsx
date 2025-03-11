@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Container, Typography, Stack, Grid, Paper } from '@mui/material';
+import { Box, Container, Typography, Stack, Grid, Paper, Chip } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { message } from 'antd';
@@ -45,7 +45,7 @@ const HajjPackagesIndex = () => {
       sortable: true 
     },
     { 
-      field: 'hajj_start_date', 
+      field: 'departure_date', 
       headerName: 'TRAVEL DATE', 
       width: '20%',
       minWidth: 130,
@@ -53,7 +53,7 @@ const HajjPackagesIndex = () => {
       render: (value) => value ? new Date(value).toLocaleDateString() : 'N/A'
     },
     { 
-      field: 'hajj_end_date', 
+      field: 'return_date', 
       headerName: 'RETURN DATE', 
       width: '20%',
       minWidth: 130,
@@ -68,7 +68,27 @@ const HajjPackagesIndex = () => {
       sortable: true,
       type: 'status',
       render: (value) => (
-        value ? 'Active' : 'Inactive'
+        value ? 
+        <Chip 
+          label="Active" 
+          size="small" 
+          sx={{ 
+            backgroundColor: 'rgba(46, 204, 113, 0.2)', 
+            color: 'rgb(46, 204, 113)',
+            fontWeight: 500,
+            borderRadius: '4px'
+          }} 
+        /> : 
+        <Chip 
+          label="Inactive" 
+          size="small" 
+          sx={{ 
+            backgroundColor: 'rgba(231, 76, 60, 0.2)', 
+            color: 'rgb(231, 76, 60)',
+            fontWeight: 500,
+            borderRadius: '4px'
+          }} 
+        />
       )
     }
   ];
@@ -97,6 +117,9 @@ const HajjPackagesIndex = () => {
         const endpoint = API_ENDPOINTS.HAJJ_PACKAGES.LIST.replace(/^\/api\//, '');
         const response = await api.get(endpoint);
         
+        // Debug log to see the data structure
+        console.log('API Response Data:', response.data);
+        
         // Check if response.data is directly an array or has a results property (DRF pagination)
         let packagesArray = Array.isArray(response.data) 
           ? response.data
@@ -112,7 +135,12 @@ const HajjPackagesIndex = () => {
         // Transform data for UI representation
         const formattedData = packagesArray.map(pkg => ({
           ...pkg,
-          id: pkg.id // Ensure id field for table operations
+          id: pkg.id, // Ensure id field for table operations
+          // Ensure these fields are present for sorting and filtering
+          package_name: pkg.package_name || 'Unnamed Package',
+          departure_date: pkg.departure_date || null,
+          return_date: pkg.return_date || null,
+          is_active: typeof pkg.is_active === 'boolean' ? pkg.is_active : true
         }));
         
         setPackages(formattedData);
@@ -148,7 +176,7 @@ const HajjPackagesIndex = () => {
     if (query) {
       const lowercasedQuery = query.toLowerCase();
       results = results.filter(pkg => 
-        pkg.package_name.toLowerCase().includes(lowercasedQuery)
+        pkg.package_name?.toLowerCase().includes(lowercasedQuery)
       );
     }
     
@@ -165,9 +193,53 @@ const HajjPackagesIndex = () => {
 
   // Handle export
   const handleExport = (data, format, filename) => {
-    // Implement actual export logic here
-    // This would typically involve converting the data to the requested format
-    // and triggering a download
+    // Basic CSV export implementation
+    if (format === 'csv') {
+      try {
+        // Define headers based on columns
+        const headers = columns.map(col => col.headerName);
+        
+        // Map data to rows
+        const rows = data.map(item => {
+          return columns.map(col => {
+            const value = item[col.field];
+            // Format dates
+            if (col.field === 'departure_date' || col.field === 'return_date') {
+              return value ? new Date(value).toLocaleDateString() : '';
+            }
+            // Format boolean values
+            if (col.field === 'is_active') {
+              return value ? 'Active' : 'Inactive';
+            }
+            return value || '';
+          });
+        });
+        
+        // Combine headers and rows
+        const csvContent = [
+          headers.join(','),
+          ...rows.map(row => row.join(','))
+        ].join('\n');
+        
+        // Create download link
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `${filename}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        message.success(`Exported ${data.length} packages as CSV`);
+      } catch (error) {
+        console.error('Error exporting data:', error);
+        message.error('Failed to export data');
+      }
+    } else {
+      message.info(`Export as ${format} is not implemented yet`);
+    }
   };
 
   // Handle create new package

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Typography, Spin, Alert, Space } from 'antd';
+import { Typography, Spin, Alert, Space, Breadcrumb } from 'antd';
+import { HomeOutlined } from '@ant-design/icons';
 import api from '../../../../services/api';
 import HajjPackageForm from './HajjPackageForm';
 
@@ -76,8 +77,24 @@ const HajjPackageEdit = () => {
   // Show form with loaded data
   return (
     <div style={{ padding: '24px' }}>
+      {/* Breadcrumbs navigation */}
+      <Breadcrumb 
+        style={{ marginBottom: '16px' }}
+        items={[
+          {
+            title: <span onClick={() => navigate('/dashboard')} style={{ cursor: 'pointer' }}><HomeOutlined /> Dashboard</span>,
+          },
+          {
+            title: <span onClick={() => navigate('/dashboard/hajj-umrah/hajj-packages')} style={{ cursor: 'pointer' }}>Hajj Packages</span>,
+          },
+          {
+            title: `Edit: ${packageData?.package_name || 'Package'}`,
+          },
+        ]}
+      />
+      
       <Typography.Title level={3} style={{ marginBottom: '24px' }}>
-        Edit Hajj Package
+        Edit Hajj Package: {packageData?.package_name}
       </Typography.Title>
       
       {packageData && (
