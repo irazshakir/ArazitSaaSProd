@@ -23,7 +23,6 @@ const HajjPackageEdit = () => {
         const response = await api.get(`/hajj-packages/${id}/`);
         setPackageData(response.data);
       } catch (err) {
-        console.error('Error fetching package details:', err);
         setError('Failed to load package details. Please try again.');
       } finally {
         setLoading(false);

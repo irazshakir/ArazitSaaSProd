@@ -117,9 +117,6 @@ const HajjPackagesIndex = () => {
         const endpoint = API_ENDPOINTS.HAJJ_PACKAGES.LIST.replace(/^\/api\//, '');
         const response = await api.get(endpoint);
         
-        // Debug log to see the data structure
-        console.log('API Response Data:', response.data);
-        
         // Check if response.data is directly an array or has a results property (DRF pagination)
         let packagesArray = Array.isArray(response.data) 
           ? response.data
@@ -147,7 +144,6 @@ const HajjPackagesIndex = () => {
         setFilteredPackages(formattedData);
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching Hajj packages:', error);
         setLoading(false);
         message.error('Failed to load packages. Please try again.');
       }
@@ -234,7 +230,6 @@ const HajjPackagesIndex = () => {
         
         message.success(`Exported ${data.length} packages as CSV`);
       } catch (error) {
-        console.error('Error exporting data:', error);
         message.error('Failed to export data');
       }
     } else {
@@ -284,7 +279,6 @@ const HajjPackagesIndex = () => {
       message.destroy();
       
       // Show error message
-      console.error('Error deleting package:', error);
       message.error('Failed to delete package. Please try again.');
     }
   };

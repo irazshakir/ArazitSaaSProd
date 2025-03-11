@@ -12,10 +12,7 @@ const HajjPackageCreate = () => {
   
   // Handle successful form submission
   const handleSuccess = () => {
-    console.log('HajjPackageCreate: Form submitted successfully');
-    // Show success message and redirect
     alert('Hajj package created successfully!');
-    console.log('HajjPackageCreate: Navigating to package list');
     navigate('/dashboard/hajj-umrah/hajj-packages');
   };
   
