@@ -1,0 +1,360 @@
+import uuid
+from django.db import models
+from django.utils import timezone
+from users.models import User, Tenant
+from hajjPackages.models import HajjPackage
+
+class Lead(models.Model):
+    """Model for tracking leads in the CRM system."""
+    
+    # Lead status choices - updated as requested
+    STATUS_NEW = 'new'
+    STATUS_QUALIFIED = 'qualified'
+    STATUS_NON_POTENTIAL = 'non_potential'
+    STATUS_PROPOSAL = 'proposal'
+    STATUS_NEGOTIATION = 'negotiation'
+    STATUS_WON = 'won'
+    STATUS_LOST = 'lost'
+    
+    STATUS_CHOICES = [
+        (STATUS_NEW, 'New'),
+        (STATUS_QUALIFIED, 'Qualified'),
+        (STATUS_NON_POTENTIAL, 'Non-Potential'),
+        (STATUS_PROPOSAL, 'Proposal'),
+        (STATUS_NEGOTIATION, 'Negotiation'),
+        (STATUS_WON, 'Won'),
+        (STATUS_LOST, 'Lost'),
+    ]
+    
+    # Lead source choices - updated as requested
+    SOURCE_FB_FORM = 'fb_form'
+    SOURCE_MESSENGER = 'messenger'
+    SOURCE_WHATSAPP = 'whatsapp'
+    SOURCE_INSTA_FORM = 'insta_form'
+    SOURCE_WEBSITE_FORM = 'website_form'
+    SOURCE_WEBSITE_CHAT = 'website_chat'
+    SOURCE_REFERRAL = 'referral'
+    SOURCE_WALK_IN = 'walk_in'
+    
+    SOURCE_CHOICES = [
+        (SOURCE_FB_FORM, 'FB Form'),
+        (SOURCE_MESSENGER, 'Messenger'),
+        (SOURCE_WHATSAPP, 'WhatsApp'),
+        (SOURCE_INSTA_FORM, 'Insta Form'),
+        (SOURCE_WEBSITE_FORM, 'Website Form'),
+        (SOURCE_WEBSITE_CHAT, 'Website Chat'),
+        (SOURCE_REFERRAL, 'Referral'),
+        (SOURCE_WALK_IN, 'Walk In'),
+    ]
+    
+    # Lead type choices - will expand as more apps are added
+    TYPE_HAJJ_PACKAGE = 'hajj_package'
+    TYPE_CUSTOM_UMRAH = 'custom_umrah'
+    TYPE_READYMADE_UMRAH = 'readymade_umrah'
+    TYPE_FLIGHT = 'flight'
+    TYPE_VISA = 'visa'
+    TYPE_TRANSFER = 'transfer'
+    TYPE_ZIYARAT = 'ziyarat'
+    
+    TYPE_CHOICES = [
+        (TYPE_HAJJ_PACKAGE, 'Hajj Package'),
+        (TYPE_CUSTOM_UMRAH, 'Custom Umrah'),
+        (TYPE_READYMADE_UMRAH, 'Readymade Umrah'),
+        (TYPE_FLIGHT, 'Flight'),
+        (TYPE_VISA, 'Visa'),
+        (TYPE_TRANSFER, 'Transfer'),
+        (TYPE_ZIYARAT, 'Ziyarat'),
+    ]
+    
+    # Lead activity status
+    ACTIVITY_STATUS_ACTIVE = 'active'
+    ACTIVITY_STATUS_INACTIVE = 'inactive'
+    
+    ACTIVITY_STATUS_CHOICES = [
+        (ACTIVITY_STATUS_ACTIVE, 'Active'),
+        (ACTIVITY_STATUS_INACTIVE, 'Inactive'),
+    ]
+    
+    # Primary fields
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='leads')
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_leads')
+    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_leads')
+    
+    # Lead type and related product
+    lead_type = models.CharField(max_length=50, choices=TYPE_CHOICES, default=TYPE_HAJJ_PACKAGE)
+    hajj_package = models.ForeignKey(HajjPackage, on_delete=models.SET_NULL, null=True, blank=True, related_name='leads')
+    
+    # Basic lead information - updated as requested
+    name = models.CharField(max_length=200)
+    email = models.EmailField(blank=True, null=True)
+    phone = models.CharField(max_length=20)
+    whatsapp = models.CharField(max_length=20, blank=True, null=True)
+    
+    # Query details stored as JSON
+    query_for = models.JSONField(default=dict, help_text="Stores details like adults, children, infants, initial remarks")
+    
+    # Lead details
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_NEW)
+    source = models.CharField(max_length=20, choices=SOURCE_CHOICES, default=SOURCE_WEBSITE_FORM)
+    lead_activity_status = models.CharField(max_length=20, choices=ACTIVITY_STATUS_CHOICES, default=ACTIVITY_STATUS_ACTIVE)
+    
+    # Dates
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    last_contacted = models.DateTimeField(null=True, blank=True)
+    next_follow_up = models.DateTimeField(null=True, blank=True)
+    
+    # Additional data
+    tags = models.JSONField(null=True, blank=True, help_text="Custom tags to categorize leads")
+    custom_fields = models.JSONField(null=True, blank=True, help_text="Dynamic custom fields specific to tenant or lead type")
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['lead_type']),
+            models.Index(fields=['status']),
+            models.Index(fields=['created_at']),
+            models.Index(fields=['lead_activity_status']),
+        ]
+    
+    def __str__(self):
+        return f"{self.name} - {self.get_lead_type_display()}"
+
+
+class LeadEvent(models.Model):
+    """Model for tracking lead lifecycle events."""
+    
+    # Event type choices
+    EVENT_OPEN = 'open'
+    EVENT_CLOSED = 'closed'
+    EVENT_REOPENED = 'reopened'
+    EVENT_WON = 'won'
+    EVENT_LOST = 'lost'
+    
+    EVENT_CHOICES = [
+        (EVENT_OPEN, 'Open'),
+        (EVENT_CLOSED, 'Closed'),
+        (EVENT_REOPENED, 'Reopened'),
+        (EVENT_WON, 'Won'),
+        (EVENT_LOST, 'Lost'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='events')
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='lead_events')
+    event_type = models.CharField(max_length=20, choices=EVENT_CHOICES)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='lead_events')
+    
+    class Meta:
+        ordering = ['-timestamp']
+        indexes = [
+            models.Index(fields=['event_type']),
+            models.Index(fields=['timestamp']),
+        ]
+    
+    def __str__(self):
+        return f"{self.get_event_type_display()} - {self.lead.name} ({self.timestamp.strftime('%Y-%m-%d %H:%M')})"
+
+
+class LeadNote(models.Model):
+    """Model for storing notes related to leads."""
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='notes')
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='lead_notes')
+    note = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    added_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='lead_notes')
+    
+    class Meta:
+        ordering = ['-timestamp']
+    
+    def __str__(self):
+        return f"Note for {self.lead.name} ({self.timestamp.strftime('%Y-%m-%d %H:%M')})"
+
+
+class LeadDocument(models.Model):
+    """Model for storing documents related to leads."""
+    
+    # Document type choices
+    DOC_PASSPORT = 'passport'
+    DOC_PICTURE = 'picture'
+    DOC_VISA = 'visa'
+    DOC_MAKKAH_HOTEL_VOUCHER = 'makkah_hotel_voucher'
+    DOC_MADINAH_HOTEL_VOUCHER = 'madinah_hotel_voucher'
+    DOC_TRANSFER_VOUCHER = 'transfer_voucher'
+    DOC_ZIYARAT_VOUCHER = 'ziyarat_voucher'
+    DOC_FLIGHT_TICKET = 'flight_ticket'
+    DOC_OTHER = 'other'
+    
+    DOC_CHOICES = [
+        (DOC_PASSPORT, 'Passport'),
+        (DOC_PICTURE, 'Picture'),
+        (DOC_VISA, 'Visa'),
+        (DOC_MAKKAH_HOTEL_VOUCHER, 'Makkah Hotel Voucher'),
+        (DOC_MADINAH_HOTEL_VOUCHER, 'Madinah Hotel Voucher'),
+        (DOC_TRANSFER_VOUCHER, 'Transfer Voucher'),
+        (DOC_ZIYARAT_VOUCHER, 'Ziyarat Voucher'),
+        (DOC_FLIGHT_TICKET, 'Flight Ticket'),
+        (DOC_OTHER, 'Other'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='documents')
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='lead_documents')
+    document_type = models.CharField(max_length=30, choices=DOC_CHOICES)
+    document_path = models.FileField(upload_to='lead_documents/')
+    uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='uploaded_lead_documents')
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+    
+    def __str__(self):
+        return f"{self.get_document_type_display()} for {self.lead.name}"
+
+
+class LeadProfile(models.Model):
+    """Model for evaluating and scoring lead profiles."""
+    
+    # Buying level choices
+    BUYING_HIGH = 'high'
+    BUYING_MEDIUM = 'medium'
+    BUYING_LOW = 'low'
+    BUYING_VERY_LOW = 'very_low'
+    
+    BUYING_CHOICES = [
+        (BUYING_HIGH, 'High'),
+        (BUYING_MEDIUM, 'Medium'),
+        (BUYING_LOW, 'Low'),
+        (BUYING_VERY_LOW, 'Very Low'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    lead = models.OneToOneField(Lead, on_delete=models.CASCADE, related_name='profile')
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='lead_profiles')
+    qualified_lead = models.BooleanField(default=False)
+    buying_level = models.CharField(max_length=20, choices=BUYING_CHOICES, default=BUYING_MEDIUM)
+    previous_purchase = models.BooleanField(default=False)
+    previous_purchase_amount = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    
+    # Additional scoring fields
+    engagement_score = models.PositiveSmallIntegerField(default=0, help_text="Score based on engagement level (0-100)")
+    response_time_score = models.PositiveSmallIntegerField(default=0, help_text="Score based on response time (0-100)")
+    budget_match_score = models.PositiveSmallIntegerField(default=0, help_text="Score based on budget match (0-100)")
+    overall_score = models.PositiveSmallIntegerField(default=0, help_text="Overall lead score (0-100)")
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-overall_score']
+    
+    def __str__(self):
+        return f"Profile for {self.lead.name}"
+    
+    def calculate_overall_score(self):
+        """Calculate the overall score based on various factors."""
+        # Base score from individual components
+        base_score = (self.engagement_score + self.response_time_score + self.budget_match_score) / 3
+        
+        # Adjust for qualification
+        if self.qualified_lead:
+            base_score += 10
+        
+        # Adjust for buying level
+        buying_level_scores = {
+            self.BUYING_HIGH: 20,
+            self.BUYING_MEDIUM: 10,
+            self.BUYING_LOW: 0,
+            self.BUYING_VERY_LOW: -10
+        }
+        base_score += buying_level_scores.get(self.buying_level, 0)
+        
+        # Adjust for previous purchase
+        if self.previous_purchase:
+            base_score += 15
+            
+            # Additional bonus for high-value previous purchases
+            if self.previous_purchase_amount and self.previous_purchase_amount > 200000:
+                base_score += min(15, self.previous_purchase_amount / 200000)
+        
+        # Ensure score is between 0 and 100
+        self.overall_score = max(0, min(100, int(base_score)))
+        return self.overall_score
+    
+    def save(self, *args, **kwargs):
+        # Calculate overall score before saving
+        self.calculate_overall_score()
+        super().save(*args, **kwargs)
+
+
+class LeadOverdue(models.Model):
+    """Model for tracking overdue leads."""
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='overdue_records')
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='lead_overdues')
+    overdue = models.BooleanField(default=True)
+    lead_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='overdue_leads')
+    timestamp = models.DateTimeField(auto_now_add=True)
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-timestamp']
+    
+    def __str__(self):
+        status = "Overdue" if self.overdue else "Resolved"
+        return f"{status} lead: {self.lead.name} ({self.timestamp.strftime('%Y-%m-%d')})"
+    
+    def resolve(self):
+        """Mark the overdue lead as resolved."""
+        self.overdue = False
+        self.resolved_at = timezone.now()
+        self.save()
+
+
+class LeadActivity(models.Model):
+    """Model for tracking activities related to leads."""
+    
+    # Activity type choices - Note type removed as requested
+    TYPE_CALL = 'call'
+    TYPE_EMAIL = 'email'
+    TYPE_MEETING = 'meeting'
+    TYPE_TASK = 'task'
+    
+    TYPE_CHOICES = [
+        (TYPE_CALL, 'Call'),
+        (TYPE_EMAIL, 'Email'),
+        (TYPE_MEETING, 'Meeting'),
+        (TYPE_TASK, 'Task'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='activities')
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='lead_activities')
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='lead_activities')
+    
+    activity_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    description = models.TextField()
+    
+    # For calls, emails, meetings
+    duration = models.PositiveIntegerField(null=True, blank=True, help_text="Duration in minutes")
+    
+    # For tasks
+    due_date = models.DateTimeField(null=True, blank=True)
+    completed = models.BooleanField(default=False)
+    completed_at = models.DateTimeField(null=True, blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Lead Activities'
+    
+    def __str__(self):
+        return f"{self.get_activity_type_display()} for {self.lead.name}"

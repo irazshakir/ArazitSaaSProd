@@ -24,6 +24,7 @@ urlpatterns = [
     path('api/auth/', include('users.urls')),
     path('api/', include('rest_framework.urls')),
     path('api/', include('hajjPackages.urls')),  # Hajj Packages API endpoints
+    path('api/', include('leads.urls')),  # Leads API endpoints
 ]
 
 # Serve media files in development
