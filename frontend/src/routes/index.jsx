@@ -16,6 +16,12 @@ import HajjPackagesIndex from '../components/hajjPackages/hajjPackagesIndex';
 import HajjPackageCreate from '../components/forms/products/hajjPackages/HajjPackageCreate';
 import HajjPackageEdit from '../components/forms/products/hajjPackages/HajjPackageEdit';
 
+// Leads Pages
+import LeadsIndex from '../components/leads/leadsIndex';
+import LeadCreate from '../components/leads/LeadCreate';
+import LeadEdit from '../components/leads/leadEdit';
+import LeadView from '../components/leads/leadView';
+
 // Testing/Debug Pages
 import TestAuthPage from '../components/TestAuthPage';
 
@@ -47,6 +53,12 @@ const AppRoutes = () => {
             <Route path="hajj-packages/:id/edit" element={<HajjPackageEdit />} />
             {/* Add other hajj-umrah routes here */}
           </Route>
+          
+          {/* Leads Routes */}
+          <Route path="leads" element={<LeadsIndex />} />
+          <Route path="leads/create" element={<LeadCreate />} />
+          <Route path="leads/:id" element={<LeadView />} />
+          <Route path="leads/:id/edit" element={<LeadEdit />} />
           
           {/* Add other module routes here */}
         </Route>

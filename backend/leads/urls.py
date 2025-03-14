@@ -1,11 +1,35 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import LeadViewSet, LeadActivityViewSet
+from .views import (
+    LeadViewSet, LeadActivityViewSet, LeadNoteViewSet,
+    LeadDocumentViewSet, LeadEventViewSet, LeadProfileViewSet,
+    LeadOverdueViewSet
+)
 
 router = DefaultRouter()
 router.register(r'leads', LeadViewSet)
 router.register(r'lead-activities', LeadActivityViewSet)
+router.register(r'lead-notes', LeadNoteViewSet)
+router.register(r'lead-documents', LeadDocumentViewSet)
+router.register(r'lead-events', LeadEventViewSet)
+router.register(r'lead-profiles', LeadProfileViewSet)
+router.register(r'lead-overdues', LeadOverdueViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    
+    # Lead-specific actions
+    path('leads/<uuid:pk>/assign/', LeadViewSet.as_view({'post': 'assign'}), name='lead-assign'),
+    path('leads/<uuid:pk>/update-status/', LeadViewSet.as_view({'post': 'update_status'}), name='lead-update-status'),
+    path('leads/<uuid:pk>/add-note/', LeadViewSet.as_view({'post': 'add_note'}), name='lead-add-note'),
+    path('leads/<uuid:pk>/add-activity/', LeadViewSet.as_view({'post': 'add_activity'}), name='lead-add-activity'),
+    path('leads/<uuid:pk>/upload-document/', LeadViewSet.as_view({'post': 'upload_document'}), name='lead-upload-document'),
+    path('leads/<uuid:pk>/update-profile/', LeadViewSet.as_view({'post': 'update_profile'}), name='lead-update-profile'),
+    path('leads/<uuid:pk>/mark-overdue/', LeadViewSet.as_view({'post': 'mark_overdue'}), name='lead-mark-overdue'),
+    path('leads/<uuid:pk>/resolve-overdue/', LeadViewSet.as_view({'post': 'resolve_overdue'}), name='lead-resolve-overdue'),
+    
+    # Filtered lead lists
+    path('leads/by-type/', LeadViewSet.as_view({'get': 'by_type'}), name='leads-by-type'),
+    path('leads/by-status/', LeadViewSet.as_view({'get': 'by_status'}), name='leads-by-status'),
+    path('leads/overdue/', LeadViewSet.as_view({'get': 'overdue'}), name='leads-overdue'),
 ] 

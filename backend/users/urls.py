@@ -33,6 +33,9 @@ urlpatterns = [
     # Industry Choices
     path('industry-choices/', UserViewSet.as_view({'get': 'industry_choices'}), name='industry_choices'),
     
+    # Active Users by Tenant
+    path('active-by-tenant/', UserViewSet.as_view({'get': 'active_by_tenant'}), name='active_by_tenant'),
+    
     # Router URLs
     path('', include(router.urls)),
 ] 

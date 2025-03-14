@@ -70,11 +70,24 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """
         Filter users by the authenticated user's tenant.
+        Allow filtering by tenant_id and is_active parameters.
         """
-        user = self.request.user
-        if user.is_superuser:
-            return User.objects.all()
-        return User.objects.filter(tenant_id=user.tenant_id)
+        queryset = User.objects.all()
+        
+        # Filter by tenant_id from query params or user's tenant_id
+        tenant_id = self.request.query_params.get('tenant')
+        if tenant_id:
+            queryset = queryset.filter(tenant_id=tenant_id)
+        elif not self.request.user.is_superuser:
+            queryset = queryset.filter(tenant_id=self.request.user.tenant_id)
+        
+        # Filter by is_active if provided
+        is_active = self.request.query_params.get('is_active')
+        if is_active is not None:
+            is_active_bool = is_active.lower() == 'true'
+            queryset = queryset.filter(is_active=is_active_bool)
+            
+        return queryset
     
     def get_serializer_class(self):
         """
@@ -139,6 +152,22 @@ class UserViewSet(viewsets.ModelViewSet):
                 for choice in TenantUser.INDUSTRY_CHOICES
             ]
         })
+
+    @action(detail=False, methods=['get'])
+    def active_by_tenant(self, request):
+        """
+        Return active users for a specific tenant.
+        """
+        tenant_id = request.query_params.get('tenant')
+        if not tenant_id:
+            return Response(
+                {"error": "Tenant ID is required"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        users = User.objects.filter(tenant_id=tenant_id, is_active=True)
+        serializer = self.get_serializer(users, many=True)
+        return Response(serializer.data)
 
 
 class TenantViewSet(viewsets.ModelViewSet):
