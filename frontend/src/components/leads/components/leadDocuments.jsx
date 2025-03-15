@@ -9,11 +9,13 @@ import {
   Space, 
   Empty, 
   message,
-  Select,
-  Tag,
-  Modal,
+  Input,
   Tooltip,
-  Spin
+  Modal,
+  Tag,
+  Row,
+  Col,
+  Divider
 } from 'antd';
 import { 
   UploadOutlined, 
@@ -23,7 +25,9 @@ import {
   FileTextOutlined,
   DeleteOutlined,
   DownloadOutlined,
-  EyeOutlined
+  EyeOutlined,
+  PlusOutlined,
+  MinusCircleOutlined
 } from '@ant-design/icons';
 import { Box } from '@mui/material';
 import api from '../../../services/api';
@@ -34,8 +38,9 @@ const { Dragger } = Upload;
  * Component for displaying and managing lead documents
  * @param {string} leadId - The ID of the lead
  * @param {array} documents - Initial documents data
+ * @param {function} onDocumentUpload - Callback function to refresh documents in parent component
  */
-const LeadDocuments = ({ leadId, documents = [] }) => {
+const LeadDocuments = ({ leadId, documents = [], onDocumentUpload }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -87,33 +92,82 @@ const LeadDocuments = ({ leadId, documents = [] }) => {
     }
   };
   
-  // Handle file upload
+  // Custom file upload props
+  const uploadProps = {
+    beforeUpload: (file) => {
+      // Prevent automatic upload
+      return false;
+    },
+    maxCount: 1,
+    multiple: false,
+    showUploadList: false // Hide the default upload list
+  };
+  
+  // Handle form submission with multiple documents
   const handleUpload = async (values) => {
     try {
       setSubmitting(true);
       
-      // Create form data for file upload
-      const formData = new FormData();
-      formData.append('document_type', values.document_type);
-      formData.append('lead', leadId);
-      formData.append('document_path', values.document_path[0].originFileObj);
+      // Get tenant ID from localStorage
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const tenantId = user.tenant_id;
       
-      const response = await api.post('/leads/' + leadId + '/add-document/', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
+      if (!tenantId) {
+        console.error('Tenant ID not found in localStorage');
+        message.error('Tenant information not available. Please log in again.');
+        setSubmitting(false);
+        return;
+      }
+      
+      // Process each document in the documents array
+      const uploadPromises = values.documents.map(async (doc) => {
+        // Skip if no file is selected or no name is provided
+        if (!doc.document_path || !doc.document_path[0] || !doc.document_name) {
+          return null;
         }
+        
+        const formData = new FormData();
+        formData.append('document_name', doc.document_name);
+        formData.append('lead', leadId);
+        formData.append('tenant', tenantId);
+        formData.append('document_path', doc.document_path[0].originFileObj);
+        
+        // Use the correct endpoint from urls.py
+        return api.post(`/leads/${leadId}/upload-document/`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
       });
       
-      // Add new document to the list
-      setLeadDocuments([response.data, ...leadDocuments]);
+      // Filter out null promises (skipped uploads)
+      const validPromises = uploadPromises.filter(p => p !== null);
+      
+      if (validPromises.length === 0) {
+        message.warning('No valid documents to upload');
+        setSubmitting(false);
+        return;
+      }
+      
+      // Wait for all uploads to complete
+      const responses = await Promise.all(validPromises);
+      
+      // Add new documents to the list
+      const newDocuments = responses.map(response => response.data);
+      setLeadDocuments([...newDocuments, ...leadDocuments]);
       
       // Reset form
       form.resetFields();
       
-      message.success('Document uploaded successfully');
+      // Call the onDocumentUpload callback to refresh documents in parent component
+      if (onDocumentUpload && typeof onDocumentUpload === 'function') {
+        onDocumentUpload(leadId);
+      }
+      
+      message.success(`${newDocuments.length} document(s) uploaded successfully`);
     } catch (error) {
-      console.error('Error uploading document:', error);
-      message.error('Failed to upload document');
+      console.error('Error uploading documents:', error);
+      message.error('Failed to upload documents');
     } finally {
       setSubmitting(false);
     }
@@ -198,63 +252,98 @@ const LeadDocuments = ({ leadId, documents = [] }) => {
     return new Date(dateString).toLocaleString();
   };
   
-  // Custom file upload props
-  const uploadProps = {
-    beforeUpload: (file) => {
-      // Prevent automatic upload
-      return false;
-    },
-    maxCount: 1,
-    multiple: false
-  };
-  
   return (
     <Box sx={{ py: 2 }}>
-      {/* Upload Document Form */}
-      <Card title="Upload Document" style={{ marginBottom: 16 }}>
+      {/* Upload Document Form - Redesigned */}
+      <Card title="Upload Documents" style={{ marginBottom: 16 }}>
         <Form form={form} onFinish={handleUpload} layout="vertical">
-          <Form.Item
-            name="document_type"
-            label="Document Type"
-            rules={[{ required: true, message: 'Please select document type' }]}
-          >
-            <Select placeholder="Select document type">
-              {documentTypes.map(type => (
-                <Select.Option key={type.value} value={type.value}>
-                  {type.label}
-                </Select.Option>
-              ))}
-            </Select>
-          </Form.Item>
-          
-          <Form.Item
-            name="document_path"
-            label="Document"
-            rules={[{ required: true, message: 'Please upload a document' }]}
-            valuePropName="fileList"
-            getValueFromEvent={e => Array.isArray(e) ? e : e?.fileList}
-          >
-            <Dragger {...uploadProps}>
-              <p className="ant-upload-drag-icon">
-                <UploadOutlined />
-              </p>
-              <p className="ant-upload-text">Click or drag file to this area to upload</p>
-              <p className="ant-upload-hint">
-                Support for a single file upload. Please upload documents in PDF, JPG, PNG, or DOC format.
-              </p>
-            </Dragger>
-          </Form.Item>
-          
-          <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
-            <Button 
-              type="primary" 
-              htmlType="submit" 
-              icon={<UploadOutlined />} 
-              loading={submitting}
-            >
-              Upload Document
-            </Button>
-          </Form.Item>
+          <Form.List name="documents" initialValue={[{}]}>
+            {(fields, { add, remove }) => (
+              <>
+                {fields.map(({ key, name, ...restField }) => (
+                  <Row key={key} gutter={16} align="middle" style={{ marginBottom: 16 }}>
+                    <Col span={12}>
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'document_name']}
+                        rules={[{ required: true, message: 'Document name is required' }]}
+                        style={{ marginBottom: 0 }}
+                      >
+                        <Input placeholder="Document name or description" />
+                      </Form.Item>
+                    </Col>
+                    <Col span={8}>
+                      <Form.Item
+                        {...restField}
+                        name={[name, 'document_path']}
+                        valuePropName="fileList"
+                        getValueFromEvent={e => Array.isArray(e) ? e : e?.fileList}
+                        rules={[{ required: true, message: 'Please select a file' }]}
+                        style={{ marginBottom: 0 }}
+                      >
+                        <Upload {...uploadProps}>
+                          <Button icon={<UploadOutlined />}>Select File</Button>
+                        </Upload>
+                      </Form.Item>
+                    </Col>
+                    <Col span={4} style={{ textAlign: 'right' }}>
+                      <Space>
+                        {fields.length > 1 && (
+                          <Button 
+                            type="text" 
+                            danger
+                            icon={<MinusCircleOutlined />} 
+                            onClick={() => remove(name)} 
+                          />
+                        )}
+                        {key === fields.length - 1 && (
+                          <Button 
+                            type="text" 
+                            icon={<PlusOutlined />} 
+                            onClick={() => add()} 
+                          />
+                        )}
+                      </Space>
+                    </Col>
+                    
+                    {/* Show selected file name */}
+                    <Col span={24}>
+                      <Form.Item
+                        shouldUpdate={(prevValues, currentValues) => {
+                          return prevValues.documents?.[name]?.document_path !== 
+                                 currentValues.documents?.[name]?.document_path;
+                        }}
+                        style={{ marginBottom: 0, marginTop: 4 }}
+                      >
+                        {({ getFieldValue }) => {
+                          const fileList = getFieldValue(['documents', name, 'document_path']);
+                          const fileName = fileList && fileList[0]?.name;
+                          return fileName ? (
+                            <Typography.Text type="secondary" style={{ fontSize: '0.8rem' }}>
+                              Selected: {fileName}
+                            </Typography.Text>
+                          ) : null;
+                        }}
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                ))}
+                
+                <Divider style={{ margin: '16px 0' }} />
+                
+                <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+                  <Button 
+                    type="primary" 
+                    htmlType="submit" 
+                    icon={<UploadOutlined />} 
+                    loading={submitting}
+                  >
+                    Upload All Documents
+                  </Button>
+                </Form.Item>
+              </>
+            )}
+          </Form.List>
         </Form>
       </Card>
       
@@ -297,7 +386,7 @@ const LeadDocuments = ({ leadId, documents = [] }) => {
                   title={
                     <Space>
                       <Typography.Text strong>
-                        {getDocumentTypeLabel(document.document_type)}
+                        {document.document_name}
                       </Typography.Text>
                       <Tag color="blue">{getDocumentFileName(document)}</Tag>
                     </Space>
@@ -325,7 +414,7 @@ const LeadDocuments = ({ leadId, documents = [] }) => {
       
       {/* Document Preview Modal */}
       <Modal
-        title={previewDocument ? `Preview: ${getDocumentTypeLabel(previewDocument.document_type)}` : 'Document Preview'}
+        title={previewDocument ? `Preview: ${previewDocument.document_name}` : 'Document Preview'}
         visible={previewVisible}
         onCancel={handleClosePreview}
         footer={[

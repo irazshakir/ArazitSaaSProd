@@ -6,7 +6,7 @@ import {
 } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
-import { FileOutlined, DeleteOutlined, PlusOutlined, PhoneOutlined, MailOutlined, TeamOutlined, CheckOutlined } from '@ant-design/icons';
+import { FileOutlined, DeleteOutlined, PlusOutlined, PhoneOutlined, MailOutlined, TeamOutlined, CheckOutlined, UploadOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
 // Import form components
@@ -16,6 +16,7 @@ import FormSelect from '../forms/common/formSelect';
 import FormTextarea from '../forms/common/formTextarea';
 import FormDatePicker from '../forms/common/formDatePicker';
 import FormActions from '../forms/common/formActions';
+import LeadDocuments from './components/leadDocuments';
 
 const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   const navigate = useNavigate();
@@ -36,6 +37,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   const [loadingActivities, setLoadingActivities] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [submittingDocuments, setSubmittingDocuments] = useState(false);
   
   // Add this state to track form values directly
   const [formValues, setFormValues] = useState({
@@ -489,14 +491,19 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   // Function to fetch lead documents
   const fetchLeadDocuments = async (leadId) => {
     try {
-      setLoadingDocuments(true);
-      const response = await api.get(`/leads/${leadId}/documents/`);
-      setDocuments(response.data);
+      const response = await api.get(`/lead-documents/?lead=${leadId || initialData.id}`);
+      
+      // Process response data
+      let documentsArray = Array.isArray(response.data) 
+        ? response.data
+        : (response.data?.results && Array.isArray(response.data.results))
+          ? response.data.results
+          : [];
+      
+      setDocuments(documentsArray);
     } catch (error) {
-      console.error('Error fetching lead documents:', error);
-      message.error('Failed to load lead documents');
-    } finally {
-      setLoadingDocuments(false);
+      console.error('Error fetching documents:', error);
+      message.error('Failed to load documents');
     }
   };
   
@@ -592,35 +599,42 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   
   // Function to upload a document
   const handleUploadDocument = async (options) => {
-    const { file, onSuccess, onError, onProgress } = options;
-    
-    if (!isEditMode || !initialData.id) {
-      onError('Lead must be saved first');
-      return;
-    }
-    
-    const formData = new FormData();
-    formData.append('document_path', file);
-    formData.append('document_type', file.documentType || 'other');
-    formData.append('lead', initialData.id);
+    const { file, onSuccess, onError } = options;
     
     try {
-      const response = await api.post(`/leads/${initialData.id}/documents/`, formData, {
+      // Get tenant ID from localStorage
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const tenantId = user.tenant_id;
+      
+      if (!tenantId) {
+        console.error('Tenant ID not found in localStorage');
+        message.error('Tenant information not available. Please log in again.');
+        onError('Tenant information not available');
+        return;
+      }
+      
+      const formData = new FormData();
+      formData.append('document_name', file.documentType || 'Unnamed Document');
+      formData.append('lead', initialData.id);
+      formData.append('tenant', tenantId);
+      formData.append('document_path', file);
+      
+      // Use the correct endpoint from urls.py
+      const response = await api.post(`/leads/${initialData.id}/upload-document/`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
-        },
-        onUploadProgress: ({ total, loaded }) => {
-          onProgress({ percent: Math.round((loaded / total) * 100) });
         }
       });
       
-      onSuccess(response, file);
-      setDocuments([response.data, ...documents]);
+      // Refresh documents list
+      fetchLeadDocuments(initialData.id);
+      
       message.success('Document uploaded successfully');
+      onSuccess(response.data);
     } catch (error) {
       console.error('Error uploading document:', error);
-      onError(error);
       message.error('Failed to upload document');
+      onError('Upload failed');
     }
   };
   
@@ -970,6 +984,70 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       fetchLeadNotes(initialData.id);
     }
   }, [activeTab, isEditMode, initialData?.id]);
+  
+  // Add this function to handle multiple document uploads
+  const handleUploadMultipleDocuments = async (values) => {
+    try {
+      setSubmittingDocuments(true);
+      
+      // Get tenant ID from localStorage
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const tenantId = user.tenant_id;
+      
+      if (!tenantId) {
+        console.error('Tenant ID not found in localStorage');
+        message.error('Tenant information not available. Please log in again.');
+        setSubmittingDocuments(false);
+        return;
+      }
+      
+      // Process each document in the documents array
+      const uploadPromises = values.documents.map(async (doc) => {
+        // Skip if no file is selected or no name is provided
+        if (!doc.document_path || !doc.document_path[0] || !doc.document_name) {
+          return null;
+        }
+        
+        const formData = new FormData();
+        formData.append('document_name', doc.document_name);
+        formData.append('lead', initialData.id);
+        formData.append('tenant', tenantId);
+        formData.append('document_path', doc.document_path[0].originFileObj);
+        
+        // Use the correct endpoint from urls.py
+        return api.post(`/leads/${initialData.id}/upload-document/`, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+      });
+      
+      // Filter out null promises (skipped uploads)
+      const validPromises = uploadPromises.filter(p => p !== null);
+      
+      if (validPromises.length === 0) {
+        message.warning('No valid documents to upload');
+        setSubmittingDocuments(false);
+        return;
+      }
+      
+      // Wait for all uploads to complete
+      await Promise.all(validPromises);
+      
+      // Reset form
+      form.resetFields(['documents']);
+      
+      // Refresh documents list
+      fetchLeadDocuments(initialData.id);
+      
+      message.success('Documents uploaded successfully');
+    } catch (error) {
+      console.error('Error uploading documents:', error);
+      message.error('Failed to upload documents');
+    } finally {
+      setSubmittingDocuments(false);
+    }
+  };
   
   return (
     <Box>
@@ -1778,101 +1856,11 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
           {activeTab === 'documents' && (
             <FormSection title="Lead Documents">
               {isEditMode ? (
-                <Grid container spacing={3}>
-                  <Grid item xs={12}>
-                    <Upload.Dragger
-                      name="document_path"
-                      customRequest={handleUploadDocument}
-                      showUploadList={false}
-                      beforeUpload={(file) => {
-                        // Show a modal to select document type
-                        return new Promise((resolve, reject) => {
-                          Modal.confirm({
-                            title: 'Select Document Type',
-                            content: (
-                              <Select
-                                style={{ width: '100%' }}
-                                placeholder="Select document type"
-                                options={documentTypeOptions}
-                                onChange={(value) => {
-                                  file.documentType = value;
-                                  resolve(file);
-                                }}
-                              />
-                            ),
-                            onCancel: () => reject(),
-                          });
-                        });
-                      }}
-                    >
-                      <p className="ant-upload-drag-icon">
-                        <FileOutlined />
-                      </p>
-                      <p className="ant-upload-text">Click or drag file to this area to upload</p>
-                      <p className="ant-upload-hint">
-                        Support for a single or bulk upload. Strictly prohibited from uploading company data or other
-                        banned files.
-                      </p>
-                    </Upload.Dragger>
-                  </Grid>
-                  
-                  <Grid item xs={12}>
-                    {loadingDocuments ? (
-                      <Typography>Loading documents...</Typography>
-                    ) : documents.length > 0 ? (
-                      <Table
-                        dataSource={documents}
-                        rowKey="id"
-                        columns={[
-                          {
-                            title: 'Document Type',
-                            dataIndex: 'document_type',
-                            key: 'document_type',
-                            render: (text) => {
-                              const option = documentTypeOptions.find(opt => opt.value === text);
-                              return option ? option.label : text;
-                            }
-                          },
-                          {
-                            title: 'Uploaded By',
-                            dataIndex: 'uploaded_by_name',
-                            key: 'uploaded_by_name',
-                            render: (text) => text || 'Unknown'
-                          },
-                          {
-                            title: 'Date',
-                            dataIndex: 'timestamp',
-                            key: 'timestamp',
-                            render: (text) => new Date(text).toLocaleString()
-                          },
-                          {
-                            title: 'Actions',
-                            key: 'actions',
-                            render: (_, record) => (
-                              <Space>
-                                <Button 
-                                  type="link" 
-                                  onClick={() => window.open(record.document_path, '_blank')}
-                                >
-                                  View
-                                </Button>
-                                <Button 
-                                  type="link" 
-                                  danger 
-                                  onClick={() => handleDeleteDocument(record.id)}
-                                >
-                                  Delete
-                                </Button>
-                              </Space>
-                            )
-                          }
-                        ]}
-                      />
-                    ) : (
-                      <Typography color="text.secondary">No documents yet. Upload your first document above.</Typography>
-                    )}
-                  </Grid>
-                </Grid>
+                <LeadDocuments 
+                  leadId={initialData.id} 
+                  documents={documents}
+                  onDocumentUpload={fetchLeadDocuments}
+                />
               ) : (
                 <Typography color="text.secondary">
                   Save the lead first to add documents.
@@ -2168,6 +2156,8 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
               )}
             </FormSection>
           )}
+          
+        
           
           <Box sx={{ mb: 2, textAlign: 'right' }}>
             <Button 

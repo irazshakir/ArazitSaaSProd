@@ -177,34 +177,11 @@ class LeadNote(models.Model):
 
 class LeadDocument(models.Model):
     """Model for storing documents related to leads."""
-    
-    # Document type choices
-    DOC_PASSPORT = 'passport'
-    DOC_PICTURE = 'picture'
-    DOC_VISA = 'visa'
-    DOC_MAKKAH_HOTEL_VOUCHER = 'makkah_hotel_voucher'
-    DOC_MADINAH_HOTEL_VOUCHER = 'madinah_hotel_voucher'
-    DOC_TRANSFER_VOUCHER = 'transfer_voucher'
-    DOC_ZIYARAT_VOUCHER = 'ziyarat_voucher'
-    DOC_FLIGHT_TICKET = 'flight_ticket'
-    DOC_OTHER = 'other'
-    
-    DOC_CHOICES = [
-        (DOC_PASSPORT, 'Passport'),
-        (DOC_PICTURE, 'Picture'),
-        (DOC_VISA, 'Visa'),
-        (DOC_MAKKAH_HOTEL_VOUCHER, 'Makkah Hotel Voucher'),
-        (DOC_MADINAH_HOTEL_VOUCHER, 'Madinah Hotel Voucher'),
-        (DOC_TRANSFER_VOUCHER, 'Transfer Voucher'),
-        (DOC_ZIYARAT_VOUCHER, 'Ziyarat Voucher'),
-        (DOC_FLIGHT_TICKET, 'Flight Ticket'),
-        (DOC_OTHER, 'Other'),
-    ]
-    
+   
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='documents')
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='lead_documents')
-    document_type = models.CharField(max_length=30, choices=DOC_CHOICES)
+    document_name = models.CharField(max_length=255, help_text="Name or description of the document")
     document_path = models.FileField(upload_to='lead_documents/')
     uploaded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='uploaded_lead_documents')
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -213,7 +190,7 @@ class LeadDocument(models.Model):
         ordering = ['-timestamp']
     
     def __str__(self):
-        return f"{self.get_document_type_display()} for {self.lead.name}"
+        return f"{self.document_name} for {self.lead.name}"
 
 
 class LeadProfile(models.Model):
