@@ -5,6 +5,7 @@ import { HomeOutlined } from '@ant-design/icons';
 import { Box, Container, Paper } from '@mui/material';
 import api from '../../services/api';
 import LeadForm from './leadForm';
+import dayjs from 'dayjs';
 
 /**
  * Component for editing existing leads
@@ -18,21 +19,29 @@ const LeadEdit = () => {
   
   // Fetch lead data
   useEffect(() => {
-    const fetchLead = async () => {
+    const fetchLeadData = async () => {
       try {
         setLoading(true);
         const response = await api.get(`/leads/${id}/`);
-        setLeadData(response.data);
-      } catch (err) {
-        console.error('Error fetching lead:', err);
+        
+        // Convert date strings to dayjs objects for Ant Design DatePicker
+        const leadData = {
+          ...response.data,
+          // Convert date fields to dayjs objects
+          last_contacted: response.data.last_contacted ? dayjs(response.data.last_contacted) : null,
+          next_follow_up: response.data.next_follow_up ? dayjs(response.data.next_follow_up) : null,
+        };
+        
+        setLeadData(leadData);
+        setLoading(false);
+      } catch (error) {
         setError('Failed to load lead details. Please try again.');
-      } finally {
         setLoading(false);
       }
     };
     
     if (id) {
-      fetchLead();
+      fetchLeadData();
     }
   }, [id]);
   

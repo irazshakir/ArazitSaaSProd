@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Container, Typography, Stack, Grid, Paper, Chip } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../../services/api';
 import { message } from 'antd';
 
@@ -16,6 +16,7 @@ import { getUser } from '../../utils/auth';
 
 const LeadsIndex = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [leads, setLeads] = useState([]);
   const [filteredLeads, setFilteredLeads] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -45,12 +46,27 @@ const LeadsIndex = () => {
       setTenantId(tenantId);
       
       console.log('User data loaded:', { userData, userRole, tenantId });
+      console.log('User data details:', {
+        id: userData?.id,
+        email: userData?.email,
+        role: userRole,
+        department: userData?.department,
+        department_name: userData?.department_name,
+        tenant_id: tenantId
+      });
     } catch (error) {
       console.error('Error parsing user data:', error);
       message.error('Error loading user data. Please log in again.');
       navigate('/login');
     }
   }, [navigate]);
+
+  // Add this effect to refresh when navigating to the page
+  useEffect(() => {
+    if (user && userRole && tenantId) {
+      refreshLeads();
+    }
+  }, [location.pathname]);
 
   // Define table columns
   const columns = [
@@ -182,7 +198,7 @@ const LeadsIndex = () => {
         
         // Determine endpoint and parameters based on user role
         let endpoint = 'leads/';
-        const params = { tenant_id: tenantId };
+        const params = { tenant: tenantId };
         
         // Role-based API calls
         switch(userRole) {
@@ -193,34 +209,39 @@ const LeadsIndex = () => {
           case 'department_head':
             // Department head sees all leads in their department
             if (user.department) {
-              params.department = user.department;
-              console.log('Department Head role: Fetching leads for department', user.department);
+              params.department = user.department; // Use department directly from user object
+              console.log('Department Head role: Fetching leads for department', user.department, user.department_name);
+            } else {
+              // If no department, fetch all leads for the tenant (like admin)
+              console.log('Department Head with no department: Fetching all leads for tenant', tenantId);
             }
             break;
           case 'manager':
             // Manager sees all leads in their department
             if (user.department) {
-              params.department = user.department;
-              console.log('Manager role: Fetching leads for department', user.department);
+              params.department = user.department; // Use department directly from user object
+              console.log('Manager role: Fetching leads for department', user.department, user.department_name);
+            } else {
+              // If no department, fetch all leads for the tenant (like admin)
+              console.log('Manager with no department: Fetching all leads for tenant', tenantId);
             }
             break;
           case 'team_lead':
             // Team lead sees leads assigned to their team members
-            params.team_lead = user.id;
+            params.team_lead = user.id; // Make sure parameter name matches backend
             console.log('Team Lead role: Fetching leads for team lead', user.id);
             break;
-          case 'sales_agent':
-          case 'support_agent':
-          case 'processor':
           default:
             // All other roles see only their assigned leads
-            params.assigned_to = user.id;
+            params.assigned_to = user.id; // This parameter name should match backend
             console.log('Agent role: Fetching leads assigned to', user.id);
             break;
         }
         
-        console.log('Fetching leads with params:', params);
+        console.log('API request parameters:', params);
         const response = await api.get(endpoint, { params });
+        
+        console.log('API response:', response);
         
         // Process response data
         let leadsArray = Array.isArray(response.data) 
@@ -229,7 +250,7 @@ const LeadsIndex = () => {
             ? response.data.results
             : [];
         
-        console.log(`Fetched ${leadsArray.length} leads`);
+        console.log(`Fetched ${leadsArray.length} leads:`, leadsArray);
         
         // Transform data for UI representation
         const formattedData = leadsArray.map(lead => ({
@@ -254,11 +275,14 @@ const LeadsIndex = () => {
                           lead.status === 'lost' ? 'Lost' : lead.status)
         }));
         
+        console.log('Formatted data:', formattedData);
+        
         setLeads(formattedData);
         setFilteredLeads(formattedData);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching leads:', error);
+        console.error('Error details:', error.response?.data);
         setLoading(false);
         message.error('Failed to load leads. Please try again.');
       }

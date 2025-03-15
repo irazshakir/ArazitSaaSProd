@@ -53,7 +53,6 @@ const LeadNotes = ({ leadId, notes = [] }) => {
       
       setLeadNotes(notesArray);
     } catch (error) {
-      console.error('Error fetching notes:', error);
       message.error('Failed to load notes');
     } finally {
       setLoading(false);
@@ -78,7 +77,6 @@ const LeadNotes = ({ leadId, notes = [] }) => {
       
       message.success('Note added successfully');
     } catch (error) {
-      console.error('Error adding note:', error);
       message.error('Failed to add note');
     } finally {
       setSubmitting(false);
@@ -95,7 +93,6 @@ const LeadNotes = ({ leadId, notes = [] }) => {
       
       message.success('Note deleted successfully');
     } catch (error) {
-      console.error('Error deleting note:', error);
       message.error('Failed to delete note');
     }
   };

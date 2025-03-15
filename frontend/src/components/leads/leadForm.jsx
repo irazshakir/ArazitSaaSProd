@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Grid, Paper, Typography, Divider, Tab, Tabs, Button, List, ListItem, ListItemText, ListItemIcon, Chip, TextField, IconButton, Card, CardContent } from '@mui/material';
-import { Form, message, InputNumber, Row, Col, Upload, Select, DatePicker, Checkbox, Table, Tag } from 'antd';
+import { Box, Grid, Paper, Typography, Divider, Tab, Tabs, Button, List, ListItem, ListItemText, ListItemIcon, Chip, TextField, IconButton, Card, CardContent, CircularProgress } from '@mui/material';
+import { 
+  Form, message, InputNumber, Row, Col, 
+  Upload, Select, DatePicker, Checkbox, Table, Tag, Space, Modal, Input
+} from 'antd';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { FileOutlined, DeleteOutlined, PlusOutlined, PhoneOutlined, MailOutlined, TeamOutlined, CheckOutlined } from '@ant-design/icons';
@@ -32,19 +35,20 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   const [loadingDocuments, setLoadingDocuments] = useState(false);
   const [loadingActivities, setLoadingActivities] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   
-  // Add state for form fields to ensure immediate updates
+  // Add this state to track form values directly
   const [formValues, setFormValues] = useState({
     name: initialData.name || '',
     email: initialData.email || '',
     phone: initialData.phone || '',
     whatsapp: initialData.whatsapp || '',
-    last_contacted: initialData.last_contacted ? new Date(initialData.last_contacted) : null,
-    next_follow_up: initialData.next_follow_up ? new Date(initialData.next_follow_up) : null,
     lead_type: initialData.lead_type || 'hajj_package',
     source: initialData.source || 'website_form',
     status: initialData.status || 'new',
     lead_activity_status: initialData.lead_activity_status || 'active',
+    last_contacted: initialData.last_contacted || null,
+    next_follow_up: initialData.next_follow_up || null,
     assigned_to: initialData.assigned_to || null,
   });
   
@@ -130,11 +134,22 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         }
       }
       
+      // Check if dates are already dayjs objects
+      const isDayjsObject = (obj) => obj && typeof obj === 'object' && typeof obj.isValid === 'function';
+      
       const updatedValues = {
         ...initialData,
-        // Format dates if needed
-        last_contacted: initialData.last_contacted ? new Date(initialData.last_contacted) : null,
-        next_follow_up: initialData.next_follow_up ? new Date(initialData.next_follow_up) : null,
+        // Format dates as dayjs objects for Ant Design DatePicker if they aren't already
+        last_contacted: initialData.last_contacted ? 
+          (isDayjsObject(initialData.last_contacted) ? 
+            initialData.last_contacted : 
+            dayjs(initialData.last_contacted)) : 
+          null,
+        next_follow_up: initialData.next_follow_up ? 
+          (isDayjsObject(initialData.next_follow_up) ? 
+            initialData.next_follow_up : 
+            dayjs(initialData.next_follow_up)) : 
+          null,
         // Set query_for fields
         adults: queryFor.adults || 0,
         children: queryFor.children || 0,
@@ -410,11 +425,62 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   const fetchLeadNotes = async (leadId) => {
     try {
       setLoadingNotes(true);
-      const response = await api.get(`/leads/${leadId}/notes/`);
-      setNotes(response.data);
+      
+      // Try the standard endpoint first
+      try {
+        const response = await api.get(`/leads/${leadId}/notes/`);
+        
+        // Handle different response structures
+        let notesArray = [];
+        if (Array.isArray(response.data)) {
+          notesArray = response.data;
+        } else if (response.data && typeof response.data === 'object') {
+          // Check if response.data has a results property (common in paginated APIs)
+          if (Array.isArray(response.data.results)) {
+            notesArray = response.data.results;
+          } else {
+            // If it's a single note object, wrap it in an array
+            notesArray = [response.data];
+          }
+        }
+        
+        // Filter notes to ensure they belong to this lead
+        notesArray = notesArray.filter(note => {
+          const noteLeadId = note.lead || note.lead_id || (note.lead && note.lead.id);
+          return noteLeadId === leadId || noteLeadId === leadId.toString();
+        });
+        
+        setNotes(notesArray);
+      } catch (endpointError) {
+        // Try alternative endpoint with explicit filtering
+        try {
+          const altResponse = await api.get(`/lead-notes/?lead=${leadId}`);
+          
+          let notesArray = [];
+          if (Array.isArray(altResponse.data)) {
+            notesArray = altResponse.data;
+          } else if (altResponse.data && typeof altResponse.data === 'object') {
+            if (Array.isArray(altResponse.data.results)) {
+              notesArray = altResponse.data.results;
+            } else {
+              notesArray = [altResponse.data];
+            }
+          }
+          
+          // Double-check filtering even though the API should have filtered
+          notesArray = notesArray.filter(note => {
+            const noteLeadId = note.lead || note.lead_id || (note.lead && note.lead.id);
+            return noteLeadId === leadId || noteLeadId === leadId.toString();
+          });
+          
+          setNotes(notesArray);
+        } catch (altError) {
+          setNotes([]);
+        }
+      }
     } catch (error) {
-      console.error('Error fetching lead notes:', error);
       message.error('Failed to load lead notes');
+      setNotes([]);
     } finally {
       setLoadingNotes(false);
     }
@@ -469,15 +535,44 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     }
     
     try {
-      const response = await api.post(`/leads/${initialData.id}/notes/`, {
-        note: newNote
-      });
+      // Get required IDs from localStorage
+      const tenantId = localStorage.getItem('tenant_id');
+      const userId = localStorage.getItem('user_id');
       
-      setNotes([response.data, ...notes]);
+      if (!tenantId || !userId) {
+        message.error("Authentication error: Missing tenant or user ID");
+        return;
+      }
+      
+      // Create complete request payload with all required fields
+      const requestPayload = {
+        note: newNote,
+        lead: initialData.id,
+        tenant: tenantId,
+        added_by: userId
+      };
+      
+      // Make the API request with the complete payload
+      const response = await api.post(`/leads/${initialData.id}/add-note/`, requestPayload);
+      
+      // Verify the lead ID in the response
+      const responseLeadId = response.data.lead || response.data.lead_id;
+      
+      if (responseLeadId && (responseLeadId === initialData.id || responseLeadId === initialData.id.toString())) {
+        // Only add to the notes array if it's for the current lead
+        const currentNotes = Array.isArray(notes) ? notes : [];
+        setNotes([response.data, ...currentNotes]);
+      }
+      
+      // Clear the input field
       setNewNote('');
       message.success('Note added successfully');
+      
+      // Refresh the notes list to ensure we have the latest data
+      setTimeout(() => {
+        fetchLeadNotes(initialData.id);
+      }, 500);
     } catch (error) {
-      console.error('Error adding note:', error);
       message.error('Failed to add note');
     }
   };
@@ -485,11 +580,12 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   // Function to delete a note
   const handleDeleteNote = async (noteId) => {
     try {
-      await api.delete(`/leads/notes/${noteId}/`);
+      await api.delete(`/lead-notes/${noteId}/`);
       setNotes(notes.filter(note => note.id !== noteId));
       message.success('Note deleted successfully');
     } catch (error) {
       console.error('Error deleting note:', error);
+      console.error('Error details:', error.response?.data);
       message.error('Failed to delete note');
     }
   };
@@ -655,40 +751,113 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     }
   };
   
+  // Add this function before handleSubmit
+  const validateRequiredData = () => {
+    const tenantId = localStorage.getItem('tenant_id');
+    const currentUserId = localStorage.getItem('user_id');
+    
+    if (!tenantId) {
+      message.error('Tenant ID is missing. Please log in again.');
+      return false;
+    }
+    
+    if (!currentUserId) {
+      message.error('User ID is missing. Please log in again.');
+      return false;
+    }
+    
+    return true;
+  };
+  
+  // Add this function to help debug field name mismatches
+  const checkFieldNameMatches = () => {
+    console.log('Checking field name matches...');
+    
+    // Expected field names from your Lead model
+    const expectedFields = [
+      'name', 'email', 'phone', 'whatsapp', 'lead_type', 'source', 
+      'status', 'lead_activity_status', 'last_contacted', 'next_follow_up', 
+      'assigned_to', 'tenant', 'created_by', 'hajj_package', 'query_for'
+    ];
+    
+    // Get actual field names from the form
+    const formFields = Object.keys(form.getFieldsValue());
+    
+    console.log('Expected fields:', expectedFields);
+    console.log('Form fields:', formFields);
+    
+    // Check for missing fields
+    const missingFields = expectedFields.filter(field => !formFields.includes(field));
+    if (missingFields.length > 0) {
+      console.warn('Missing fields in form:', missingFields);
+    }
+    
+    // Check for extra fields
+    const extraFields = formFields.filter(field => !expectedFields.includes(field));
+    if (extraFields.length > 0) {
+      console.warn('Extra fields in form:', extraFields);
+    }
+  };
+  
   // Handle form submission
   const handleSubmit = async () => {
     try {
-      const values = await form.validateFields();
+      // Validate form fields
+      await form.validateFields();
       setLoading(true);
       
-      // Build query_for JSON object from form fields
-      const queryFor = {
-        adults: values.adults || 0,
-        children: values.children || 0,
-        infants: values.infants || 0,
-        notes: values.query_notes || ''
+      // Get the form values directly
+      const formValues = form.getFieldsValue(true);
+      console.log('Direct form values:', formValues);
+      
+      // Check if dates are dayjs objects and convert them to ISO strings
+      const isDayjsObject = (obj) => obj && typeof obj === 'object' && typeof obj.isValid === 'function';
+      
+      // Create the lead data object
+      const leadData = {
+        name: formValues.name,
+        email: formValues.email || null,
+        phone: formValues.phone,
+        whatsapp: formValues.whatsapp || null,
+        lead_type: formValues.lead_type,
+        source: formValues.source,
+        status: formValues.status,
+        lead_activity_status: formValues.lead_activity_status,
+        // Convert dayjs objects to ISO strings for API
+        last_contacted: formValues.last_contacted ? 
+          (isDayjsObject(formValues.last_contacted) ? 
+            formValues.last_contacted.toISOString() : 
+            new Date(formValues.last_contacted).toISOString()) : 
+          null,
+        next_follow_up: formValues.next_follow_up ? 
+          (isDayjsObject(formValues.next_follow_up) ? 
+            formValues.next_follow_up.toISOString() : 
+            new Date(formValues.next_follow_up).toISOString()) : 
+          null,
+        assigned_to: formValues.assigned_to,
+        tenant: localStorage.getItem('tenant_id'),
+        created_by: localStorage.getItem('user_id'),
+        hajj_package: formValues.hajj_package || null,
+        query_for: {
+          adults: formValues.adults || 0,
+          children: formValues.children || 0,
+          infants: formValues.infants || 0,
+          notes: formValues.query_notes || ''
+        },
+        tags: null,
+        custom_fields: null
       };
       
-      // Format dates and prepare final form data
-      const formattedValues = {
-        ...values,
-        last_contacted: values.last_contacted ? new Date(values.last_contacted).toISOString() : null,
-        next_follow_up: values.next_follow_up ? new Date(values.next_follow_up).toISOString() : null,
-        query_for: queryFor
-      };
-      
-      // Remove the individual query fields that aren't in the model
-      delete formattedValues.adults;
-      delete formattedValues.children;
-      delete formattedValues.infants;
-      delete formattedValues.query_notes;
+      console.log('Final lead data to submit:', leadData);
       
       // Make API call based on edit mode
       if (isEditMode) {
-        await api.put(`/leads/${initialData.id}/`, formattedValues);
+        const response = await api.put(`/leads/${initialData.id}/`, leadData);
+        console.log('Update response:', response.data);
         message.success('Lead updated successfully');
       } else {
-        await api.post('/leads/', formattedValues);
+        const response = await api.post('/leads/', leadData);
+        console.log('Create response:', response.data);
         message.success('Lead created successfully');
       }
       
@@ -696,6 +865,8 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       else navigate('/dashboard/leads');
     } catch (error) {
       console.error('Form submission error:', error);
+      
+      // Error handling
       message.error('Failed to save lead. Please check the form and try again.');
     } finally {
       setLoading(false);
@@ -743,12 +914,62 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   // Handle input changes for basic fields
   const handleInputChange = (field, value) => {
     // Update both form and local state
-    form.setFieldValue(field, value);
+    form.setFieldsValue({ [field]: value });
     setFormValues(prev => ({
       ...prev,
       [field]: value
     }));
   };
+  
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const response = await api.get('/auth/users/me/');
+        setCurrentUser(response.data);
+        localStorage.setItem('user_id', response.data.id);
+      } catch (error) {
+        console.error('Error fetching current user:', error);
+      }
+    };
+    
+    if (!localStorage.getItem('user_id')) {
+      fetchCurrentUser();
+    }
+  }, []);
+  
+  // Add this function to the component
+  const testApiConnection = async () => {
+    try {
+      console.log('Testing API connection...');
+      const response = await api.get('/leads/');
+      console.log('API connection test successful:', response.data);
+      return true;
+    } catch (error) {
+      console.error('API connection test failed:', error);
+      return false;
+    }
+  };
+  
+  // Call this in useEffect
+  useEffect(() => {
+    testApiConnection();
+  }, []);
+  
+  // Add this function to the component
+  const checkFormValues = () => {
+    const values = form.getFieldsValue(true);
+    console.log('Current form values:', values);
+    console.log('Name field value:', form.getFieldValue('name'));
+    console.log('Phone field value:', form.getFieldValue('phone'));
+    console.log('Form state values:', formValues);
+  };
+  
+  // Add this useEffect to fetch notes when the Notes tab is activated
+  useEffect(() => {
+    if (activeTab === 'notes' && isEditMode && initialData?.id) {
+      fetchLeadNotes(initialData.id);
+    }
+  }, [activeTab, isEditMode, initialData?.id]);
   
   return (
     <Box>
@@ -757,17 +978,18 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
           form={form}
           layout="vertical"
           initialValues={{
+            name: initialData.name || '',
+            email: initialData.email || '',
+            phone: initialData.phone || '',
+            whatsapp: initialData.whatsapp || '',
             lead_type: leadType,
-            status: 'new',
             source: 'website_form',
+            status: 'new',
             lead_activity_status: 'active',
-            adults: 0,
-            children: 0,
-            infants: 0,
             ...initialData
           }}
           onValuesChange={(changedValues, allValues) => {
-            // Update formValues when form values change
+            console.log('Form values changed:', changedValues);
             setFormValues(prev => ({
               ...prev,
               ...changedValues
@@ -788,123 +1010,198 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
             <FormSection title="Lead Information">
               <Grid container spacing={3}>
                 <Grid item xs={12} md={6}>
-                  <FormTextInput
+                  <Form.Item
                     label="Full Name"
                     name="name"
-                    value={formValues.name}
-                    onChange={(value) => handleInputChange('name', value)}
-                    required
-                    placeholder="Enter lead's full name"
-                  />
+                    rules={[{ required: true, message: 'Please enter lead name' }]}
+                  >
+                    <Input 
+                      placeholder="Enter lead's full name"
+                      value={formValues.name}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        form.setFieldsValue({ name: value });
+                        setFormValues(prev => ({ ...prev, name: value }));
+                        console.log('Name changed to:', value);
+                        console.log('Form field value after change:', form.getFieldValue('name'));
+                      }}
+                    />
+                  </Form.Item>
                 </Grid>
                 
                 <Grid item xs={12} md={6}>
-                  <FormTextInput
+                  <Form.Item
                     label="Email"
                     name="email"
-                    value={formValues.email}
-                    onChange={(value) => handleInputChange('email', value)}
-                    placeholder="Enter email address"
-                  />
+                  >
+                    <Input 
+                      placeholder="Enter email address"
+                      value={formValues.email}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        form.setFieldsValue({ email: value });
+                        setFormValues(prev => ({ ...prev, email: value }));
+                        console.log('Email changed to:', value);
+                        console.log('Form field value after change:', form.getFieldValue('email'));
+                      }}
+                    />
+                  </Form.Item>
                 </Grid>
                 
                 <Grid item xs={12} md={6}>
-                  <FormTextInput
+                  <Form.Item
                     label="Phone"
                     name="phone"
-                    value={formValues.phone}
-                    onChange={(value) => handleInputChange('phone', value)}
-                    required
-                    placeholder="Enter phone number"
-                  />
+                    rules={[{ required: true, message: 'Please enter phone number' }]}
+                  >
+                    <Input 
+                      placeholder="Enter phone number"
+                      value={formValues.phone}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        form.setFieldsValue({ phone: value });
+                        setFormValues(prev => ({ ...prev, phone: value }));
+                        console.log('Phone changed to:', value);
+                        console.log('Form field value after change:', form.getFieldValue('phone'));
+                      }}
+                    />
+                  </Form.Item>
                 </Grid>
                 
                 <Grid item xs={12} md={6}>
-                  <FormTextInput
+                  <Form.Item
                     label="WhatsApp"
                     name="whatsapp"
-                    value={formValues.whatsapp}
-                    onChange={(value) => handleInputChange('whatsapp', value)}
-                    placeholder="Enter WhatsApp number (if different)"
-                  />
+                  >
+                    <Input 
+                      placeholder="Enter WhatsApp number (if different)"
+                      value={formValues.whatsapp}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        form.setFieldsValue({ whatsapp: value });
+                        setFormValues(prev => ({ ...prev, whatsapp: value }));
+                        console.log('WhatsApp changed to:', value);
+                        console.log('Form field value after change:', form.getFieldValue('whatsapp'));
+                      }}
+                    />
+                  </Form.Item>
                 </Grid>
                 
                 <Grid item xs={12} md={6}>
-                  <FormSelect
+                  <Form.Item
                     label="Lead Type"
                     name="lead_type"
-                    value={formValues.lead_type}
-                    onChange={(value) => {
-                      handleInputChange('lead_type', value);
-                      handleLeadTypeChange(value);
-                    }}
-                    options={leadTypeOptions}
-                    required
-                  />
+                    rules={[{ required: true, message: 'Please select lead type' }]}
+                  >
+                    <Select
+                      placeholder="Select lead type"
+                      options={leadTypeOptions}
+                      value={formValues.lead_type}
+                      onChange={(value) => {
+                        handleInputChange('lead_type', value);
+                        handleLeadTypeChange(value);
+                      }}
+                    />
+                  </Form.Item>
                 </Grid>
                 
                 <Grid item xs={12} md={6}>
-                  <FormSelect
+                  <Form.Item
                     label="Lead Source"
                     name="source"
-                    value={formValues.source}
-                    onChange={(value) => handleInputChange('source', value)}
-                    options={sourceOptions}
-                    required
-                  />
+                    rules={[{ required: true, message: 'Please select lead source' }]}
+                  >
+                    <Select
+                      placeholder="Select lead source"
+                      options={sourceOptions}
+                      value={formValues.source}
+                      onChange={(value) => handleInputChange('source', value)}
+                    />
+                  </Form.Item>
                 </Grid>
                 
                 <Grid item xs={12} md={6}>
-                  <FormSelect
+                  <Form.Item
                     label="Status"
                     name="status"
-                    value={formValues.status}
-                    onChange={(value) => handleInputChange('status', value)}
-                    options={statusOptions}
-                    required
-                  />
+                    rules={[{ required: true, message: 'Please select status' }]}
+                  >
+                    <Select
+                      placeholder="Select status"
+                      options={statusOptions}
+                      value={formValues.status}
+                      onChange={(value) => handleInputChange('status', value)}
+                    />
+                  </Form.Item>
                 </Grid>
                 
                 <Grid item xs={12} md={6}>
-                  <FormSelect
+                  <Form.Item
                     label="Activity Status"
                     name="lead_activity_status"
-                    value={formValues.lead_activity_status}
-                    onChange={(value) => handleInputChange('lead_activity_status', value)}
-                    options={activityStatusOptions}
-                    required
-                  />
+                    rules={[{ required: true, message: 'Please select activity status' }]}
+                  >
+                    <Select
+                      placeholder="Select activity status"
+                      options={activityStatusOptions}
+                      value={formValues.lead_activity_status}
+                      onChange={(value) => handleInputChange('lead_activity_status', value)}
+                    />
+                  </Form.Item>
                 </Grid>
                 
                 <Grid item xs={12} md={6}>
-                  <FormDatePicker
+                  <Form.Item
                     label="Last Contacted"
                     name="last_contacted"
-                    value={formValues.last_contacted}
-                    onChange={(value) => handleInputChange('last_contacted', value)}
-                  />
+                  >
+                    <DatePicker 
+                      style={{ width: '100%' }}
+                      onChange={(date) => {
+                        // Handle the date value properly
+                        form.setFieldValue('last_contacted', date);
+                        setFormValues(prev => ({
+                          ...prev,
+                          last_contacted: date
+                        }));
+                        console.log('Last contacted changed to:', date);
+                      }}
+                    />
+                  </Form.Item>
                 </Grid>
                 
                 <Grid item xs={12} md={6}>
-                  <FormDatePicker
+                  <Form.Item
                     label="Next Follow-up"
                     name="next_follow_up"
-                    value={formValues.next_follow_up}
-                    onChange={(value) => handleInputChange('next_follow_up', value)}
-                    minDate={new Date()}
-                  />
+                  >
+                    <DatePicker 
+                      style={{ width: '100%' }}
+                      onChange={(date) => {
+                        // Handle the date value properly
+                        form.setFieldValue('next_follow_up', date);
+                        setFormValues(prev => ({
+                          ...prev,
+                          next_follow_up: date
+                        }));
+                        console.log('Next follow-up changed to:', date);
+                      }}
+                    />
+                  </Form.Item>
                 </Grid>
                 
                 <Grid item xs={12} md={6}>
-                  <FormSelect
+                  <Form.Item
                     label="Assigned To"
                     name="assigned_to"
-                    value={formValues.assigned_to}
-                    onChange={(value) => handleInputChange('assigned_to', value)}
-                    options={userOptions}
-                    placeholder="Select user to assign"
-                    groupedOptions={true}
-                  />
+                  >
+                    <Select
+                      placeholder="Select user to assign"
+                      options={userOptions}
+                      value={formValues.assigned_to}
+                      onChange={(value) => handleInputChange('assigned_to', value)}
+                    />
+                  </Form.Item>
                 </Grid>
               </Grid>
             </FormSection>
@@ -938,7 +1235,8 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
                         <InputNumber 
                           min={0} 
                           style={{ width: '100%' }} 
-                          placeholder="Number of adults"
+                          value={formValues.adults}
+                          onChange={(value) => handleInputChange('adults', value)}
                         />
                       </Form.Item>
                     </Col>
@@ -951,7 +1249,8 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
                         <InputNumber 
                           min={0} 
                           style={{ width: '100%' }} 
-                          placeholder="Number of children"
+                          value={formValues.children}
+                          onChange={(value) => handleInputChange('children', value)}
                         />
                       </Form.Item>
                     </Col>
@@ -964,7 +1263,8 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
                         <InputNumber 
                           min={0} 
                           style={{ width: '100%' }} 
-                          placeholder="Number of infants"
+                          value={formValues.infants}
+                          onChange={(value) => handleInputChange('infants', value)}
                         />
                       </Form.Item>
                     </Col>
@@ -1348,7 +1648,8 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
               {isEditMode ? (
                 <Grid container spacing={3}>
                   <Grid item xs={12}>
-                    <Box sx={{ mb: 3, display: 'flex' }}>
+                    {/* Professional looking text area without middle line */}
+                    <Box sx={{ mb: 3 }}>
                       <TextField
                         fullWidth
                         multiline
@@ -1357,50 +1658,116 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
                         placeholder="Add a new note..."
                         value={newNote}
                         onChange={(e) => setNewNote(e.target.value)}
-                        sx={{ mr: 2 }}
+                        sx={{ 
+                          mb: 2,
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: '8px',
+                            '& fieldset': {
+                              borderColor: '#e0e0e0',
+                            },
+                            '&:hover fieldset': {
+                              borderColor: '#9d277c',
+                            },
+                            '&.Mui-focused fieldset': {
+                              borderColor: '#9d277c',
+                            },
+                          }
+                        }}
                       />
-                      <Button 
-                        variant="contained" 
-                        color="primary" 
-                        onClick={handleAddNote}
-                        disabled={!newNote.trim()}
-                        sx={{ alignSelf: 'flex-end' }}
-                      >
-                        Add Note
-                      </Button>
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <Button 
+                          variant="contained" 
+                          color="primary" 
+                          onClick={handleAddNote}
+                          disabled={!newNote.trim()}
+                          sx={{ 
+                            bgcolor: '#9d277c',
+                            '&:hover': {
+                              bgcolor: '#7c1e62',
+                            }
+                          }}
+                        >
+                          Add Note
+                        </Button>
+                      </Box>
                     </Box>
                   </Grid>
                   
                   <Grid item xs={12}>
                     {loadingNotes ? (
-                      <Typography>Loading notes...</Typography>
+                      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                        <CircularProgress size={24} />
+                      </Box>
                     ) : notes.length > 0 ? (
                       <List>
                         {notes.map((note) => (
-                          <Paper key={note.id} sx={{ mb: 2, p: 2 }}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                              <Typography variant="subtitle2" color="text.secondary">
-                                {note.added_by_name || 'Unknown'} - {new Date(note.timestamp).toLocaleString()}
+                          <Paper 
+                            key={note.id} 
+                            sx={{ 
+                              mb: 2, 
+                              p: 2,
+                              borderRadius: '8px',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
+                            }}
+                          >
+                            {/* Message content first */}
+                            <Typography 
+                              variant="body1" 
+                              sx={{ 
+                                mb: 2,
+                                whiteSpace: 'pre-wrap'
+                              }}
+                            >
+                              {note.note}
+                            </Typography>
+                            
+                            {/* User info and date in the specified format */}
+                            <Box sx={{ 
+                              display: 'flex', 
+                              justifyContent: 'space-between',
+                              borderTop: '1px solid #f0f0f0',
+                              pt: 1
+                            }}>
+                              <Typography variant="caption" color="text.secondary">
+                                {note.added_by_details?.first_name} {note.added_by_details?.last_name} | {note.added_by_details?.role || 'Admin'}
                               </Typography>
-                              <IconButton 
-                                size="small" 
-                                onClick={() => handleDeleteNote(note.id)}
-                                aria-label="delete note"
-                              >
-                                <DeleteOutlined />
-                              </IconButton>
+                              
+                              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
+                                  {new Date(note.timestamp).toLocaleDateString('en-GB', {
+                                    day: '2-digit',
+                                    month: 'short',
+                                    year: 'numeric'
+                                  })} - {new Date(note.timestamp).toLocaleTimeString('en-US', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                    second: '2-digit',
+                                    hour12: true
+                                  })}
+                                </Typography>
+                                
+                                <IconButton 
+                                  size="small" 
+                                  onClick={() => handleDeleteNote(note.id)}
+                                  aria-label="delete note"
+                                  sx={{ ml: 1 }}
+                                >
+                                  <DeleteOutlined style={{ fontSize: '16px' }} />
+                                </IconButton>
+                              </Box>
                             </Box>
-                            <Typography variant="body1">{note.note}</Typography>
                           </Paper>
                         ))}
                       </List>
                     ) : (
-                      <Typography color="text.secondary">No notes yet. Add your first note above.</Typography>
+                      <Typography color="text.secondary" sx={{ p: 2, textAlign: 'center' }}>
+                        No notes yet. Add your first note above.
+                      </Typography>
                     )}
                   </Grid>
                 </Grid>
               ) : (
-                <Typography color="text.secondary">
+                <Typography color="text.secondary" sx={{ p: 2, textAlign: 'center' }}>
                   Save the lead first to add notes.
                 </Typography>
               )}
@@ -1801,6 +2168,17 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
               )}
             </FormSection>
           )}
+          
+          <Box sx={{ mb: 2, textAlign: 'right' }}>
+            <Button 
+              variant="outlined" 
+              color="primary" 
+              onClick={checkFormValues}
+              sx={{ mr: 2 }}
+            >
+              Check Form Values
+            </Button>
+          </Box>
           
           <FormActions
             loading={loading}

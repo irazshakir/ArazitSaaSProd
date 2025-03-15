@@ -57,6 +57,7 @@ const Login = () => {
         console.log('- tenant_id:', response.user.tenant_id);
         console.log('- tenant:', response.user.tenant);
         console.log('- tenant_users:', response.user.tenant_users);
+        console.log('- department_id:', response.user.department);
         
         // If tenant_users exists, log the first one's tenant property
         if (response.user.tenant_users && response.user.tenant_users.length > 0) {
@@ -83,15 +84,33 @@ const Login = () => {
         refreshToken: localStorage.getItem('refreshToken')
       });
       
-      // Process user data to ensure we have tenant info
+      // Process user data to ensure we have tenant and department info
       const userData = response.user;
       
-      // Try to ensure we have tenant ID information
       if (userData) {
-        // Store the user object
+        // Store the user object with department information
         localStorage.setItem('user', JSON.stringify(userData));
         
-        // If we have tenant information, store it separately too
+        // Store role separately for easy access
+        if (userData.role) {
+          localStorage.setItem('role', userData.role);
+        }
+        
+        // Store department information separately
+        if (userData.department) {
+          localStorage.setItem('department_id', userData.department);
+        }
+        
+        if (userData.department_name) {
+          localStorage.setItem('department_name', userData.department_name);
+        }
+        
+        console.log('User data stored with department info:', {
+          department_id: userData.department,
+          department_name: userData.department_name
+        });
+        
+        // Try to ensure we have tenant ID information
         let tenantId = null;
         
         if (userData.tenant_id) {
