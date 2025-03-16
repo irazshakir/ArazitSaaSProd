@@ -491,7 +491,16 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   // Function to fetch lead documents
   const fetchLeadDocuments = async (leadId) => {
     try {
-      const response = await api.get(`/lead-documents/?lead=${leadId || initialData.id}`);
+      // Make sure we have a valid leadId
+      if (!leadId) {
+        console.error('No lead ID provided for fetching documents');
+        return;
+      }
+      
+      console.log(`Fetching documents for lead: ${leadId}`);
+      
+      // Use the lead ID to filter documents
+      const response = await api.get(`/lead-documents/?lead=${leadId}`);
       
       // Process response data
       let documentsArray = Array.isArray(response.data) 
@@ -500,6 +509,9 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
           ? response.data.results
           : [];
       
+      console.log(`Retrieved ${documentsArray.length} documents for lead ${leadId}`);
+      
+      // Set the documents state
       setDocuments(documentsArray);
     } catch (error) {
       console.error('Error fetching documents:', error);
@@ -614,7 +626,8 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       }
       
       const formData = new FormData();
-      formData.append('document_name', file.documentType || 'Unnamed Document');
+      // Use document_name instead of document_type
+      formData.append('document_name', file.documentName || 'Unnamed Document');
       formData.append('lead', initialData.id);
       formData.append('tenant', tenantId);
       formData.append('document_path', file);
@@ -894,7 +907,18 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   
   // Handle tab change
   const handleTabChange = (event, newValue) => {
+    // Prevent default behavior of the event
+    if (event && event.preventDefault) {
+      event.preventDefault();
+    }
+    
+    // Update the active tab state
     setActiveTab(newValue);
+    
+    // Update URL without causing a page reload
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', newValue);
+    window.history.pushState({}, '', url);
   };
   
   // Get product field name based on lead type
@@ -1048,6 +1072,19 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       setSubmittingDocuments(false);
     }
   };
+  
+  // Add this to your useEffect that runs on component mount
+  useEffect(() => {
+    // Check if there's a tab parameter in the URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+    
+    // ... rest of your existing useEffect code
+  }, []);
   
   return (
     <Box>

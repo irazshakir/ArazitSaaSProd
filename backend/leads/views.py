@@ -403,10 +403,18 @@ class LeadDocumentViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """
         This view should return documents for leads in the user's tenant.
+        Also filter by lead ID if provided in query params.
         """
         user = self.request.user
         tenant_ids = user.tenant_users.values_list('tenant', flat=True)
-        return LeadDocument.objects.filter(tenant__in=tenant_ids)
+        queryset = LeadDocument.objects.filter(tenant__in=tenant_ids)
+        
+        # Filter by lead ID if provided
+        lead_id = self.request.query_params.get('lead')
+        if lead_id:
+            queryset = queryset.filter(lead_id=lead_id)
+            
+        return queryset
     
     def perform_create(self, serializer):
         """Set the uploaded_by to the current user."""

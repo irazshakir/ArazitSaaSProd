@@ -63,10 +63,14 @@ const LeadDocuments = ({ leadId, documents = [], onDocumentUpload }) => {
   
   // Fetch documents if not provided
   useEffect(() => {
-    if (!documents || documents.length === 0) {
-      fetchDocuments();
+    if (leadId) {
+      if (!documents || documents.length === 0) {
+        fetchDocuments();
+      } else {
+        setLeadDocuments(documents);
+      }
     } else {
-      setLeadDocuments(documents);
+      console.error('No lead ID provided to LeadDocuments component');
     }
   }, [documents, leadId]);
   
@@ -74,6 +78,14 @@ const LeadDocuments = ({ leadId, documents = [], onDocumentUpload }) => {
   const fetchDocuments = async () => {
     try {
       setLoading(true);
+      
+      if (!leadId) {
+        console.error('Cannot fetch documents: No lead ID provided');
+        setLoading(false);
+        return;
+      }
+      
+      console.log(`Fetching documents for lead: ${leadId}`);
       const response = await api.get(`/lead-documents/?lead=${leadId}`);
       
       // Process response data
@@ -83,6 +95,7 @@ const LeadDocuments = ({ leadId, documents = [], onDocumentUpload }) => {
           ? response.data.results
           : [];
       
+      console.log(`Retrieved ${documentsArray.length} documents for lead ${leadId}`);
       setLeadDocuments(documentsArray);
     } catch (error) {
       console.error('Error fetching documents:', error);
@@ -104,7 +117,12 @@ const LeadDocuments = ({ leadId, documents = [], onDocumentUpload }) => {
   };
   
   // Handle form submission with multiple documents
-  const handleUpload = async (values) => {
+  const handleUpload = async (values, event) => {
+    // If event is available, prevent default behavior
+    if (event && event.preventDefault) {
+      event.preventDefault();
+    }
+    
     try {
       setSubmitting(true);
       
@@ -119,12 +137,20 @@ const LeadDocuments = ({ leadId, documents = [], onDocumentUpload }) => {
         return;
       }
       
+      console.log('Starting document upload with values:', values);
+      
       // Process each document in the documents array
-      const uploadPromises = values.documents.map(async (doc) => {
+      const uploadPromises = values.documents.map(async (doc, index) => {
         // Skip if no file is selected or no name is provided
         if (!doc.document_path || !doc.document_path[0] || !doc.document_name) {
+          console.log(`Skipping document ${index} due to missing data:`, doc);
           return null;
         }
+        
+        console.log(`Preparing to upload document ${index}:`, {
+          name: doc.document_name,
+          file: doc.document_path[0].name
+        });
         
         const formData = new FormData();
         formData.append('document_name', doc.document_name);
@@ -144,13 +170,17 @@ const LeadDocuments = ({ leadId, documents = [], onDocumentUpload }) => {
       const validPromises = uploadPromises.filter(p => p !== null);
       
       if (validPromises.length === 0) {
+        console.warn('No valid documents to upload');
         message.warning('No valid documents to upload');
         setSubmitting(false);
         return;
       }
       
+      console.log(`Attempting to upload ${validPromises.length} documents`);
+      
       // Wait for all uploads to complete
       const responses = await Promise.all(validPromises);
+      console.log('Upload responses:', responses);
       
       // Add new documents to the list
       const newDocuments = responses.map(response => response.data);
@@ -161,13 +191,14 @@ const LeadDocuments = ({ leadId, documents = [], onDocumentUpload }) => {
       
       // Call the onDocumentUpload callback to refresh documents in parent component
       if (onDocumentUpload && typeof onDocumentUpload === 'function') {
+        console.log('Calling onDocumentUpload callback');
         onDocumentUpload(leadId);
       }
       
       message.success(`${newDocuments.length} document(s) uploaded successfully`);
     } catch (error) {
       console.error('Error uploading documents:', error);
-      message.error('Failed to upload documents');
+      message.error('Failed to upload documents: ' + (error.message || 'Unknown error'));
     } finally {
       setSubmitting(false);
     }
@@ -256,7 +287,12 @@ const LeadDocuments = ({ leadId, documents = [], onDocumentUpload }) => {
     <Box sx={{ py: 2 }}>
       {/* Upload Document Form - Redesigned */}
       <Card title="Upload Documents" style={{ marginBottom: 16 }}>
-        <Form form={form} onFinish={handleUpload} layout="vertical">
+        <Form 
+          form={form} 
+          onFinish={handleUpload} 
+          layout="vertical"
+          onSubmit={(e) => e.preventDefault()}
+        >
           <Form.List name="documents" initialValue={[{}]}>
             {(fields, { add, remove }) => (
               <>
@@ -337,6 +373,14 @@ const LeadDocuments = ({ leadId, documents = [], onDocumentUpload }) => {
                     htmlType="submit" 
                     icon={<UploadOutlined />} 
                     loading={submitting}
+                    onClick={(e) => {
+                      e.preventDefault(); // Prevent default button behavior
+                      form.validateFields().then(values => {
+                        handleUpload(values, e);
+                      }).catch(err => {
+                        console.error('Validation failed:', err);
+                      });
+                    }}
                   >
                     Upload All Documents
                   </Button>

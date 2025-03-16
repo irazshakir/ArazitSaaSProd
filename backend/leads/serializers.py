@@ -55,12 +55,11 @@ class LeadDocumentSerializer(serializers.ModelSerializer):
     """Serializer for the LeadDocument model."""
     
     uploaded_by_details = UserSerializer(source='uploaded_by', read_only=True)
-    document_type_display = serializers.CharField(source='get_document_type_display', read_only=True)
     
     class Meta:
         model = LeadDocument
         fields = (
-            'id', 'lead', 'tenant', 'document_type', 'document_type_display',
+            'id', 'lead', 'tenant', 'document_name',
             'document_path', 'uploaded_by', 'uploaded_by_details', 'timestamp'
         )
         read_only_fields = ('id', 'timestamp', 'uploaded_by')
