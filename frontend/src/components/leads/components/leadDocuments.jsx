@@ -267,13 +267,13 @@ const LeadDocuments = ({ leadId, documents = [], onDocumentUpload }) => {
     const fileName = document.document_path?.toLowerCase() || '';
     
     if (fileName.endsWith('.pdf')) {
-      return <FilePdfOutlined style={{ fontSize: '24px', color: '#f5222d' }} />;
+      return <FilePdfOutlined style={{ fontSize: '24px', color: '#9d277c' }} />;
     } else if (fileName.endsWith('.jpg') || fileName.endsWith('.jpeg') || fileName.endsWith('.png') || fileName.endsWith('.gif')) {
-      return <FileImageOutlined style={{ fontSize: '24px', color: '#1890ff' }} />;
+      return <FileImageOutlined style={{ fontSize: '24px', color: '#9d277c' }} />;
     } else if (fileName.endsWith('.doc') || fileName.endsWith('.docx') || fileName.endsWith('.txt')) {
-      return <FileTextOutlined style={{ fontSize: '24px', color: '#52c41a' }} />;
+      return <FileTextOutlined style={{ fontSize: '24px', color: '#9d277c' }} />;
     } else {
-      return <FileOutlined style={{ fontSize: '24px', color: '#faad14' }} />;
+      return <FileOutlined style={{ fontSize: '24px', color: '#9d277c' }} />;
     }
   };
   
@@ -373,6 +373,7 @@ const LeadDocuments = ({ leadId, documents = [], onDocumentUpload }) => {
                     htmlType="submit" 
                     icon={<UploadOutlined />} 
                     loading={submitting}
+                    style={{ backgroundColor: '#9d277c', borderColor: '#9d277c' }} 
                     onClick={(e) => {
                       e.preventDefault(); // Prevent default button behavior
                       form.validateFields().then(values => {
