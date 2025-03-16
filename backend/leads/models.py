@@ -297,34 +297,16 @@ class LeadOverdue(models.Model):
 class LeadActivity(models.Model):
     """Model for tracking activities related to leads."""
     
-    # Activity type choices - Note type removed as requested
-    TYPE_CALL = 'call'
-    TYPE_EMAIL = 'email'
-    TYPE_MEETING = 'meeting'
-    TYPE_TASK = 'task'
-    
-    TYPE_CHOICES = [
-        (TYPE_CALL, 'Call'),
-        (TYPE_EMAIL, 'Email'),
-        (TYPE_MEETING, 'Meeting'),
-        (TYPE_TASK, 'Task'),
-    ]
-    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     lead = models.ForeignKey(Lead, on_delete=models.CASCADE, related_name='activities')
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='lead_activities')
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='lead_activities')
     
-    activity_type = models.CharField(max_length=20, choices=TYPE_CHOICES)
+    activity_type = models.CharField(max_length=100)  # Changed to simple CharField
     description = models.TextField()
-    
-    # For calls, emails, meetings
-    duration = models.PositiveIntegerField(null=True, blank=True, help_text="Duration in minutes")
     
     # For tasks
     due_date = models.DateTimeField(null=True, blank=True)
-    completed = models.BooleanField(default=False)
-    completed_at = models.DateTimeField(null=True, blank=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -334,4 +316,4 @@ class LeadActivity(models.Model):
         verbose_name_plural = 'Lead Activities'
     
     def __str__(self):
-        return f"{self.get_activity_type_display()} for {self.lead.name}"
+        return f"{self.activity_type} for {self.lead.name}"

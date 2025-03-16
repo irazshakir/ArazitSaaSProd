@@ -188,11 +188,9 @@ class LeadViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             serializer.save(lead=lead, tenant=lead.tenant)
             
-            # If this is a contact activity, update last_contacted
-            activity_type = serializer.validated_data.get('activity_type')
-            if activity_type in [LeadActivity.TYPE_CALL, LeadActivity.TYPE_EMAIL, LeadActivity.TYPE_MEETING]:
-                lead.last_contacted = timezone.now()
-                lead.save()
+            # Update last_contacted for any activity
+            lead.last_contacted = timezone.now()
+            lead.save()
             
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
@@ -358,11 +356,19 @@ class LeadActivityViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         """
-        This view should return activities for leads in the user's tenant.
+        This view should return activities for leads in the user's tenant,
+        filtered by lead ID if provided.
         """
         user = self.request.user
         tenant_ids = user.tenant_users.values_list('tenant', flat=True)
-        return LeadActivity.objects.filter(tenant__in=tenant_ids)
+        queryset = LeadActivity.objects.filter(tenant__in=tenant_ids)
+        
+        # Filter by lead ID if provided in query params
+        lead_id = self.request.query_params.get('lead')
+        if lead_id:
+            queryset = queryset.filter(lead_id=lead_id)
+            
+        return queryset.order_by('-created_at')  # Most recent first
     
     def perform_create(self, serializer):
         """Set the user to the current user."""

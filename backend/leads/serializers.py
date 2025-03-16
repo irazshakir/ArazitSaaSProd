@@ -14,18 +14,21 @@ class LeadActivitySerializer(serializers.ModelSerializer):
     class Meta:
         model = LeadActivity
         fields = (
-            'id', 'lead', 'tenant', 'user', 'user_details', 'activity_type', 'description',
-            'duration', 'due_date', 'completed', 'completed_at',
+            'id', 'lead', 'tenant', 'user', 'user_details', 
+            'activity_type', 'description', 'due_date',
             'created_at', 'updated_at'
         )
         read_only_fields = ('id', 'created_at', 'updated_at')
     
     def create(self, validated_data):
+        # Ensure the lead is provided
+        if 'lead' not in validated_data:
+            raise serializers.ValidationError({'lead': 'Lead ID is required'})
+            
         # Set the user to the current user
         validated_data['user'] = self.context['request'].user
         # Set the tenant to the lead's tenant
-        if 'lead' in validated_data and not 'tenant' in validated_data:
-            validated_data['tenant'] = validated_data['lead'].tenant
+        validated_data['tenant'] = validated_data['lead'].tenant
         return super().create(validated_data)
 
 

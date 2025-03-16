@@ -17,6 +17,7 @@ import FormTextarea from '../forms/common/formTextarea';
 import FormDatePicker from '../forms/common/formDatePicker';
 import FormActions from '../forms/common/formActions';
 import LeadDocuments from './components/leadDocuments';
+import LeadActivities from './components/leadActivities';
 
 const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   const navigate = useNavigate();
@@ -1910,139 +1911,10 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
           {activeTab === 'activities' && (
             <FormSection title="Lead Activities">
               {isEditMode ? (
-                <Grid container spacing={3}>
-                  <Grid item xs={12}>
-                    <Card sx={{ mb: 3 }}>
-                      <CardContent>
-                        <Typography variant="h6" sx={{ mb: 2 }}>Add New Activity</Typography>
-                        <Form
-                          name="activity_form"
-                          layout="vertical"
-                          onFinish={handleAddActivity}
-                        >
-                          <Row gutter={16}>
-                            <Col span={12}>
-                              <Form.Item
-                                name="activity_type"
-                                label="Activity Type"
-                                rules={[{ required: true, message: 'Please select activity type' }]}
-                              >
-                                <Select
-                                  placeholder="Select activity type"
-                                  options={activityTypeOptions}
-                                />
-                              </Form.Item>
-                            </Col>
-                            <Col span={12}>
-                              <Form.Item
-                                name="due_date"
-                                label="Due Date"
-                                rules={[{ required: false }]}
-                              >
-                                <DatePicker showTime style={{ width: '100%' }} />
-                              </Form.Item>
-                            </Col>
-                          </Row>
-                          <Form.Item
-                            name="description"
-                            label="Description"
-                            rules={[{ required: true, message: 'Please enter description' }]}
-                          >
-                            <Input.TextArea rows={3} />
-                          </Form.Item>
-                          <Form.Item
-                            name="duration"
-                            label="Duration (minutes)"
-                            rules={[{ required: false }]}
-                          >
-                            <InputNumber min={1} style={{ width: '100%' }} />
-                          </Form.Item>
-                          <Form.Item>
-                            <Button type="primary" htmlType="submit">
-                              Add Activity
-                            </Button>
-                          </Form.Item>
-                        </Form>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                  
-                  <Grid item xs={12}>
-                    {loadingActivities ? (
-                      <Typography>Loading activities...</Typography>
-                    ) : activities.length > 0 ? (
-                      <List>
-                        {activities.map((activity) => (
-                          <Paper key={activity.id} sx={{ mb: 2, p: 2 }}>
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                              <Box>
-                                <Chip 
-                                  label={activityTypeOptions.find(opt => opt.value === activity.activity_type)?.label || activity.activity_type} 
-                                  color="primary" 
-                                  size="small" 
-                                  sx={{ mr: 1 }}
-                                />
-                                {activity.activity_type === 'task' && (
-                                  <Chip 
-                                    label={activity.completed ? 'Completed' : 'Pending'} 
-                                    color={activity.completed ? 'success' : 'warning'} 
-                                    size="small" 
-                                  />
-                                )}
-                              </Box>
-                              <Typography variant="caption">
-                                {new Date(activity.created_at).toLocaleString()}
-                              </Typography>
-                            </Box>
-                            
-                            <Typography variant="body1" sx={{ mb: 1 }}>{activity.description}</Typography>
-                            
-                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <Box>
-                                {activity.duration && (
-                                  <Typography variant="body2" color="text.secondary">
-                                    Duration: {activity.duration} minutes
-                                  </Typography>
-                                )}
-                                {activity.due_date && (
-                                  <Typography variant="body2" color="text.secondary">
-                                    Due: {new Date(activity.due_date).toLocaleString()}
-                                  </Typography>
-                                )}
-                              </Box>
-                              
-                              <Box>
-                                {activity.activity_type === 'task' && !activity.completed && (
-                                  <Button 
-                                    size="small" 
-                                    startIcon={<CheckOutlined />}
-                                    onClick={() => {
-                                      api.put(`/leads/activities/${activity.id}/`, {
-                                        ...activity,
-                                        completed: true,
-                                        completed_at: new Date().toISOString()
-                                      }).then(() => {
-                                        fetchLeadActivities(initialData.id);
-                                        message.success('Task marked as completed');
-                                      }).catch(error => {
-                                        console.error('Error updating activity:', error);
-                                        message.error('Failed to update activity');
-                                      });
-                                    }}
-                                  >
-                                    Mark Complete
-                                  </Button>
-                                )}
-                              </Box>
-                            </Box>
-                          </Paper>
-                        ))}
-                      </List>
-                    ) : (
-                      <Typography color="text.secondary">No activities yet. Add your first activity above.</Typography>
-                    )}
-                  </Grid>
-                </Grid>
+                <LeadActivities 
+                  leadId={initialData.id} 
+                  activities={activities}
+                />
               ) : (
                 <Typography color="text.secondary">
                   Save the lead first to add activities.
