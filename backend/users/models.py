@@ -43,12 +43,25 @@ class Department(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
-    tenant = models.ForeignKey('Tenant', on_delete=models.CASCADE, related_name='departments')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
     def __str__(self):
-        return f"{self.name} - {self.tenant.name}"
+        return self.name
+
+
+class Branch(models.Model):
+    """Branch model for organizational structure within a tenant."""
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+    tenant = models.ForeignKey('Tenant', on_delete=models.CASCADE, related_name='branches')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"{self.name} ({self.tenant.name})"
 
 
 class User(AbstractUser):
@@ -89,6 +102,9 @@ class User(AbstractUser):
     
     # Department field (nullable for admin and tenant owner)
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True, related_name='users')
+    
+    # Branch field (nullable for admin and tenant owner)
+    branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True, related_name='users')
     
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

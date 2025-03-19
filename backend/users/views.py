@@ -6,14 +6,15 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
 from django.db import transaction
-from .models import Tenant, TenantUser, Department
+from .models import Tenant, TenantUser, Department, Branch
 from .serializers import (
     UserSerializer, 
     UserRegistrationSerializer,
     UserCreateSerializer,
     TenantSerializer,
     TenantUserSerializer,
-    DepartmentSerializer
+    DepartmentSerializer,
+    BranchSerializer
 )
 
 User = get_user_model()
@@ -169,6 +170,71 @@ class UserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(users, many=True)
         return Response(serializer.data)
 
+    def create(self, request, *args, **kwargs):
+        """Create a new user for the current tenant."""
+        print("\n===== DETAILED FILE UPLOAD DEBUG =====")
+        print("REQUEST CONTENT TYPE:", request.content_type)
+        print("REQUEST FILES:", request.FILES.keys())
+        
+        if 'profile_picture' in request.FILES:
+            file = request.FILES['profile_picture']
+            print("PROFILE PICTURE FOUND!!")
+            print(f"- File name: {file.name}")
+            print(f"- File size: {file.size} bytes")
+            print(f"- File content type: {file.content_type}")
+        else:
+            print("NO PROFILE PICTURE IN request.FILES!")
+            
+            # Check alternative keys that might be used
+            for key in request.FILES.keys():
+                print(f"- Found file with key: {key}")
+                file = request.FILES[key]
+                print(f"  • File name: {file.name}")
+                print(f"  • File size: {file.size} bytes")
+        
+        print("DATA KEYS:", request.data.keys())
+        print("=========================")
+        
+        # Collect serializer class information for debugging
+        serializer_class = self.get_serializer_class()
+        print("SERIALIZER CLASS:", serializer_class.__name__)
+        print("SERIALIZER FIELDS:", serializer_class.Meta.fields if hasattr(serializer_class, 'Meta') else "Unknown")
+        
+        # Get tenant_id from request data or from the authenticated user
+        tenant_id = request.data.get('tenant_id', request.user.tenant_id)
+        
+        # Create a mutable copy of request.data to add the tenant_id
+        data = request.data.copy() if hasattr(request.data, 'copy') else request.data
+        data['tenant_id'] = tenant_id
+        
+        print("MODIFIED DATA FOR SERIALIZER:")
+        for key, value in data.items():
+            if key == 'profile_picture' and hasattr(value, 'name'):
+                print(f"- {key}: <File: {value.name}, {value.size} bytes>")
+            else:
+                print(f"- {key}: {value}")
+        
+        # Check serializer initialization and validation
+        print("INITIALIZING SERIALIZER...")
+        serializer = self.get_serializer(data=data)
+        print("VALIDATING SERIALIZER...")
+        is_valid = serializer.is_valid(raise_exception=False)
+        
+        if not is_valid:
+            print("SERIALIZER VALIDATION ERRORS:", serializer.errors)
+            if 'profile_picture' in serializer.errors:
+                print("PROFILE PICTURE ERRORS:", serializer.errors['profile_picture'])
+            serializer.is_valid(raise_exception=True)  # Raise exception now
+        else:
+            print("SERIALIZER IS VALID")
+        
+        print("PERFORMING CREATE...")
+        self.perform_create(serializer)
+        print("CREATE PERFORMED SUCCESSFULLY")
+        
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
 
 class TenantViewSet(viewsets.ModelViewSet):
     """
@@ -220,19 +286,44 @@ class DepartmentViewSet(viewsets.ModelViewSet):
     serializer_class = DepartmentSerializer
     permission_classes = [permissions.IsAuthenticated]
     
+    def perform_create(self, serializer):
+        """
+        Create a new department.
+        """
+        # No tenant association needed
+        serializer.save()
+
+
+class BranchViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for Branch model.
+    """
+    queryset = Branch.objects.all()
+    serializer_class = BranchSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
     def get_queryset(self):
         """
-        Filter departments by the authenticated user's tenant.
+        Filter branches by the authenticated user's tenant.
         """
         user = self.request.user
         if user.is_superuser:
-            return Department.objects.all()
-        return Department.objects.filter(tenant_id=user.tenant_id)
+            return Branch.objects.all()
+        
+        # Get branches for the user's tenant
+        return Branch.objects.filter(tenant_id=user.tenant_id)
     
     def perform_create(self, serializer):
         """
-        Set the tenant to the authenticated user's tenant.
+        Create a new branch for the current tenant.
         """
-        tenant_id = self.request.user.tenant_id
-        tenant = Tenant.objects.get(id=tenant_id)
+        # Get tenant_id from request data or from the authenticated user
+        tenant_id = self.request.data.get('tenant_id', self.request.user.tenant_id)
+        
+        # Validate tenant exists
+        try:
+            tenant = Tenant.objects.get(id=tenant_id)
+        except Tenant.DoesNotExist:
+            raise serializers.ValidationError({"tenant_id": "Invalid tenant ID or tenant not found."})
+        
         serializer.save(tenant=tenant)

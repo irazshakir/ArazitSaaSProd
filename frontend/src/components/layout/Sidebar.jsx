@@ -102,7 +102,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user }) => {
     { text: 'WABA', icon: <WhatsAppIcon />, path: '/dashboard/settings/waba' },
     { text: 'Messenger', icon: <FacebookIcon />, path: '/dashboard/settings/messenger' },
     { text: 'Company', icon: <BusinessIcon />, path: '/dashboard/settings/company' },
-    { text: 'Users', icon: <PeopleIcon />, path: '/dashboard/settings/users' },
+    { text: 'Users', icon: <PeopleIcon />, path: '/dashboard/users' },
   ];
 
   // Hajj and Umrah specific menu items

@@ -9,6 +9,7 @@ from .views import (
     TenantViewSet, 
     TenantUserViewSet, 
     DepartmentViewSet,
+    BranchViewSet,
     CustomTokenObtainPairView
 )
 
@@ -17,6 +18,7 @@ router.register(r'users', UserViewSet)
 router.register(r'tenants', TenantViewSet)
 router.register(r'tenant-users', TenantUserViewSet)
 router.register(r'departments', DepartmentViewSet)
+router.register(r'branches', BranchViewSet)
 
 urlpatterns = [
     # JWT Authentication - Using our custom token view

@@ -31,6 +31,11 @@ import ErrorBoundary from '../components/ErrorBoundary';
 // Auth protection HOC
 import ProtectedRoute from './ProtectedRoute';
 
+// User Management Pages
+import UserIndex from '../components/users/userIndex';
+import UserCreate from '../components/users/userCreate';
+import UserEdit from '../components/users/userEdit';
+
 const AppRoutes = () => {
   return (
     <ErrorBoundary>
@@ -53,6 +58,11 @@ const AppRoutes = () => {
             <Route path="hajj-packages/:id/edit" element={<HajjPackageEdit />} />
             {/* Add other hajj-umrah routes here */}
           </Route>
+          
+          {/* User Management Routes */}
+          <Route path="users" element={<UserIndex />} />
+          <Route path="users/create" element={<UserCreate />} />
+          <Route path="users/:id/edit" element={<UserEdit />} />
           
           {/* Leads Routes */}
           <Route path="leads" element={<LeadsIndex />} />

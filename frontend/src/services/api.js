@@ -15,6 +15,12 @@ const api = axios.create({
 // Add a request interceptor to add the auth token to requests
 api.interceptors.request.use(
   (config) => {
+    // Log all requests for debugging
+    console.log(`API Request: ${config.method.toUpperCase()} ${config.baseURL}${config.url}`, {
+      headers: config.headers,
+      data: config.data,
+    });
+    
     // Check multiple possible token locations
     const token = localStorage.getItem('token');
     const accessToken = localStorage.getItem('access_token');
@@ -197,31 +203,31 @@ export const authService = {
 export const userService = {
   // Get all users
   getUsers: async () => {
-    const response = await api.get('/users/');
+    const response = await api.get('/auth/users/');
     return response.data;
   },
 
   // Get user by ID
   getUser: async (id) => {
-    const response = await api.get(`/users/${id}/`);
+    const response = await api.get(`/auth/users/${id}/`);
     return response.data;
   },
 
   // Create user
   createUser: async (userData) => {
-    const response = await api.post('/users/', userData);
+    const response = await api.post('/auth/users/', userData);
     return response.data;
   },
 
   // Update user
   updateUser: async (id, userData) => {
-    const response = await api.put(`/users/${id}/`, userData);
+    const response = await api.put(`/auth/users/${id}/`, userData);
     return response.data;
   },
 
   // Delete user
   deleteUser: async (id) => {
-    const response = await api.delete(`/users/${id}/`);
+    const response = await api.delete(`/auth/users/${id}/`);
     return response.data;
   }
 };
@@ -230,14 +236,32 @@ export const userService = {
 export const departmentService = {
   // Get all departments
   getDepartments: async () => {
-    const response = await api.get('/departments/');
-    return response.data;
+    try {
+      // Try the main departments endpoint first
+      const response = await api.get('/departments/');
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        // If 404, try the auth/departments endpoint
+        const authResponse = await api.get('/auth/departments/');
+        return authResponse.data;
+      }
+      throw error;
+    }
   },
 
   // Get department by ID
   getDepartment: async (id) => {
-    const response = await api.get(`/departments/${id}/`);
-    return response.data;
+    try {
+      const response = await api.get(`/departments/${id}/`);
+      return response.data;
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        const authResponse = await api.get(`/auth/departments/${id}/`);
+        return authResponse.data;
+      }
+      throw error;
+    }
   },
 
   // Create department
@@ -255,6 +279,84 @@ export const departmentService = {
   // Delete department
   deleteDepartment: async (id) => {
     const response = await api.delete(`/departments/${id}/`);
+    return response.data;
+  }
+};
+
+// Branch service
+export const branchService = {
+  // Get all branches
+  getBranches: async () => {
+    // Try multiple possible branch API endpoints
+    const possibleEndpoints = [
+      '/users/branches/',        // Most likely path based on your Django structure
+      '/auth/users/branches/',   // Alternative path if merged with auth
+      '/branches/',              // Direct path (least likely)
+    ];
+    
+    let lastError = null;
+    
+    // Try each endpoint until one works
+    for (const endpoint of possibleEndpoints) {
+      try {
+        console.log(`Trying to fetch branches from: ${endpoint}`);
+        
+        const response = await api.get(endpoint);
+        console.log(`Success! Branch data from ${endpoint}:`, response.data);
+        
+        // Handle paginated response from DRF
+        if (response.data && response.data.results && Array.isArray(response.data.results)) {
+          console.log('Extracted branches from paginated results:', response.data.results);
+          return response.data.results;
+        } 
+        
+        // If not paginated but is array, return as is
+        if (Array.isArray(response.data)) {
+          console.log('Branch data is already an array:', response.data);
+          return response.data;
+        }
+        
+        // Return the data as is (not recommended, but as last resort)
+        return response.data;
+      } catch (error) {
+        console.log(`Failed to fetch branches from ${endpoint}:`, 
+          error.response ? `Status: ${error.response.status}` : error.message);
+        lastError = error;
+        // Continue to next endpoint
+      }
+    }
+    
+    // If all endpoints failed
+    console.error('All branch endpoints failed. Last error:', lastError);
+    throw lastError;
+  },
+
+  // Get branch by ID
+  getBranch: async (id) => {
+    try {
+      const response = await api.get(`/users/branches/${id}/`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching branch ${id}:`, error);
+      throw error;
+    }
+  },
+
+  // Create branch
+  createBranch: async (branchData) => {
+    const response = await api.post('/users/branches/', branchData);
+    return response.data;
+  },
+
+  // Update branch
+  updateBranch: async (id, branchData) => {
+    const response = await api.put(`/users/branches/${id}/`, branchData);
+    return response.data;
+  },
+
+  // Delete branch
+  deleteBranch: async (id) => {
+    const response = await api.delete(`/users/branches/${id}/`);
     return response.data;
   }
 };
