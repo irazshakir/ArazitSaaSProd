@@ -36,6 +36,18 @@ import UserIndex from '../components/users/userIndex';
 import UserCreate from '../components/users/userCreate';
 import UserEdit from '../components/users/userEdit';
 
+// Teams Pages
+import TeamsIndex from '../components/teams/teamsIndex';
+import CreateTeam from '../components/teams/createTeam';
+import TeamDetail from '../components/teams/teamDetail';
+import EditTeam from '../components/teams/editTeam';
+
+// Branch Management Pages
+import BranchesIndex from '../components/branches/branchesIndex';
+import CreateBranch from '../components/branches/createBranch';
+import BranchDetail from '../components/branches/branchDetail';
+import EditBranch from '../components/branches/editBranch';
+
 const AppRoutes = () => {
   return (
     <ErrorBoundary>
@@ -59,6 +71,12 @@ const AppRoutes = () => {
             {/* Add other hajj-umrah routes here */}
           </Route>
           
+          {/* Branch Management Routes */}
+          <Route path="branches" element={<BranchesIndex />} />
+          <Route path="branches/create" element={<CreateBranch />} />
+          <Route path="branches/:id" element={<BranchDetail />} />
+          <Route path="branches/:id/edit" element={<EditBranch />} />
+          
           {/* User Management Routes */}
           <Route path="users" element={<UserIndex />} />
           <Route path="users/create" element={<UserCreate />} />
@@ -69,6 +87,12 @@ const AppRoutes = () => {
           <Route path="leads/create" element={<LeadCreate />} />
           <Route path="leads/:id" element={<LeadView />} />
           <Route path="leads/:id/edit" element={<LeadEdit />} />
+          
+          {/* Teams Routes */}
+          <Route path="teams" element={<TeamsIndex />} />
+          <Route path="teams/create" element={<CreateTeam />} />
+          <Route path="teams/:id" element={<TeamDetail />} />
+          <Route path="teams/:id/edit" element={<EditTeam />} />
           
           {/* Add other module routes here */}
         </Route>

@@ -37,7 +37,9 @@ import {
   Mosque as MosqueIcon,
   Hotel as HotelIcon,
   LocalAirport as VisaIcon,
-  LocationCity as ZiyaratIcon
+  LocationCity as ZiyaratIcon,
+  Groups as GroupsIcon,
+  AccountTree as BranchIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -102,7 +104,9 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user }) => {
     { text: 'WABA', icon: <WhatsAppIcon />, path: '/dashboard/settings/waba' },
     { text: 'Messenger', icon: <FacebookIcon />, path: '/dashboard/settings/messenger' },
     { text: 'Company', icon: <BusinessIcon />, path: '/dashboard/settings/company' },
+    { text: 'Branches', icon: <BranchIcon />, path: '/dashboard/branches' },
     { text: 'Users', icon: <PeopleIcon />, path: '/dashboard/users' },
+    { text: 'Teams', icon: <GroupsIcon />, path: '/dashboard/teams' },
   ];
 
   // Hajj and Umrah specific menu items

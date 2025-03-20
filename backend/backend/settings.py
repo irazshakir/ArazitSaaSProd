@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'users',  # We'll create this app for user authentication
     'hajjPackages',  # Hajj Packages app
     'leads',  # Leads app
+    'teams',  # Teams app
 ]
 
 MIDDLEWARE = [
