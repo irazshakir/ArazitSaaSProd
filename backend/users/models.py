@@ -43,6 +43,8 @@ class Department(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True, null=True)
+    tenant = models.ForeignKey('Tenant', on_delete=models.CASCADE, related_name='departments')
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -99,9 +101,6 @@ class User(AbstractUser):
     
     # Role field
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default=ROLE_PROCESSOR)
-    
-    # Department field (nullable for admin and tenant owner)
-    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True, related_name='users')
     
     # Branch field (nullable for admin and tenant owner)
     branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True, related_name='users')

@@ -95,8 +95,18 @@ const Register = () => {
       // Redirect to dashboard
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.detail || 'Registration failed. Please try again.');
       console.error('Registration error:', err);
+      // More detailed error handling
+      if (err.response) {
+        console.log('Error response data:', err.response.data);
+        if (err.response.data.error) {
+          setError(err.response.data.error);
+        } else {
+          setError(JSON.stringify(err.response.data));
+        }
+      } else {
+        setError('Registration failed. Please try again. ' + err.message);
+      }
     } finally {
       setIsLoading(false);
     }

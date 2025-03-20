@@ -15,8 +15,8 @@ export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: '/api/auth/token/',
     REFRESH: '/api/auth/token/refresh/',
-    REGISTER: '/api/auth/users/register/',
-    ME: '/api/auth/users/me/',
+    REGISTER: '/api/auth/register/',
+    ME: '/api/auth/me/',
   },
   
   // Hajj Packages endpoints

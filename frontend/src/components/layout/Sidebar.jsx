@@ -40,6 +40,7 @@ import {
   LocationCity as ZiyaratIcon,
   Groups as GroupsIcon,
   AccountTree as BranchIcon,
+  Category as DepartmentIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -105,6 +106,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user }) => {
     { text: 'Messenger', icon: <FacebookIcon />, path: '/dashboard/settings/messenger' },
     { text: 'Company', icon: <BusinessIcon />, path: '/dashboard/settings/company' },
     { text: 'Branches', icon: <BranchIcon />, path: '/dashboard/branches' },
+    { text: 'Departments', icon: <DepartmentIcon />, path: '/dashboard/departments' },
     { text: 'Users', icon: <PeopleIcon />, path: '/dashboard/users' },
     { text: 'Teams', icon: <GroupsIcon />, path: '/dashboard/teams' },
   ];

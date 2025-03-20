@@ -48,6 +48,12 @@ import CreateBranch from '../components/branches/createBranch';
 import BranchDetail from '../components/branches/branchDetail';
 import EditBranch from '../components/branches/editBranch';
 
+// Department Management Pages
+import DepartmentsIndex from '../components/departments/departmentsIndex';
+import CreateDepartment from '../components/departments/createDepartment';
+import DepartmentDetail from '../components/departments/departmentDetail';
+import EditDepartment from '../components/departments/editDepartment';
+
 const AppRoutes = () => {
   return (
     <ErrorBoundary>
@@ -93,6 +99,12 @@ const AppRoutes = () => {
           <Route path="teams/create" element={<CreateTeam />} />
           <Route path="teams/:id" element={<TeamDetail />} />
           <Route path="teams/:id/edit" element={<EditTeam />} />
+          
+          {/* Department Management Routes */}
+          <Route path="departments" element={<DepartmentsIndex />} />
+          <Route path="departments/create" element={<CreateDepartment />} />
+          <Route path="departments/:id" element={<DepartmentDetail />} />
+          <Route path="departments/:id/edit" element={<EditDepartment />} />
           
           {/* Add other module routes here */}
         </Route>

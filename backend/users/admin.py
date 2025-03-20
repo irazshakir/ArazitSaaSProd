@@ -5,18 +5,18 @@ from .models import User, Tenant, TenantUser, Department, Branch
 
 
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(BaseUserAdmin):
     """Admin for custom User model."""
     
-    list_display = ('email', 'first_name', 'last_name', 'role', 'branch', 'department', 'is_active')
+    list_display = ('email', 'first_name', 'last_name', 'is_staff', 'branch')
     search_fields = ('email', 'first_name', 'last_name')
-    list_filter = ('is_active', 'role', 'branch', 'department', 'tenant_id')
+    list_filter = ('is_staff', 'is_superuser', 'branch')
     ordering = ('email',)
     
     fieldsets = (
         (None, {'fields': ('email', 'password')}),
         (_('Personal info'), {'fields': ('first_name', 'last_name', 'phone_number', 'profile_picture')}),
-        (_('Tenant info'), {'fields': ('tenant_id', 'is_tenant_owner', 'role', 'branch', 'department')}),
+        (_('Tenant info'), {'fields': ('tenant_id', 'is_tenant_owner', 'role', 'branch')}),
         (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
         (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
     )
@@ -24,9 +24,10 @@ class UserAdmin(admin.ModelAdmin):
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('email', 'password1', 'password2', 'first_name', 'last_name'),
+            'fields': ('email', 'password1', 'password2', 'first_name', 'last_name', 'is_staff', 'is_superuser', 'tenant_id', 'branch'),
         }),
     )
+    filter_horizontal = ('groups', 'user_permissions',)
 
 
 @admin.register(Branch)

@@ -34,20 +34,14 @@ class DepartmentSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for the User model."""
     
-    department_name = serializers.SerializerMethodField()
     branch_name = serializers.SerializerMethodField()
     
     class Meta:
         model = User
         fields = ('id', 'email', 'first_name', 'last_name', 'phone_number', 
                  'profile_picture', 'is_tenant_owner', 'role', 'branch', 'branch_name',
-                 'department', 'department_name', 'tenant_id')
+                 'tenant_id')
         read_only_fields = ('id', 'is_tenant_owner')
-    
-    def get_department_name(self, obj):
-        if obj.department:
-            return obj.department.name
-        return None
     
     def get_branch_name(self, obj):
         if obj.branch:
@@ -151,7 +145,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating users within a tenant."""
     
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
-    department_id = serializers.UUIDField(required=False, write_only=True)
     branch_id = serializers.UUIDField(required=False, write_only=True)
     industry = serializers.ChoiceField(required=False, write_only=True, choices=TenantUser.INDUSTRY_CHOICES)
     profile_picture = serializers.ImageField(required=False)
@@ -159,7 +152,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('email', 'password', 'first_name', 'last_name', 'phone_number', 
-                 'role', 'branch_id', 'department_id', 'industry', 'is_active', 
+                 'role', 'branch_id', 'industry', 'is_active', 
                  'profile_picture', 'tenant_id')
         extra_kwargs = {
             'first_name': {'required': True},
@@ -200,16 +193,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
                 except Branch.DoesNotExist:
                     raise serializers.ValidationError({"branch_id": "Branch not found or does not belong to this tenant."})
         
-        # Handle department if provided
-        department = None
-        if 'department_id' in validated_data:
-            department_id = validated_data.pop('department_id')
-            if department_id:
-                try:
-                    department = Department.objects.get(id=department_id)
-                except Department.DoesNotExist:
-                    raise serializers.ValidationError({"department_id": "Department not found."})
-        
         # Extract industry if provided
         industry = validated_data.pop('industry', None)
         
@@ -221,7 +204,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
             phone_number=validated_data.get('phone_number', ''),
             role=validated_data['role'],
             branch=branch,
-            department=department,
             tenant_id=tenant_id,
             is_active=validated_data.get('is_active', True),
             profile_picture=validated_data.get('profile_picture', None)

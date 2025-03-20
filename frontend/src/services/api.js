@@ -181,8 +181,15 @@ export const authService = {
 
   // Register user
   register: async (userData) => {
-    const response = await api.post('/auth/register/', userData);
-    return response.data;
+    try {
+      console.log('Registering user with data:', userData);
+      const response = await api.post('/auth/register/', userData);
+      console.log('Registration response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Registration error in service:', error);
+      throw error;
+    }
   },
 
   // Get current user
