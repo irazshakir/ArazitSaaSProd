@@ -12,7 +12,6 @@ const UserCreate = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [tenantId, setTenantId] = useState(null);
-  const [departments, setDepartments] = useState([]);
   
   // Check for tenant_id on component mount
   useEffect(() => {
@@ -30,38 +29,6 @@ const UserCreate = () => {
     setTenantId(storedTenantId);
     console.log('Creating user for tenant:', storedTenantId);
   }, [navigate]);
-  
-  // Function to fetch departments - simplified since departments are global now
-  const fetchDepartments = async () => {
-    try {
-      setLoading(true);
-      
-      // Try with auth prefix
-      let response = null;
-      try {
-        response = await api.get('auth/departments/');
-      } catch (error) {
-        // Try without auth prefix
-        response = await api.get('departments/');
-      }
-      
-      if (response && response.data) {
-        // Format departments data
-        const formattedDepartments = response.data.map(dept => ({
-          id: dept.id,
-          name: dept.name
-        }));
-        
-        setDepartments(formattedDepartments);
-        console.log('Departments loaded:', formattedDepartments);
-      }
-    } catch (error) {
-      console.error('Error fetching departments:', error);
-      message.error('Failed to load departments');
-    } finally {
-      setLoading(false);
-    }
-  };
   
   // Handle successful form submission
   const handleSuccess = () => {
@@ -115,7 +82,6 @@ const UserCreate = () => {
       
       <UserForm 
         isEditMode={false}
-        departments={departments}
         loading={loading}
         onSuccess={handleSuccess}
       />

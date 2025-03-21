@@ -290,8 +290,16 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         """
         Create a new department.
         """
-        # No tenant association needed
-        serializer.save()
+        # Get tenant_id from request data or from the authenticated user
+        tenant_id = self.request.data.get('tenant', self.request.user.tenant_id)
+        
+        # Validate tenant exists
+        try:
+            tenant = Tenant.objects.get(id=tenant_id)
+        except Tenant.DoesNotExist:
+            raise serializers.ValidationError({"tenant": "Invalid tenant ID or tenant not found."})
+        
+        serializer.save(tenant=tenant)
 
 
 class BranchViewSet(viewsets.ModelViewSet):

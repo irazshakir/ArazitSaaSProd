@@ -242,17 +242,59 @@ export const userService = {
 // Department service
 export const departmentService = {
   // Get all departments
-  getDepartments: async () => {
+  getDepartments: async (tenantId) => {
     try {
-      // Try the main departments endpoint first
-      const response = await api.get('/departments/');
-      return response.data;
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-        // If 404, try the auth/departments endpoint
-        const authResponse = await api.get('/auth/departments/');
-        return authResponse.data;
+      const params = tenantId ? { tenant: tenantId } : {};
+      
+      console.log('Fetching departments with params:', params);
+      
+      // Try these endpoints in order
+      const endpoints = [
+        '/departments/',
+        '/auth/departments/',
+        '/users/departments/'
+      ];
+      
+      let lastError = null;
+      
+      for (const endpoint of endpoints) {
+        try {
+          console.log(`Trying to fetch departments from: ${endpoint}`);
+          const response = await api.get(endpoint, { params });
+          console.log(`Success with ${endpoint}:`, response.data);
+          
+          // Ensure we return an array
+          if (Array.isArray(response.data)) {
+            return response.data;
+          } else if (response.data && typeof response.data === 'object') {
+            // Check if it's a paginated response
+            if (Array.isArray(response.data.results)) {
+              return response.data.results;
+            } else {
+              // Try to convert object to array if possible
+              console.warn('Converting department object to array:', response.data);
+              return Object.values(response.data);
+            }
+          }
+          
+          // If none of the above, return empty array
+          console.warn('Could not parse department data as array, returning empty array');
+          return [];
+          
+        } catch (error) {
+          console.log(`Failed with ${endpoint}:`, error.response?.status || error.message);
+          lastError = error;
+          // Only continue if it's a 404
+          if (error.response && error.response.status !== 404) {
+            throw error;
+          }
+        }
       }
+      
+      // If we get here, all endpoints failed
+      throw lastError;
+    } catch (error) {
+      console.error('All department endpoints failed:', error);
       throw error;
     }
   },
@@ -293,49 +335,61 @@ export const departmentService = {
 // Branch service
 export const branchService = {
   // Get all branches
-  getBranches: async () => {
-    // Try multiple possible branch API endpoints
-    const possibleEndpoints = [
-      '/users/branches/',        // Most likely path based on your Django structure
-      '/auth/users/branches/',   // Alternative path if merged with auth
-      '/branches/',              // Direct path (least likely)
-    ];
-    
-    let lastError = null;
-    
-    // Try each endpoint until one works
-    for (const endpoint of possibleEndpoints) {
-      try {
-        console.log(`Trying to fetch branches from: ${endpoint}`);
-        
-        const response = await api.get(endpoint);
-        console.log(`Success! Branch data from ${endpoint}:`, response.data);
-        
-        // Handle paginated response from DRF
-        if (response.data && response.data.results && Array.isArray(response.data.results)) {
-          console.log('Extracted branches from paginated results:', response.data.results);
-          return response.data.results;
-        } 
-        
-        // If not paginated but is array, return as is
-        if (Array.isArray(response.data)) {
-          console.log('Branch data is already an array:', response.data);
-          return response.data;
+  getBranches: async (tenantId) => {
+    try {
+      const params = tenantId ? { tenant: tenantId } : {};
+      
+      console.log('Fetching branches with params:', params);
+      
+      // Try these endpoints in order
+      const endpoints = [
+        '/branches/',
+        '/auth/branches/',
+        '/users/branches/'
+      ];
+      
+      let lastError = null;
+      
+      for (const endpoint of endpoints) {
+        try {
+          console.log(`Trying to fetch branches from: ${endpoint}`);
+          const response = await api.get(endpoint, { params });
+          console.log(`Success with ${endpoint}:`, response.data);
+          
+          // Ensure we return an array
+          if (Array.isArray(response.data)) {
+            return response.data;
+          } else if (response.data && typeof response.data === 'object') {
+            // Check if it's a paginated response
+            if (Array.isArray(response.data.results)) {
+              return response.data.results;
+            } else {
+              // Try to convert object to array if possible
+              console.warn('Converting branch object to array:', response.data);
+              return Object.values(response.data);
+            }
+          }
+          
+          // If none of the above, return empty array
+          console.warn('Could not parse branch data as array, returning empty array');
+          return [];
+          
+        } catch (error) {
+          console.log(`Failed with ${endpoint}:`, error.response?.status || error.message);
+          lastError = error;
+          // Only continue if it's a 404
+          if (error.response && error.response.status !== 404) {
+            throw error;
+          }
         }
-        
-        // Return the data as is (not recommended, but as last resort)
-        return response.data;
-      } catch (error) {
-        console.log(`Failed to fetch branches from ${endpoint}:`, 
-          error.response ? `Status: ${error.response.status}` : error.message);
-        lastError = error;
-        // Continue to next endpoint
       }
+      
+      // If we get here, all endpoints failed
+      throw lastError;
+    } catch (error) {
+      console.error('All branch endpoints failed:', error);
+      throw error;
     }
-    
-    // If all endpoints failed
-    console.error('All branch endpoints failed. Last error:', lastError);
-    throw lastError;
   },
 
   // Get branch by ID

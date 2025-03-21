@@ -27,30 +27,14 @@ import {
   BankOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import api, { branchService } from '../../services/api';
+import api, { departmentService, branchService } from '../../services/api';
 
 const { Option } = Select;
 const { Title, Text } = Typography;
 
-// Hard-coded department options as a fallback
-const DEPARTMENT_OPTIONS = [
-  { id: '09856a32-af10-4d2c-915e-87df00040bf8', name: 'Processing' },
-  { id: '26f465d7-94e6-4175-b4ab-5506b4aa76cd', name: 'Support' },
-  { id: '5bc3914b-1f69-4f02-9d9e-306c66bbf697', name: 'Administration' },
-  { id: '9f458180-d6f4-46d4-85cd-2ac2f276d114', name: 'Sales' },
-  { id: 'c45a35ca-51af-423e-a0dd-3d57c6231a90', name: 'Finance' }
-];
-
-// Hard-coded branch options for specific tenant
-const BRANCH_OPTIONS = [
-  { id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479', name: 'Lahore', tenant: '7a1c8c45-81ad-4e0a-bcc4-b4f778d6963f' },
-  { id: 'f47ac10b-58cc-4372-a567-0e02b2c3d480', name: 'Islamabad', tenant: '7a1c8c45-81ad-4e0a-bcc4-b4f778d6963f' }
-];
-
 const UserForm = ({ 
   initialData = {}, 
   isEditMode = false,
-  departments = [], 
   loading = false,
   onSuccess 
 }) => {
@@ -61,6 +45,8 @@ const UserForm = ({
   const [imageUrl, setImageUrl] = useState(initialData.profile_picture || null);
   const [branches, setBranches] = useState([]);
   const [branchesLoading, setBranchesLoading] = useState(false);
+  const [departments, setDepartments] = useState([]);
+  const [departmentsLoading, setDepartmentsLoading] = useState(false);
   
   // Role options based on the User model
   const roleOptions = [
@@ -73,51 +59,98 @@ const UserForm = ({
     { value: 'processor', label: 'Processor' }
   ];
   
-  // Fetch branches when component mounts
+  // Fetch branches and departments when component mounts
   useEffect(() => {
-    const fetchBranches = async () => {
+    const fetchData = async () => {
       setBranchesLoading(true);
+      setDepartmentsLoading(true);
+      
       try {
         const tenantId = localStorage.getItem('tenant_id');
         if (!tenantId) {
           console.warn('No tenant ID found in local storage');
           setBranchesLoading(false);
-          setBranches([]);
+          setDepartmentsLoading(false);
           return;
         }
         
-        console.log('Current tenant ID:', tenantId);
+        console.log('Fetching data for tenant ID:', tenantId);
         
-        // Using hardcoded branches instead of API call
-        console.log('Using hardcoded branches instead of API');
-        
-        // Filter the hardcoded branches by tenant ID
-        const tenantBranches = BRANCH_OPTIONS.filter(branch => 
-          branch.tenant === tenantId
-        );
-        
-        console.log('Filtered branches for tenant:', tenantBranches);
-        
-        if (tenantBranches.length > 0) {
-          setBranches(tenantBranches);
-          message.success(`Found ${tenantBranches.length} branches for your tenant.`);
-        } else {
-          // If no branches match this tenant, show all branches
-          console.log('No branches found specifically for this tenant. Using all branches.');
-          setBranches(BRANCH_OPTIONS);
-          message.info('Using all available branches.');
+        // Fetch branches using the service function
+        try {
+          console.log('Fetching branches...');
+          const branchResponse = await branchService.getBranches(tenantId);
+          console.log('Raw branch data received:', branchResponse);
+          
+          // Ensure branchData is an array
+          let branchData = [];
+          
+          if (Array.isArray(branchResponse)) {
+            branchData = branchResponse;
+          } else if (branchResponse && typeof branchResponse === 'object') {
+            // Handle possible pagination response from DRF
+            if (Array.isArray(branchResponse.results)) {
+              branchData = branchResponse.results;
+            } else {
+              // Try to convert object to array if it's an object
+              console.warn('Branch data is not an array, attempting to convert:', branchResponse);
+              branchData = Object.values(branchResponse);
+            }
+          }
+          
+          console.log('Processed branch data (array):', branchData);
+          setBranches(branchData);
+        } catch (branchError) {
+          console.error('Error fetching branches:', branchError);
+          message.error('Failed to load branches. Please try again later.');
+          // Ensure branches is set to an empty array on error
+          setBranches([]);
         }
+        
+        // Fetch departments using the service function
+        try {
+          console.log('Fetching departments...');
+          const deptResponse = await departmentService.getDepartments(tenantId);
+          console.log('Raw department data received:', deptResponse);
+          
+          // Ensure departmentData is an array
+          let departmentData = [];
+          
+          if (Array.isArray(deptResponse)) {
+            departmentData = deptResponse;
+          } else if (deptResponse && typeof deptResponse === 'object') {
+            // Handle possible pagination response from DRF
+            if (Array.isArray(deptResponse.results)) {
+              departmentData = deptResponse.results;
+            } else {
+              // Try to convert object to array if it's an object
+              console.warn('Department data is not an array, attempting to convert:', deptResponse);
+              departmentData = Object.values(deptResponse);
+            }
+          }
+          
+          console.log('Processed department data (array):', departmentData);
+          setDepartments(departmentData);
+        } catch (deptError) {
+          console.error('Error fetching departments:', deptError);
+          message.error('Failed to load departments. Please try again later.');
+          // Ensure departments is set to an empty array on error
+          setDepartments([]);
+        }
+        
       } catch (error) {
-        console.error('Error in branch loading:', error);
-        // Fallback to all hardcoded branches
-        setBranches(BRANCH_OPTIONS);
-        message.warning('Using fallback branch data due to an error.');
+        console.error('Error in data fetching process:', error);
+        message.error('Failed to fetch organization data');
+        // Ensure both arrays are empty on error
+        setBranches([]);
+        setDepartments([]);
       } finally {
         setBranchesLoading(false);
+        setDepartmentsLoading(false);
       }
     };
     
-    fetchBranches();
+    fetchData();
   }, []);
   
   // Image upload configuration
@@ -422,20 +455,14 @@ const UserForm = ({
     navigate('/dashboard/users');
   };
   
-  if (loading || branchesLoading) {
+  if (loading || branchesLoading || departmentsLoading) {
     return (
       <div style={{ textAlign: 'center', padding: '50px' }}>
         <Spin size="large" />
-        <div style={{ marginTop: '20px' }}>Loading...</div>
+        <div style={{ marginTop: '20px' }}>Loading form data...</div>
       </div>
     );
   }
-
-  // Determine which department options to use
-  const departmentOptions = departments.length > 0 ? departments : DEPARTMENT_OPTIONS;
-
-  // Determine which branch options to use
-  const branchOptions = branches.length > 0 ? branches : [];
 
   return (
     <Card bordered={false}>
@@ -605,37 +632,40 @@ const UserForm = ({
             <Divider />
           </Col>
           
-          {/* Branch - Using hardcoded data */}
+          {/* Branch Dropdown */}
           <Col xs={24} sm={12}>
             <Form.Item
               name="branch"
               label="Branch"
             >
               <Select 
-                placeholder="Select Branch" 
+                placeholder={branchesLoading ? "Loading branches..." : "Select Branch"} 
                 allowClear
                 loading={branchesLoading}
+                notFoundContent={!branchesLoading && (!branches || branches.length === 0) ? "No branches found" : undefined}
               >
-                {branches.map(branch => (
+                {Array.isArray(branches) && branches.map(branch => (
                   <Option key={branch.id} value={branch.id}>
-                    {branch.name} {branch.tenant !== localStorage.getItem('tenant_id') ? '(Other Tenant)' : ''}
+                    {branch.name}
                   </Option>
                 ))}
               </Select>
             </Form.Item>
           </Col>
           
-          {/* Department */}
+          {/* Department Dropdown */}
           <Col xs={24} sm={12}>
             <Form.Item
               name="department"
               label="Department"
             >
               <Select 
-                placeholder="Select Department" 
+                placeholder={departmentsLoading ? "Loading departments..." : "Select Department"} 
                 allowClear
+                loading={departmentsLoading}
+                notFoundContent={!departmentsLoading && (!departments || departments.length === 0) ? "No departments found" : undefined}
               >
-                {departmentOptions.map(dept => (
+                {Array.isArray(departments) && departments.map(dept => (
                   <Option key={dept.id} value={dept.id}>{dept.name}</Option>
                 ))}
               </Select>

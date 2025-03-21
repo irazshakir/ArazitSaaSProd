@@ -25,10 +25,17 @@ class BranchSerializer(serializers.ModelSerializer):
 class DepartmentSerializer(serializers.ModelSerializer):
     """Serializer for the Department model."""
     
+    tenant_name = serializers.SerializerMethodField()
+    
     class Meta:
         model = Department
-        fields = ('id', 'name', 'description', 'created_at', 'updated_at')
+        fields = ('id', 'name', 'description', 'tenant', 'tenant_name', 'is_active', 'created_at', 'updated_at')
         read_only_fields = ('id', 'created_at', 'updated_at')
+    
+    def get_tenant_name(self, obj):
+        if obj.tenant:
+            return obj.tenant.name
+        return None
 
 
 class UserSerializer(serializers.ModelSerializer):
