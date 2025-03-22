@@ -1,63 +1,69 @@
 from rest_framework import serializers
-from .models import Team, TeamMember, DepartmentHead
-from backend.users.models import User
-
-class UserBasicSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'email', 'first_name', 'last_name', 'role', 'profile_picture']
-
-class TeamMemberSerializer(serializers.ModelSerializer):
-    user = UserBasicSerializer(read_only=True)
-    user_id = serializers.UUIDField(write_only=True)
-    
-    class Meta:
-        model = TeamMember
-        fields = ['id', 'user', 'user_id', 'joined_at', 'is_active']
-        read_only_fields = ['joined_at']
+from .models import Team, TeamManager, TeamLead, TeamMember
+from users.serializers import UserSerializer
 
 class TeamSerializer(serializers.ModelSerializer):
-    members = TeamMemberSerializer(many=True, read_only=True, source='members.all')
-    team_lead_details = UserBasicSerializer(source='team_lead', read_only=True)
-    manager_details = UserBasicSerializer(source='manager', read_only=True)
+    """Serializer for the Team model."""
+    department_head_details = UserSerializer(source='department_head', read_only=True)
     
     class Meta:
         model = Team
-        fields = [
-            'id', 'name', 'description', 'tenant', 'branch', 'department',
-            'team_lead', 'team_lead_details', 'manager', 'manager_details', 
-            'members', 'created_at', 'updated_at'
-        ]
-        read_only_fields = ['created_at', 'updated_at']
+        fields = ('id', 'name', 'description', 'tenant', 'department', 'branch', 
+                 'department_head', 'department_head_details', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'created_at', 'updated_at')
 
-class DepartmentHeadSerializer(serializers.ModelSerializer):
-    user_details = UserBasicSerializer(source='user', read_only=True)
+class TeamManagerSerializer(serializers.ModelSerializer):
+    """Serializer for the TeamManager model."""
+    manager_details = UserSerializer(source='manager', read_only=True)
     
     class Meta:
-        model = DepartmentHead
-        fields = [
-            'id', 'tenant', 'branch', 'department', 'user', 
-            'user_details', 'appointed_at', 'is_active'
-        ]
-        read_only_fields = ['appointed_at']
+        model = TeamManager
+        fields = ('id', 'team', 'manager', 'manager_details')
+        read_only_fields = ('id',)
+        
+    def validate(self, attrs):
+        # Additional validation logic can be added here
+        return attrs
 
-class TeamHierarchySerializer(serializers.Serializer):
-    """Serializer for displaying team hierarchy."""
-    department_head = UserBasicSerializer(allow_null=True)
-    managers = UserBasicSerializer(many=True)
-    teams = serializers.SerializerMethodField()
+class TeamLeadSerializer(serializers.ModelSerializer):
+    """Serializer for the TeamLead model."""
+    team_lead_details = UserSerializer(source='team_lead', read_only=True)
+    manager_details = serializers.SerializerMethodField()
     
-    def get_teams(self, obj):
-        result = []
-        for team in obj['teams']:
-            team_data = {
-                'id': team.id,
-                'name': team.name,
-                'team_lead': UserBasicSerializer(team.team_lead).data if team.team_lead else None,
-                'members': UserBasicSerializer(
-                    [m.user for m in TeamMember.objects.filter(team=team)], 
-                    many=True
-                ).data
-            }
-            result.append(team_data)
-        return result
+    class Meta:
+        model = TeamLead
+        fields = ('id', 'team', 'manager', 'team_lead', 'team_lead_details', 'manager_details')
+        read_only_fields = ('id',)
+    
+    def get_manager_details(self, obj):
+        return {
+            'id': obj.manager.manager.id,
+            'email': obj.manager.manager.email,
+            'name': f"{obj.manager.manager.first_name} {obj.manager.manager.last_name}"
+        }
+        
+    def validate(self, attrs):
+        # Additional validation logic can be added here
+        return attrs
+
+class TeamMemberSerializer(serializers.ModelSerializer):
+    """Serializer for the TeamMember model."""
+    member_details = UserSerializer(source='member', read_only=True)
+    team_lead_details = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = TeamMember
+        fields = ('id', 'team', 'team_lead', 'member', 'member_details', 
+                 'team_lead_details', 'joined_at', 'is_active')
+        read_only_fields = ('id', 'joined_at')
+    
+    def get_team_lead_details(self, obj):
+        return {
+            'id': obj.team_lead.team_lead.id,
+            'email': obj.team_lead.team_lead.email,
+            'name': f"{obj.team_lead.team_lead.first_name} {obj.team_lead.team_lead.last_name}"
+        }
+        
+    def validate(self, attrs):
+        # Additional validation logic can be added here
+        return attrs 

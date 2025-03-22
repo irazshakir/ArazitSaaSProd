@@ -1,188 +1,143 @@
 from django.shortcuts import render
-from rest_framework import viewsets, permissions, status, filters
-from rest_framework.decorators import action
+from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from django.db.models import Q
-from ..models import Team, TeamMember, DepartmentHead
+from .models import Team, TeamManager, TeamLead, TeamMember
 from .serializers import (
-    TeamSerializer, TeamMemberSerializer, 
-    DepartmentHeadSerializer, TeamHierarchySerializer
+    TeamSerializer, 
+    TeamManagerSerializer, 
+    TeamLeadSerializer, 
+    TeamMemberSerializer
 )
-from backend.users.models import User, Department, Branch
-from ..utils import get_user_hierarchy, assign_user_to_team
 
 # Create your views here.
 
 class TeamViewSet(viewsets.ModelViewSet):
+    """ViewSet for the Team model."""
     serializer_class = TeamSerializer
     permission_classes = [permissions.IsAuthenticated]
-    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['name', 'description']
-    ordering_fields = ['name', 'created_at']
     
     def get_queryset(self):
-        """Filter teams based on the user's tenant."""
-        user = self.request.user
-        queryset = Team.objects.all()
-        
-        # Filter by tenant
-        queryset = queryset.filter(tenant_id=user.tenant_id)
-        
-        # Apply additional filters from query params
-        branch_id = self.request.query_params.get('branch_id')
-        if branch_id:
-            queryset = queryset.filter(branch_id=branch_id)
-            
-        department_id = self.request.query_params.get('department_id')
-        if department_id:
-            queryset = queryset.filter(department_id=department_id)
-            
-        return queryset
+        """Filter teams based on the authenticated user's tenant."""
+        tenant_id = self.request.user.tenant_id
+        return Team.objects.filter(tenant_id=tenant_id)
     
     def perform_create(self, serializer):
-        """Ensure the team is created within the user's tenant."""
+        """Add tenant_id automatically when creating a team."""
         serializer.save(tenant_id=self.request.user.tenant_id)
     
-    @action(detail=True, methods=['post'])
-    def add_member(self, request, pk=None):
-        """Add a member to the team."""
+    @action(detail=True, methods=['get'])
+    def managers(self, request, pk=None):
+        """Retrieve all managers for a specific team."""
         team = self.get_object()
-        user_id = request.data.get('user_id')
-        
-        if not user_id:
-            return Response(
-                {"error": "user_id is required"}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        try:
-            user = User.objects.get(id=user_id, tenant_id=request.user.tenant_id)
-        except User.DoesNotExist:
-            return Response(
-                {"error": "User not found"}, 
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        try:
-            team_member = assign_user_to_team(user, team)
-            serializer = TeamMemberSerializer(team_member)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        except ValueError as e:
-            return Response(
-                {"error": str(e)}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
+        managers = TeamManager.objects.filter(team=team)
+        serializer = TeamManagerSerializer(managers, many=True)
+        return Response(serializer.data)
     
-    @action(detail=True, methods=['post'])
-    def remove_member(self, request, pk=None):
-        """Remove a member from the team."""
+    @action(detail=True, methods=['get'])
+    def team_leads(self, request, pk=None):
+        """Retrieve all team leads for a specific team."""
         team = self.get_object()
-        user_id = request.data.get('user_id')
-        
-        if not user_id:
-            return Response(
-                {"error": "user_id is required"}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        try:
-            team_member = TeamMember.objects.get(
-                team=team,
-                user_id=user_id
-            )
-            team_member.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except TeamMember.DoesNotExist:
-            return Response(
-                {"error": "User is not a member of this team"}, 
-                status=status.HTTP_404_NOT_FOUND
-            )
+        team_leads = TeamLead.objects.filter(team=team)
+        serializer = TeamLeadSerializer(team_leads, many=True)
+        return Response(serializer.data)
     
-    @action(detail=False, methods=['get'])
-    def hierarchy(self, request):
-        """Get team hierarchy for the user's department and branch."""
-        user = request.user
+    @action(detail=True, methods=['get'])
+    def members(self, request, pk=None):
+        """Retrieve all members for a specific team."""
+        team = self.get_object()
+        members = TeamMember.objects.filter(team=team)
+        serializer = TeamMemberSerializer(members, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['get'])
+    def hierarchy(self, request, pk=None):
+        """Retrieve the complete hierarchy for a specific team."""
+        team = self.get_object()
         
-        # If no department or branch specified, use the user's
-        department_id = request.query_params.get('department_id', user.department_id if user.department else None)
-        branch_id = request.query_params.get('branch_id', user.branch_id if user.branch else None)
-        
-        if not department_id or not branch_id:
-            return Response(
-                {"error": "Department and branch are required"}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        
-        try:
-            department = Department.objects.get(id=department_id)
-            branch = Branch.objects.get(id=branch_id)
-        except (Department.DoesNotExist, Branch.DoesNotExist):
-            return Response(
-                {"error": "Department or branch not found"}, 
-                status=status.HTTP_404_NOT_FOUND
-            )
-        
-        # Get department head
-        try:
-            dept_head = DepartmentHead.objects.get(
-                tenant_id=user.tenant_id,
-                branch=branch,
-                department=department,
-                is_active=True
-            )
-            dept_head_user = dept_head.user
-        except DepartmentHead.DoesNotExist:
-            dept_head_user = None
+        # Get team details
+        team_data = TeamSerializer(team).data
         
         # Get managers
-        managers = User.objects.filter(
-            tenant_id=user.tenant_id,
-            branch=branch,
-            department=department,
-            role=User.ROLE_MANAGER
-        )
+        managers = TeamManager.objects.filter(team=team)
+        managers_data = []
         
-        # Get teams and their members
-        teams = Team.objects.filter(
-            tenant_id=user.tenant_id,
-            branch=branch,
-            department=department
-        )
+        for manager in managers:
+            manager_data = TeamManagerSerializer(manager).data
+            
+            # Get team leads under this manager
+            team_leads = TeamLead.objects.filter(manager=manager)
+            team_leads_data = []
+            
+            for team_lead in team_leads:
+                team_lead_data = TeamLeadSerializer(team_lead).data
+                
+                # Get members under this team lead
+                members = TeamMember.objects.filter(team_lead=team_lead)
+                members_data = TeamMemberSerializer(members, many=True).data
+                
+                team_lead_data['members'] = members_data
+                team_leads_data.append(team_lead_data)
+            
+            manager_data['team_leads'] = team_leads_data
+            managers_data.append(manager_data)
         
-        hierarchy_data = {
-            'department_head': dept_head_user,
-            'managers': managers,
-            'teams': teams
-        }
+        team_data['managers'] = managers_data
         
-        serializer = TeamHierarchySerializer(hierarchy_data)
+        return Response(team_data)
+
+class TeamManagerViewSet(viewsets.ModelViewSet):
+    """ViewSet for the TeamManager model."""
+    serializer_class = TeamManagerSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        """Filter team managers based on the authenticated user's tenant."""
+        tenant_id = self.request.user.tenant_id
+        return TeamManager.objects.filter(team__tenant_id=tenant_id)
+    
+    @action(detail=True, methods=['get'])
+    def team_leads(self, request, pk=None):
+        """Retrieve all team leads under this manager."""
+        manager = self.get_object()
+        team_leads = TeamLead.objects.filter(manager=manager)
+        serializer = TeamLeadSerializer(team_leads, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['get'])
+    def members(self, request, pk=None):
+        """Retrieve all members that fall under this manager (via team leads)."""
+        manager = self.get_object()
+        team_leads = TeamLead.objects.filter(manager=manager)
+        members = TeamMember.objects.filter(team_lead__in=team_leads)
+        serializer = TeamMemberSerializer(members, many=True)
+        return Response(serializer.data)
+
+class TeamLeadViewSet(viewsets.ModelViewSet):
+    """ViewSet for the TeamLead model."""
+    serializer_class = TeamLeadSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        """Filter team leads based on the authenticated user's tenant."""
+        tenant_id = self.request.user.tenant_id
+        return TeamLead.objects.filter(team__tenant_id=tenant_id)
+    
+    @action(detail=True, methods=['get'])
+    def members(self, request, pk=None):
+        """Retrieve all members under this team lead."""
+        team_lead = self.get_object()
+        members = TeamMember.objects.filter(team_lead=team_lead)
+        serializer = TeamMemberSerializer(members, many=True)
         return Response(serializer.data)
 
 class TeamMemberViewSet(viewsets.ModelViewSet):
+    """ViewSet for the TeamMember model."""
     serializer_class = TeamMemberSerializer
     permission_classes = [permissions.IsAuthenticated]
     
     def get_queryset(self):
-        """Filter team members based on the user's tenant."""
-        user = self.request.user
-        return TeamMember.objects.filter(team__tenant_id=user.tenant_id)
-    
-    def perform_create(self, serializer):
-        """Ensure the team member belongs to a team in the user's tenant."""
-        team = Team.objects.get(id=self.request.data.get('team_id'))
-        if team.tenant_id != self.request.user.tenant_id:
-            raise PermissionError("Cannot add member to a team from another tenant")
-        serializer.save()
-
-class DepartmentHeadViewSet(viewsets.ModelViewSet):
-    serializer_class = DepartmentHeadSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    
-    def get_queryset(self):
-        """Filter department heads based on the user's tenant."""
-        user = self.request.user
-        return DepartmentHead.objects.filter(tenant_id=user.tenant_id)
-    
-    def perform_create(self, serializer):
-        """Ensure the department head is created within the user's tenant."""
-        serializer.save(tenant_id=self.request.user.tenant_id)
+        """Filter team members based on the authenticated user's tenant."""
+        tenant_id = self.request.user.tenant_id
+        return TeamMember.objects.filter(team__tenant_id=tenant_id)
