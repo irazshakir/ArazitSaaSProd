@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { SendOutlined, MoreOutlined } from '@ant-design/icons';
+import { SendOutlined, MoreOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import './chatbox.css';
 
-const Chatbox = ({ activeChat, sendMessage }) => {
+const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
   const [message, setMessage] = useState('');
   const messagesEndRef = useRef(null);
 
@@ -46,9 +46,18 @@ const Chatbox = ({ activeChat, sendMessage }) => {
             <p className="last-seen">last seen recently</p>
           </div>
         </div>
-        <button className="more-options">
-          <MoreOutlined />
-        </button>
+        <div className="chat-header-actions">
+          <button 
+            className="info-button" 
+            onClick={toggleDetailsDrawer}
+            title="View Details"
+          >
+            <InfoCircleOutlined />
+          </button>
+          <button className="more-options">
+            <MoreOutlined />
+          </button>
+        </div>
       </div>
 
       <div className="messages-container">

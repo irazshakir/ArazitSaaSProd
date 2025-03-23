@@ -106,6 +106,7 @@ const dummyChats = [
 const Chat = () => {
   const [chats, setChats] = useState(dummyChats);
   const [activeChat, setActiveChat] = useState(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   useEffect(() => {
     // Set first chat as active on initial load
@@ -113,6 +114,14 @@ const Chat = () => {
       setActiveChat(chats[0]);
     }
   }, [chats]);
+
+  const toggleDetailsDrawer = () => {
+    setDetailsOpen(!detailsOpen);
+  };
+
+  const closeDetailsDrawer = () => {
+    setDetailsOpen(false);
+  };
 
   const sendMessage = (text) => {
     if (!activeChat) return;
@@ -164,13 +173,24 @@ const Chat = () => {
         <Box sx={{ flex: 1 }}>
           <Chatbox 
             activeChat={activeChat} 
-            sendMessage={sendMessage} 
+            sendMessage={sendMessage}
+            toggleDetailsDrawer={toggleDetailsDrawer}
           />
         </Box>
-        <Box sx={{ width: '280px', borderLeft: '1px solid #e0e0e0' }}>
-          <ChatDetails activeChat={activeChat} />
-        </Box>
       </Paper>
+      
+      {/* Mobile overlay for the drawer */}
+      <div 
+        className={`chat-details-overlay ${detailsOpen ? 'open' : ''}`} 
+        onClick={closeDetailsDrawer}
+      ></div>
+      
+      {/* Chat details as a drawer */}
+      <ChatDetails 
+        activeChat={activeChat} 
+        isOpen={detailsOpen} 
+        onClose={closeDetailsDrawer} 
+      />
     </Box>
   );
 };
