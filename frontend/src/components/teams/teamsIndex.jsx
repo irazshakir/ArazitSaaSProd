@@ -96,64 +96,23 @@ const TeamsIndex = () => {
     { 
       field: 'name', 
       headerName: 'TEAM NAME', 
-      width: '25%',
-      minWidth: 180,
+      width: '40%',
+      minWidth: 200,
       sortable: true 
     },
     { 
       field: 'department_name', 
       headerName: 'DEPARTMENT', 
-      width: '15%',
+      width: '25%',
       minWidth: 150,
       sortable: true
     },
     { 
       field: 'branch_name', 
       headerName: 'BRANCH', 
-      width: '15%',
+      width: '25%',
       minWidth: 150,
       sortable: true
-    },
-    { 
-      field: 'team_lead_display', 
-      headerName: 'TEAM LEAD', 
-      width: '20%',
-      minWidth: 180,
-      sortable: true,
-      render: (value, row) => (
-        value && value !== 'Not Assigned' ? (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Avatar 
-              src={row.team_lead_details?.profile_picture} 
-              alt={value} 
-              sx={{ width: 30, height: 30 }}
-            >
-              {value.charAt(0)}
-            </Avatar>
-            <Typography variant="body2">{value}</Typography>
-          </Box>
-        ) : 'Not Assigned'
-      )
-    },
-    { 
-      field: 'member_count', 
-      headerName: 'MEMBERS', 
-      width: '15%',
-      minWidth: 120,
-      sortable: true,
-      render: (value, row) => (
-        <Chip 
-          label={value || '0'} 
-          color="primary" 
-          size="small"
-          variant="outlined"
-          sx={{ 
-            minWidth: '40px', 
-            justifyContent: 'center',
-            fontWeight: 'bold'
-          }} 
-        />
-      )
     },
     { 
       field: 'created_at', 
@@ -290,20 +249,17 @@ const TeamsIndex = () => {
           console.log('Branch Structure:', Object.keys(sampleTeam.branch));
         }
         
-        console.log('Team Lead Details:', sampleTeam.team_lead_details);
-        console.log('Team Leads Array:', sampleTeam.team_leads);
-        console.log('Members Array:', sampleTeam.members);
         console.groupEnd();
       }
       
-      // Create a separate function to format the data for display
+      // First set the basic formatted data
       const formattedData = formatTeamsForDisplay(teamsArray);
-      
       setTeams(formattedData);
       setFilteredTeams(formattedData);
       
-      // Also fetch branches for filter options
-      fetchBranches();
+      // Then fetch and apply department and branch details in a separate call
+      // This happens after the teams are loaded so it won't block the initial display
+      fetchDepartmentAndBranchDetails(teamsArray);
       
     } catch (error) {
       console.error('Error fetching teams:', error);
@@ -317,7 +273,7 @@ const TeamsIndex = () => {
   // Separate function to format teams for display
   const formatTeamsForDisplay = (teamsArray) => {
     return teamsArray.map(team => {
-      // Helper function to convert department/branch IDs to names
+      // Improved helper function to get department name
       const getDepartmentName = () => {
         if (!team.department) return 'Unknown';
         
@@ -326,11 +282,23 @@ const TeamsIndex = () => {
           return team.department.name;
         }
         
-        // If department is a string ID, try to use the department's name directly
-        // This is important to show the name instead of ID
-        return 'Department';
+        // Try to fetch from API separately - we'll implement this later
+        // For now, customize this based on what's in your data
+        if (typeof team.department === 'string') {
+          // If we have department lookup data available from fetchDepartments
+          const departmentId = team.department;
+          
+          // Log for debugging
+          console.log(`Looking up department name for ID: ${departmentId}`);
+          
+          // Instead of returning a generic "Department" placeholder, use the ID with a note
+          return `${departmentId.substring(0, 8)}...`;
+        }
+        
+        return 'Unknown Department';
       };
       
+      // Improved helper function to get branch name
       const getBranchName = () => {
         if (!team.branch) return 'Unknown';
         
@@ -339,44 +307,20 @@ const TeamsIndex = () => {
           return team.branch.name;
         }
         
-        // If branch is a string ID, try to use the branch's name directly
-        return 'Branch';
-      };
-      
-      // Format team lead display name
-      const formatTeamLeadDisplay = () => {
-        if (team.team_lead_details) {
-          return `${team.team_lead_details.first_name || ''} ${team.team_lead_details.last_name || ''}`.trim();
+        // Try to fetch from API separately - we'll implement this later
+        // For now, customize this based on what's in your data
+        if (typeof team.branch === 'string') {
+          // If we have branch lookup data available from fetchBranches
+          const branchId = team.branch;
+          
+          // Log for debugging
+          console.log(`Looking up branch name for ID: ${branchId}`);
+          
+          // Instead of returning a generic "Branch" placeholder, use the ID with a note
+          return `${branchId.substring(0, 8)}...`;
         }
         
-        // Try to find team lead in the team structure
-        if (team.team_leads && team.team_leads.length > 0) {
-          const lead = team.team_leads[0];
-          return lead.team_lead?.first_name ? 
-            `${lead.team_lead.first_name || ''} ${lead.team_lead.last_name || ''}`.trim() :
-            lead.team_lead?.email || 'Not Assigned';
-        }
-        
-        return 'Not Assigned';
-      };
-      
-      // Count members in the team
-      const countMembers = () => {
-        if (Array.isArray(team.members)) {
-          return team.members.length;
-        }
-        
-        // Try to count members in team structure if available
-        let count = 0;
-        if (team.team_leads) {
-          team.team_leads.forEach(tl => {
-            if (tl.team_members && Array.isArray(tl.team_members)) {
-              count += tl.team_members.length;
-            }
-          });
-        }
-        
-        return count;
+        return 'Unknown Branch';
       };
       
       // Return a formatted team object for display
@@ -385,17 +329,24 @@ const TeamsIndex = () => {
         id: team.id,
         department_name: getDepartmentName(),
         branch_name: getBranchName(),
-        team_lead_display: formatTeamLeadDisplay(),
-        member_count: countMembers()
+        // We're removing these from the table but keeping them in the data in case needed elsewhere
+        team_lead_display: 'Not Shown',
+        member_count: 0
       };
     });
   };
 
-  // Function to refresh teams (after fetchTeams is defined)
+  // Function to refresh teams
   const refreshTeams = async () => {
     try {
       setLoading(true);
+      
+      // Fetch branches and departments first (to fill the filter options)
+      await fetchBranches();
+      
+      // Then fetch teams
       await fetchTeams();
+      
       setLoading(false);
     } catch (error) {
       console.error('Error refreshing teams:', error);
@@ -406,7 +357,8 @@ const TeamsIndex = () => {
   // Update the fetchBranches function with the correct endpoint path
   const fetchBranches = async () => {
     try {
-      const response = await api.get('branches/', { params: { tenant: tenantId } });
+      // Try the correct endpoint based on the logs and your router config
+      const response = await api.get('/api/branches/', { params: { tenant: tenantId } });
       
       if (response.data && (Array.isArray(response.data) || Array.isArray(response.data.results))) {
         const branchesArray = Array.isArray(response.data) ? response.data : response.data.results;
@@ -430,6 +382,213 @@ const TeamsIndex = () => {
       }
     } catch (error) {
       console.error('Error fetching branches:', error);
+      // Fallback to alternative endpoint if the first one fails
+      try {
+        const response = await api.get('/branches/', { params: { tenant: tenantId } });
+        
+        if (response.data && (Array.isArray(response.data) || Array.isArray(response.data.results))) {
+          const branchesArray = Array.isArray(response.data) ? response.data : response.data.results;
+          
+          // Update filter options with branches
+          const branchOptions = branchesArray.map(branch => ({
+            value: branch.id,
+            label: branch.name
+          }));
+          
+          setFilterOptions(prev => {
+            const updatedOptions = [...prev];
+            const branchFilterIndex = updatedOptions.findIndex(f => f.name === 'branch');
+            
+            if (branchFilterIndex >= 0) {
+              updatedOptions[branchFilterIndex].options = branchOptions;
+            }
+            
+            return updatedOptions;
+          });
+        }
+      } catch (fallbackError) {
+        console.error('Error fetching branches with fallback endpoint:', fallbackError);
+      }
+    }
+  };
+
+  // Add a separate function to fetch department details
+  const fetchDepartments = async () => {
+    try {
+      // Try the correct endpoint based on the logs and your router config
+      const response = await api.get('/api/departments/', { params: { tenant: tenantId } });
+      
+      if (response.data && (Array.isArray(response.data) || Array.isArray(response.data.results))) {
+        const departmentsArray = Array.isArray(response.data) ? response.data : response.data.results;
+        console.log('Fetched departments:', departmentsArray);
+        
+        // Store the departments for reference
+        return departmentsArray;
+      }
+      
+      // If no data returned, try fallback endpoint
+      const fallbackResponse = await api.get('/departments/', { params: { tenant: tenantId } });
+      
+      if (fallbackResponse.data && (Array.isArray(fallbackResponse.data) || Array.isArray(fallbackResponse.data.results))) {
+        const departmentsArray = Array.isArray(fallbackResponse.data) ? 
+          fallbackResponse.data : fallbackResponse.data.results;
+        console.log('Fetched departments from fallback:', departmentsArray);
+        return departmentsArray;
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('Error fetching departments:', error);
+      
+      // Try fallback endpoint
+      try {
+        const fallbackResponse = await api.get('/departments/', { params: { tenant: tenantId } });
+        
+        if (fallbackResponse.data && (Array.isArray(fallbackResponse.data) || Array.isArray(fallbackResponse.data.results))) {
+          const departmentsArray = Array.isArray(fallbackResponse.data) ? 
+            fallbackResponse.data : fallbackResponse.data.results;
+          console.log('Fetched departments from fallback:', departmentsArray);
+          return departmentsArray;
+        }
+      } catch (fallbackError) {
+        console.error('Error fetching departments with fallback endpoint:', fallbackError);
+      }
+      return [];
+    }
+  };
+
+  // Modify the fetchDepartmentAndBranchDetails function to use the updated endpoints
+  const fetchDepartmentAndBranchDetails = async (teamsArray) => {
+    try {
+      // Extract all unique department and branch IDs
+      const departmentIds = [...new Set(teamsArray.map(team => 
+        typeof team.department === 'string' ? team.department : 
+        (team.department?.id || null)).filter(Boolean))];
+      
+      const branchIds = [...new Set(teamsArray.map(team => 
+        typeof team.branch === 'string' ? team.branch : 
+        (team.branch?.id || null)).filter(Boolean))];
+      
+      console.log("Unique department IDs:", departmentIds);
+      console.log("Unique branch IDs:", branchIds);
+      
+      // Create maps to store the name lookups
+      const departmentMap = {};
+      const branchMap = {};
+      
+      // Fetch departments using the correct endpoint
+      try {
+        const departmentsData = await fetchDepartments();
+        
+        // Create lookup map of ID -> name
+        departmentsData.forEach(dept => {
+          departmentMap[dept.id] = dept.name;
+        });
+        
+        console.log("Department map:", departmentMap);
+      } catch (error) {
+        console.error("Failed to fetch department details:", error);
+      }
+      
+      // Fetch branches using our updated function
+      try {
+        const response = await api.get('/api/branches/', { 
+          params: { tenant: tenantId }
+        });
+        
+        let branchesData = [];
+        if (Array.isArray(response.data)) {
+          branchesData = response.data;
+        } else if (response.data?.results) {
+          branchesData = response.data.results;
+        }
+        
+        // Create lookup map of ID -> name
+        branchesData.forEach(branch => {
+          branchMap[branch.id] = branch.name;
+        });
+        
+        console.log("Branch map:", branchMap);
+      } catch (error) {
+        console.error("Failed to fetch branch details:", error);
+        
+        // Try fallback endpoint
+        try {
+          const fallbackResponse = await api.get('/branches/', { 
+            params: { tenant: tenantId }
+          });
+          
+          let branchesData = [];
+          if (Array.isArray(fallbackResponse.data)) {
+            branchesData = fallbackResponse.data;
+          } else if (fallbackResponse.data?.results) {
+            branchesData = fallbackResponse.data.results;
+          }
+          
+          // Create lookup map of ID -> name
+          branchesData.forEach(branch => {
+            branchMap[branch.id] = branch.name;
+          });
+          
+          console.log("Branch map from fallback:", branchMap);
+        } catch (fallbackError) {
+          console.error("Failed to fetch branch details with fallback:", fallbackError);
+        }
+      }
+      
+      // Now update the teams with the proper names
+      const updatedTeams = teamsArray.map(team => {
+        // For department
+        let departmentName = 'Unknown';
+        if (team.department) {
+          // First, check if department is an object with name
+          if (typeof team.department === 'object' && team.department.name) {
+            departmentName = team.department.name;
+          } 
+          // If it's a string (ID), look it up in our map
+          else if (typeof team.department === 'string') {
+            const deptId = team.department;
+            if (departmentMap[deptId]) {
+              departmentName = departmentMap[deptId];
+            } else {
+              // If not found in the map, show a shortened ID
+              departmentName = `ID: ${deptId.substring(0, 8)}...`;
+            }
+          }
+        }
+        
+        // For branch
+        let branchName = 'Unknown';
+        if (team.branch) {
+          // First, check if branch is an object with name
+          if (typeof team.branch === 'object' && team.branch.name) {
+            branchName = team.branch.name;
+          } 
+          // If it's a string (ID), look it up in our map
+          else if (typeof team.branch === 'string') {
+            const branchId = team.branch;
+            if (branchMap[branchId]) {
+              branchName = branchMap[branchId];
+            } else {
+              // If not found in the map, show a shortened ID
+              branchName = `ID: ${branchId.substring(0, 8)}...`;
+            }
+          }
+        }
+        
+        return {
+          ...team,
+          department_name: departmentName,
+          branch_name: branchName
+        };
+      });
+      
+      // Update the state with the new data
+      setTeams(updatedTeams);
+      setFilteredTeams(updatedTeams);
+      
+    } catch (error) {
+      console.error("Error in fetchDepartmentAndBranchDetails:", error);
     }
   };
 
@@ -455,8 +614,7 @@ const TeamsIndex = () => {
       results = results.filter(team => 
         team.name?.toLowerCase().includes(lowercasedQuery) ||
         team.department_name?.toLowerCase().includes(lowercasedQuery) ||
-        team.branch_name?.toLowerCase().includes(lowercasedQuery) ||
-        team.team_lead_display?.toLowerCase().includes(lowercasedQuery)
+        team.branch_name?.toLowerCase().includes(lowercasedQuery)
       );
     }
     

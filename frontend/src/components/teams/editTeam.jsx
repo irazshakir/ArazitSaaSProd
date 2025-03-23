@@ -3,19 +3,25 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   Box, Container, Typography, Grid, Paper, Button, 
   TextField, FormControl, InputLabel, Select, MenuItem,
-  FormHelperText, CircularProgress
+  FormHelperText, CircularProgress, Dialog, DialogTitle,
+  DialogContent, DialogActions, List, ListItem, ListItemText,
+  ListItemSecondaryAction, IconButton, Divider, Avatar,
+  ListItemAvatar
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import SaveIcon from '@mui/icons-material/Save';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { message } from 'antd';
 import api from '../../services/api';
+
+// ... existing code ...
 
 const EditTeam = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [team, setTeam] = useState(null);
   const [tenantId, setTenantId] = useState(null);
   
   // Form data state
@@ -24,8 +30,7 @@ const EditTeam = () => {
     description: '',
     branch: '',
     department: '',
-    team_lead: '',
-    manager: ''
+    department_head: ''
   });
   
   // Form errors state
@@ -34,8 +39,20 @@ const EditTeam = () => {
   // Options for dropdowns
   const [branches, setBranches] = useState([]);
   const [departments, setDepartments] = useState([]);
-  const [teamLeads, setTeamLeads] = useState([]);
+  const [departmentHeads, setDepartmentHeads] = useState([]);
+  
+  // Team members structure - similar to createTeam.jsx
   const [managers, setManagers] = useState([]);
+  const [availableManagers, setAvailableManagers] = useState([]);
+  const [availableTeamLeads, setAvailableTeamLeads] = useState([]);
+  const [availableMembers, setAvailableMembers] = useState([]);
+  
+  // Dialog states
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogType, setDialogType] = useState('');
+  const [dialogValue, setDialogValue] = useState('');
+  const [currentManagerId, setCurrentManagerId] = useState(null);
+  const [currentTeamLeadId, setCurrentTeamLeadId] = useState(null);
   
   // Get tenant ID from localStorage and load team data
   useEffect(() => {
@@ -52,8 +69,7 @@ const EditTeam = () => {
       
       // Load team data and options
       if (tenantId && id) {
-        fetchTeam(id);
-        loadOptions(tenantId);
+        loadInitialOptions(tenantId);
       }
     } catch (error) {
       console.error('Error parsing user data:', error);
@@ -62,30 +78,157 @@ const EditTeam = () => {
     }
   }, [id, navigate]);
   
-  // Fetch team data
-  const fetchTeam = async (teamId) => {
+  // Load initial options for dropdowns
+  const loadInitialOptions = async (tenantId) => {
     try {
       setLoading(true);
-      const response = await api.get(`teams/${teamId}/`);
-      const teamData = response.data;
       
-      setTeam(teamData);
+      // Load branches with fallback endpoints
+      let branchesData = [];
+      try {
+        // Try main endpoint first
+      const branchesResponse = await api.get('branches/', { params: { tenant: tenantId } });
+        console.log('Main branches API success:', branchesResponse);
+        branchesData = Array.isArray(branchesResponse.data) 
+          ? branchesResponse.data 
+          : branchesResponse.data?.results || [];
+      } catch (error) {
+        console.log('Main branches API failed, trying fallback endpoint');
+        
+        try {
+          // Try auth endpoint
+          const branchesResponse = await api.get('auth/branches/', { params: { tenant: tenantId } });
+          console.log('Auth branches API success:', branchesResponse);
+          branchesData = Array.isArray(branchesResponse.data) 
+            ? branchesResponse.data 
+            : branchesResponse.data?.results || [];
+        } catch (error2) {
+          console.log('Auth branches API failed, trying admin endpoint');
+          
+          try {
+            // Try admin endpoint
+            const branchesResponse = await api.get('admin/branches/', { params: { tenant: tenantId } });
+            console.log('Admin branches API success:', branchesResponse);
+            branchesData = Array.isArray(branchesResponse.data) 
+        ? branchesResponse.data 
+        : branchesResponse.data?.results || [];
+          } catch (error3) {
+            console.error('All branches API attempts failed:', error3);
+            message.warning('Failed to load branches. Some options may be unavailable.');
+          }
+        }
+      }
       
-      // Update form data
-      setFormData({
-        name: teamData.name || '',
-        description: teamData.description || '',
-        branch: teamData.branch?.id || '',
-        department: teamData.department?.id || '',
-        team_lead: teamData.team_lead?.id || '',
-        manager: teamData.manager?.id || ''
-      });
+      setBranches(branchesData);
+      
+      // Load departments with fallback endpoints
+      let departmentsData = [];
+      try {
+        // Try main endpoint first
+        const departmentsResponse = await api.get('departments/', { params: { tenant: tenantId } });
+        console.log('Main departments API success:', departmentsResponse);
+        departmentsData = Array.isArray(departmentsResponse.data) 
+          ? departmentsResponse.data 
+          : departmentsResponse.data?.results || [];
+      } catch (error) {
+        console.log('Main departments API failed, trying fallback endpoint');
+        
+        try {
+          // Try auth endpoint
+          const departmentsResponse = await api.get('auth/departments/', { params: { tenant: tenantId } });
+          console.log('Auth departments API success:', departmentsResponse);
+          departmentsData = Array.isArray(departmentsResponse.data) 
+            ? departmentsResponse.data 
+            : departmentsResponse.data?.results || [];
+        } catch (error2) {
+          console.log('Auth departments API failed, trying users endpoint');
+          
+          try {
+            // Try users endpoint
+            const departmentsResponse = await api.get('users/departments/', { params: { tenant: tenantId } });
+            console.log('Users departments API success:', departmentsResponse);
+            departmentsData = Array.isArray(departmentsResponse.data) 
+        ? departmentsResponse.data 
+        : departmentsResponse.data?.results || [];
+          } catch (error3) {
+            console.error('All departments API attempts failed:', error3);
+            message.warning('Failed to load departments. Some options may be unavailable.');
+          }
+        }
+      }
+      
+      setDepartments(departmentsData);
+      
+      // After loading initial options, fetch the team
+      await fetchTeam(id);
       
       setLoading(false);
     } catch (error) {
+      console.error('Error loading options:', error);
+      message.error('Failed to load form options');
+      setLoading(false);
+    }
+  };
+  
+  // Fetch team data with fallback endpoints
+  const fetchTeam = async (teamId) => {
+    try {
+      let teamData = null;
+      
+      try {
+        // Try main endpoint first
+      const response = await api.get(`teams/${teamId}/`);
+        console.log('Main teams API success:', response);
+        teamData = response.data;
+      } catch (error) {
+        console.log('Main teams API failed, trying fallback endpoint');
+        
+        try {
+          // Try auth endpoint
+          const response = await api.get(`auth/teams/${teamId}/`);
+          console.log('Auth teams API success:', response);
+          teamData = response.data;
+        } catch (error2) {
+          console.log('Auth teams API failed, trying admin endpoint');
+          
+          try {
+            // Try admin endpoint
+            const response = await api.get(`admin/teams/${teamId}/`);
+            console.log('Admin teams API success:', response);
+            teamData = response.data;
+          } catch (error3) {
+            console.error('All teams API attempts failed:', error3);
+            throw new Error('Failed to fetch team data');
+          }
+        }
+      }
+      
+      if (!teamData) {
+        throw new Error('No valid response for team data');
+      }
+      
+      console.log('Fetched team data:', teamData);
+      
+      // Update form data with basic team info
+      setFormData({
+        name: teamData.name || '',
+        description: teamData.description || '',
+        branch: teamData.branch || '',
+        department: teamData.department || '',
+        department_head: teamData.department_head || ''
+      });
+      
+      // Load department heads based on branch and department
+      if (teamData.branch && teamData.department) {
+        await loadDepartmentHeads(teamData.branch, teamData.department);
+      }
+      
+      // Now fetch team hierarchy data - managers, team leads, and members
+      await fetchTeamHierarchy(teamId);
+      
+    } catch (error) {
       console.error('Error fetching team:', error);
       message.error('Failed to load team data');
-      setLoading(false);
       
       // Navigate back to teams list if team not found
       if (error.response?.status === 404) {
@@ -94,92 +237,455 @@ const EditTeam = () => {
     }
   };
   
-  // Load options for all dropdowns
-  const loadOptions = async (tenantId) => {
+  // Fetch team hierarchy with fallback endpoints
+  const fetchTeamHierarchy = async (teamId) => {
     try {
-      // Load branches
-      const branchesResponse = await api.get('branches/', { params: { tenant: tenantId } });
-      const branchesData = Array.isArray(branchesResponse.data) 
-        ? branchesResponse.data 
-        : branchesResponse.data?.results || [];
-      setBranches(branchesData);
+      let hierarchyData = null;
       
-      // Load departments
-      const departmentsResponse = await api.get('departments/');
-      const departmentsData = Array.isArray(departmentsResponse.data) 
-        ? departmentsResponse.data 
-        : departmentsResponse.data?.results || [];
-      setDepartments(departmentsData);
+      try {
+        // Attempt to fetch complete hierarchy with main endpoint
+      const response = await api.get(`teams/${teamId}/hierarchy/`);
+        console.log('Main hierarchy API success:', response);
+        hierarchyData = response.data;
+      } catch (error) {
+        console.log('Main hierarchy API failed, trying fallback endpoint');
+        
+        try {
+          // Try auth endpoint
+          const response = await api.get(`auth/teams/${teamId}/hierarchy/`);
+          console.log('Auth hierarchy API success:', response);
+          hierarchyData = response.data;
+        } catch (error2) {
+          console.log('Auth hierarchy API failed, trying admin endpoint');
+          
+          try {
+            // Try admin endpoint
+            const response = await api.get(`admin/teams/${teamId}/hierarchy/`);
+            console.log('Admin hierarchy API success:', response);
+            hierarchyData = response.data;
+          } catch (error3) {
+            console.error('All hierarchy API attempts failed:', error3);
+            // We'll continue with the fallback approach below
+          }
+        }
+      }
       
+      if (hierarchyData) {
+      console.log('Team hierarchy data:', hierarchyData);
+      
+      // Setup managers array with team leads and members
+      if (hierarchyData.managers && Array.isArray(hierarchyData.managers)) {
+        // Map the managers data to our structure
+        const managersData = hierarchyData.managers.map(manager => {
+          return {
+            id: manager.id,
+            manager: manager.manager,
+            manager_details: manager.manager_details,
+            team_leads: (manager.team_leads || []).map(teamLead => {
+              return {
+                id: teamLead.id,
+                team_lead: teamLead.team_lead,
+                team_lead_details: teamLead.team_lead_details,
+                members: teamLead.members || []
+              };
+            })
+          };
+        });
+        
+        setManagers(managersData);
+      }
+      } else {
+        // Fallback to fetching individual parts
+        console.log('Falling back to individual API calls for team hierarchy');
+        
+        try {
+          // First fetch managers with fallback endpoints
+          let managersData = [];
+          
+          try {
+            const managersResponse = await api.get(`teams/${teamId}/managers/`);
+            console.log('Main managers API success:', managersResponse);
+            managersData = Array.isArray(managersResponse.data) 
+              ? managersResponse.data 
+              : managersResponse.data?.results || [];
     } catch (error) {
-      console.error('Error loading options:', error);
-      message.error('Failed to load form options');
+            try {
+              const managersResponse = await api.get(`auth/teams/${teamId}/managers/`);
+              console.log('Auth managers API success:', managersResponse);
+              managersData = Array.isArray(managersResponse.data) 
+                ? managersResponse.data 
+                : managersResponse.data?.results || [];
+            } catch (error2) {
+              try {
+                const managersResponse = await api.get(`admin/teams/${teamId}/managers/`);
+                console.log('Admin managers API success:', managersResponse);
+                managersData = Array.isArray(managersResponse.data) 
+          ? managersResponse.data 
+          : managersResponse.data?.results || [];
+              } catch (error3) {
+                console.error('All managers API attempts failed:', error3);
+                // Continue with empty managers array
+              }
+            }
+          }
+        
+        // For each manager, fetch team leads
+        const managersWithLeads = await Promise.all(managersData.map(async (manager) => {
+            let teamLeadsData = [];
+            
+            try {
+          const teamLeadsResponse = await api.get(`team-managers/${manager.id}/team_leads/`);
+              console.log('Main team leads API success:', teamLeadsResponse);
+              teamLeadsData = Array.isArray(teamLeadsResponse.data) 
+                ? teamLeadsResponse.data 
+                : teamLeadsResponse.data?.results || [];
+            } catch (error) {
+              try {
+                const teamLeadsResponse = await api.get(`auth/team-managers/${manager.id}/team_leads/`);
+                console.log('Auth team leads API success:', teamLeadsResponse);
+                teamLeadsData = Array.isArray(teamLeadsResponse.data) 
+                  ? teamLeadsResponse.data 
+                  : teamLeadsResponse.data?.results || [];
+              } catch (error2) {
+                try {
+                  const teamLeadsResponse = await api.get(`admin/team-managers/${manager.id}/team_leads/`);
+                  console.log('Admin team leads API success:', teamLeadsResponse);
+                  teamLeadsData = Array.isArray(teamLeadsResponse.data) 
+          ? teamLeadsResponse.data 
+          : teamLeadsResponse.data?.results || [];
+                } catch (error3) {
+                  console.error('All team leads API attempts failed:', error3);
+                  // Continue with empty team leads array
+                }
+              }
+            }
+        
+          // For each team lead, fetch members
+          const teamLeadsWithMembers = await Promise.all(teamLeadsData.map(async (teamLead) => {
+              let membersData = [];
+              
+              try {
+            const membersResponse = await api.get(`team-leads/${teamLead.id}/members/`);
+                console.log('Main members API success:', membersResponse);
+                membersData = Array.isArray(membersResponse.data) 
+                  ? membersResponse.data 
+                  : membersResponse.data?.results || [];
+              } catch (error) {
+                try {
+                  const membersResponse = await api.get(`auth/team-leads/${teamLead.id}/members/`);
+                  console.log('Auth members API success:', membersResponse);
+                  membersData = Array.isArray(membersResponse.data) 
+                    ? membersResponse.data 
+                    : membersResponse.data?.results || [];
+                } catch (error2) {
+                  try {
+                    const membersResponse = await api.get(`admin/team-leads/${teamLead.id}/members/`);
+                    console.log('Admin members API success:', membersResponse);
+                    membersData = Array.isArray(membersResponse.data) 
+              ? membersResponse.data
+              : membersResponse.data?.results || [];
+                  } catch (error3) {
+                    console.error('All members API attempts failed:', error3);
+                    // Continue with empty members array
+                  }
+                }
+              }
+            
+            return {
+              ...teamLead,
+              members: membersData
+            };
+          }));
+          
+          return {
+            ...manager,
+            team_leads: teamLeadsWithMembers
+          };
+        }));
+        
+        setManagers(managersWithLeads);
+        } catch (fallbackError) {
+          console.error('Error fetching team hierarchy with fallback approach:', fallbackError);
+          message.error('Failed to load team structure');
+        }
+      }
+        
+        // Load available managers, team leads and members for this team
+        await fetchAllUsers();
+      
+      } catch (error) {
+      console.error('Error in fetchTeamHierarchy:', error);
+      message.error('Failed to load team hierarchy');
     }
   };
   
-  // Load available users for team lead and manager when branch and department are selected
-  useEffect(() => {
-    const loadUsers = async () => {
-      if (!formData.branch || !formData.department || !tenantId) return;
+  // Load department heads with fallback endpoints
+  const loadDepartmentHeads = async (branchId, departmentId) => {
+    try {
+      let headsData = [];
       
       try {
-        setLoading(true);
-        
-        // Load team leads (users with team_lead role for this department/branch)
-        const teamLeadsResponse = await api.get('users/', { 
-          params: { 
-            tenant: tenantId,
-            branch: formData.branch,
-            department: formData.department,
-            role: 'team_lead'
-          } 
-        });
-        
-        const teamLeadsData = Array.isArray(teamLeadsResponse.data) 
-          ? teamLeadsResponse.data 
-          : teamLeadsResponse.data?.results || [];
-        
-        setTeamLeads(teamLeadsData);
-        
-        // Load managers (users with manager role for this department/branch)
-        const managersResponse = await api.get('users/', { 
-          params: { 
-            tenant: tenantId,
-            branch: formData.branch,
-            department: formData.department,
-            role: 'manager'
-          } 
-        });
-        
-        const managersData = Array.isArray(managersResponse.data) 
-          ? managersResponse.data 
-          : managersResponse.data?.results || [];
-        
-        setManagers(managersData);
-        
-        setLoading(false);
-      } catch (error) {
-        console.error('Error loading users:', error);
-        setLoading(false);
+        // Fetch users with department_head role - main endpoint
+      const response = await api.get('users/', {
+        params: {
+          tenant: tenantId,
+          branch: branchId,
+          department: departmentId,
+          role: 'department_head'
+        }
+      });
+        console.log('Main department heads API success:', response);
+        headsData = Array.isArray(response.data)
+        ? response.data
+        : response.data?.results || [];
+    } catch (error) {
+        try {
+          // Try auth endpoint
+          const response = await api.get('auth/users/', {
+            params: {
+              tenant: tenantId,
+              branch: branchId,
+              department: departmentId,
+              role: 'department_head'
+            }
+          });
+          console.log('Auth department heads API success:', response);
+          headsData = Array.isArray(response.data)
+            ? response.data
+            : response.data?.results || [];
+        } catch (error2) {
+          try {
+            // Try admin endpoint
+            const response = await api.get('admin/users/', {
+              params: {
+                tenant: tenantId,
+                branch: branchId,
+                department: departmentId,
+                role: 'department_head'
+              }
+            });
+            console.log('Admin department heads API success:', response);
+            headsData = Array.isArray(response.data)
+              ? response.data
+              : response.data?.results || [];
+          } catch (error3) {
+            console.error('All department heads API attempts failed:', error3);
+            // Continue with empty array
+          }
+        }
       }
-    };
-    
-    loadUsers();
-  }, [formData.branch, formData.department, tenantId]);
+      
+      setDepartmentHeads(headsData);
+    } catch (error) {
+      console.error('Error loading department heads:', error);
+    }
+  };
+  
+  // Fetch all available users with fallback endpoints
+  const fetchAllUsers = async () => {
+    try {
+      // Get current branch and department from form data
+      const { branch, department } = formData;
+      
+      if (!branch || !department) {
+        console.log('Cannot fetch users without branch and department');
+        return;
+      }
+      
+      // Fetch available managers with fallback endpoints
+      let managersData = [];
+      
+      try {
+        const managersResponse = await api.get('users/', {
+          params: {
+            tenant: tenantId,
+            branch: branch,
+            department: department,
+            role: 'manager'
+          }
+        });
+        console.log('Main managers API success:', managersResponse);
+        managersData = Array.isArray(managersResponse.data)
+          ? managersResponse.data
+          : managersResponse.data?.results || [];
+      } catch (error) {
+        try {
+          const managersResponse = await api.get('auth/users/', {
+            params: {
+              tenant: tenantId,
+              branch: branch,
+              department: department,
+              role: 'manager'
+            }
+          });
+          console.log('Auth managers API success:', managersResponse);
+          managersData = Array.isArray(managersResponse.data)
+            ? managersResponse.data
+            : managersResponse.data?.results || [];
+        } catch (error2) {
+          try {
+            const managersResponse = await api.get('admin/users/', {
+              params: {
+                tenant: tenantId,
+                branch: branch,
+                department: department,
+                role: 'manager'
+              }
+            });
+            console.log('Admin managers API success:', managersResponse);
+            managersData = Array.isArray(managersResponse.data)
+              ? managersResponse.data
+              : managersResponse.data?.results || [];
+          } catch (error3) {
+            console.error('All managers API attempts failed:', error3);
+            // Continue with empty array
+          }
+        }
+      }
+      
+      // Filter out managers already assigned to the team
+      const assignedManagerIds = managers.map(m => m.manager);
+      const filteredManagers = managersData.filter(m => !assignedManagerIds.includes(m.id));
+      
+      setAvailableManagers(filteredManagers);
+      
+      // Fetch available team leads with fallback endpoints
+      let teamLeadsData = [];
+      
+      try {
+        const teamLeadsResponse = await api.get('users/', {
+          params: {
+            tenant: tenantId,
+            branch: branch,
+            department: department,
+            role: 'team_lead'
+          }
+        });
+        console.log('Main team leads API success:', teamLeadsResponse);
+        teamLeadsData = Array.isArray(teamLeadsResponse.data)
+          ? teamLeadsResponse.data
+          : teamLeadsResponse.data?.results || [];
+      } catch (error) {
+        try {
+          const teamLeadsResponse = await api.get('auth/users/', {
+            params: {
+              tenant: tenantId,
+              branch: branch,
+              department: department,
+              role: 'team_lead'
+            }
+          });
+          console.log('Auth team leads API success:', teamLeadsResponse);
+          teamLeadsData = Array.isArray(teamLeadsResponse.data)
+            ? teamLeadsResponse.data
+            : teamLeadsResponse.data?.results || [];
+        } catch (error2) {
+          try {
+            const teamLeadsResponse = await api.get('admin/users/', {
+              params: {
+                tenant: tenantId,
+                branch: branch,
+                department: department,
+                role: 'team_lead'
+              }
+            });
+            console.log('Admin team leads API success:', teamLeadsResponse);
+            teamLeadsData = Array.isArray(teamLeadsResponse.data)
+              ? teamLeadsResponse.data
+              : teamLeadsResponse.data?.results || [];
+          } catch (error3) {
+            console.error('All team leads API attempts failed:', error3);
+            // Continue with empty array
+          }
+        }
+      }
+      
+      // We'll filter these when adding to a specific manager
+      setAvailableTeamLeads(teamLeadsData);
+      
+      // Fetch available members with fallback endpoints
+      let membersData = [];
+      
+      try {
+        const membersResponse = await api.get('users/', {
+          params: {
+            tenant: tenantId,
+            branch: branch,
+            department: department,
+            role__in: 'sales_agent,support_agent,processor' // Multiple roles
+          }
+        });
+        console.log('Main members API success:', membersResponse);
+        membersData = Array.isArray(membersResponse.data)
+          ? membersResponse.data
+          : membersResponse.data?.results || [];
+      } catch (error) {
+        try {
+          const membersResponse = await api.get('auth/users/', {
+            params: {
+              tenant: tenantId,
+              branch: branch,
+              department: department,
+              role__in: 'sales_agent,support_agent,processor' // Multiple roles
+            }
+          });
+          console.log('Auth members API success:', membersResponse);
+          membersData = Array.isArray(membersResponse.data)
+            ? membersResponse.data
+            : membersResponse.data?.results || [];
+        } catch (error2) {
+          try {
+            const membersResponse = await api.get('admin/users/', {
+              params: {
+                tenant: tenantId,
+                branch: branch,
+                department: department,
+                role__in: 'sales_agent,support_agent,processor' // Multiple roles
+              }
+            });
+            console.log('Admin members API success:', membersResponse);
+            membersData = Array.isArray(membersResponse.data)
+              ? membersResponse.data
+              : membersResponse.data?.results || [];
+          } catch (error3) {
+            console.error('All members API attempts failed:', error3);
+            // Continue with empty array
+          }
+        }
+      }
+      
+      setAvailableMembers(membersData);
+      
+    } catch (error) {
+      console.error('Error fetching available users:', error);
+      message.error('Failed to load available users');
+    }
+  };
   
   // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     
-    // Handle branch and department changes specially to trigger user loading
+    // Handle branch and department changes specially
     if (name === 'branch' || name === 'department') {
-      // If branch or department changes, reset team_lead and manager
       setFormData({
         ...formData,
         [name]: value,
-        team_lead: '',
-        manager: ''
+        department_head: '' // Reset department head when branch or department changes
       });
+      
+      // If both branch and department are selected, load department heads
+      if (
+        (name === 'branch' && formData.department) || 
+        (name === 'department' && formData.branch)
+      ) {
+        const branchId = name === 'branch' ? value : formData.branch;
+        const departmentId = name === 'department' ? value : formData.department;
+        loadDepartmentHeads(branchId, departmentId);
+        
+        // Also reload available users
+        fetchAllUsers();
+      }
     } else {
       setFormData({
         ...formData,
@@ -194,6 +700,234 @@ const EditTeam = () => {
         [name]: ''
       });
     }
+  };
+  
+  // Handle dialog open for adding managers, team leads, or members
+  const handleOpenDialog = (type, managerId = null, teamLeadId = null) => {
+    setDialogType(type);
+    setDialogValue('');
+    setCurrentManagerId(managerId);
+    setCurrentTeamLeadId(teamLeadId);
+    setDialogOpen(true);
+  };
+  
+  // Handle dialog option change
+  const handleDialogOptionChange = (e) => {
+    setDialogValue(e.target.value);
+  };
+  
+  // Handle adding from dialog
+  const handleAddFromDialog = () => {
+    if (!dialogValue) {
+      message.error('Please select a value');
+      return;
+    }
+    
+    if (dialogType === 'manager') {
+      // Find the selected manager from available managers
+      const selectedManager = availableManagers.find(m => m.id === dialogValue);
+      if (!selectedManager) return;
+      
+      // Add the new manager to the team
+      const newManager = {
+        id: `temp-${Date.now()}`, // Temporary ID until saved
+        manager: selectedManager.id,
+        manager_details: {
+          id: selectedManager.id,
+          email: selectedManager.email,
+          first_name: selectedManager.first_name,
+          last_name: selectedManager.last_name
+        },
+        team_leads: []
+      };
+      
+      setManagers([...managers, newManager]);
+      
+      // Remove this manager from available managers
+      setAvailableManagers(availableManagers.filter(m => m.id !== dialogValue));
+    } 
+    else if (dialogType === 'team_lead') {
+      if (!currentManagerId) return;
+      
+      // Find the selected team lead from available team leads
+      const selectedTeamLead = availableTeamLeads.find(tl => tl.id === dialogValue);
+      if (!selectedTeamLead) return;
+      
+      // Add the new team lead to the specified manager
+      const updatedManagers = managers.map(manager => {
+        if (manager.id === currentManagerId) {
+          return {
+            ...manager,
+            team_leads: [
+              ...manager.team_leads,
+              {
+                id: `temp-${Date.now()}`, // Temporary ID until saved
+                team_lead: selectedTeamLead.id,
+                team_lead_details: {
+                  id: selectedTeamLead.id,
+                  email: selectedTeamLead.email,
+                  first_name: selectedTeamLead.first_name,
+                  last_name: selectedTeamLead.last_name
+                },
+                members: []
+              }
+            ]
+          };
+        }
+        return manager;
+      });
+      
+      setManagers(updatedManagers);
+    } 
+    else if (dialogType === 'member') {
+      if (!currentManagerId || !currentTeamLeadId) return;
+      
+      // Find the selected member from available members
+      const selectedMember = availableMembers.find(m => m.id === dialogValue);
+      if (!selectedMember) return;
+      
+      // Add the new member to the specified team lead
+      const updatedManagers = managers.map(manager => {
+        if (manager.id === currentManagerId) {
+          return {
+            ...manager,
+            team_leads: manager.team_leads.map(teamLead => {
+              if (teamLead.id === currentTeamLeadId) {
+                return {
+                  ...teamLead,
+                  members: [
+                    ...teamLead.members,
+                    {
+                      id: `temp-${Date.now()}`, // Temporary ID until saved
+                      member: selectedMember.id,
+                      member_details: {
+                        id: selectedMember.id,
+                        email: selectedMember.email,
+                        first_name: selectedMember.first_name,
+                        last_name: selectedMember.last_name
+                      }
+                    }
+                  ]
+                };
+              }
+              return teamLead;
+            })
+          };
+        }
+        return manager;
+      });
+      
+      setManagers(updatedManagers);
+    }
+    
+    // Close the dialog
+    setDialogOpen(false);
+  };
+  
+  // Handle removing a manager
+  const handleRemoveManager = (managerId) => {
+    // Find the manager to remove
+    const managerToRemove = managers.find(m => m.id === managerId);
+    
+    // Remove the manager
+    setManagers(managers.filter(m => m.id !== managerId));
+    
+    // Add the manager back to available managers if it has user details
+    if (managerToRemove?.manager_details) {
+      const managerUser = {
+        id: managerToRemove.manager_details.id,
+        email: managerToRemove.manager_details.email,
+        first_name: managerToRemove.manager_details.first_name,
+        last_name: managerToRemove.manager_details.last_name
+      };
+      
+      setAvailableManagers([...availableManagers, managerUser]);
+    }
+  };
+  
+  // Handle removing a team lead
+  const handleRemoveTeamLead = (managerId, teamLeadId) => {
+    // Update managers list
+    const updatedManagers = managers.map(manager => {
+      if (manager.id === managerId) {
+        // Find the team lead to remove
+        const teamLeadToRemove = manager.team_leads.find(tl => tl.id === teamLeadId);
+        
+        // If we have team lead details, add it back to available team leads
+        if (teamLeadToRemove?.team_lead_details) {
+          const teamLeadUser = {
+            id: teamLeadToRemove.team_lead_details.id,
+            email: teamLeadToRemove.team_lead_details.email,
+            first_name: teamLeadToRemove.team_lead_details.first_name,
+            last_name: teamLeadToRemove.team_lead_details.last_name
+          };
+          
+          // Add back to available team leads if not already there
+          if (!availableTeamLeads.some(tl => tl.id === teamLeadUser.id)) {
+            setAvailableTeamLeads([...availableTeamLeads, teamLeadUser]);
+          }
+        }
+        
+        // Remove the team lead from this manager
+        return {
+          ...manager,
+          team_leads: manager.team_leads.filter(tl => tl.id !== teamLeadId)
+        };
+      }
+      return manager;
+    });
+    
+    setManagers(updatedManagers);
+  };
+  
+  // Handle removing a member
+  const handleRemoveMember = (managerId, teamLeadId, memberId) => {
+    // Update managers list
+    const updatedManagers = managers.map(manager => {
+      if (manager.id === managerId) {
+        return {
+          ...manager,
+          team_leads: manager.team_leads.map(teamLead => {
+            if (teamLead.id === teamLeadId) {
+              // Find the member to remove
+              const memberToRemove = teamLead.members.find(m => m.id === memberId);
+              
+              // If we have member details, add it back to available members
+              if (memberToRemove?.member_details) {
+                const memberUser = {
+                  id: memberToRemove.member_details.id,
+                  email: memberToRemove.member_details.email,
+                  first_name: memberToRemove.member_details.first_name,
+                  last_name: memberToRemove.member_details.last_name
+                };
+                
+                // Add back to available members if not already there
+                if (!availableMembers.some(m => m.id === memberUser.id)) {
+                  setAvailableMembers([...availableMembers, memberUser]);
+                }
+              }
+              
+              // Remove the member from this team lead
+              return {
+                ...teamLead,
+                members: teamLead.members.filter(m => m.id !== memberId)
+              };
+            }
+            return teamLead;
+          })
+        };
+      }
+      return manager;
+    });
+    
+    setManagers(updatedManagers);
+  };
+  
+  // Helper function to format user name
+  const formatUserName = (user) => {
+    if (!user) return 'Unknown User';
+    const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim();
+    return fullName || user.email || 'Unnamed User';
   };
   
   // Validate form
@@ -226,30 +960,204 @@ const EditTeam = () => {
       return;
     }
     
-    // Prepare submission data
-    const submitData = {
-      ...formData,
-      tenant: tenantId
-    };
-    
-    // Remove empty fields
-    Object.keys(submitData).forEach(key => {
-      if (submitData[key] === '') {
-        delete submitData[key];
-      }
-    });
-    
     try {
       setSubmitting(true);
       
-      // Update the team
-      await api.put(`teams/${id}/`, submitData);
+      // Step 1: Update the basic team information
+      const teamData = {
+        name: formData.name,
+        description: formData.description,
+        branch: formData.branch,
+        department: formData.department,
+        department_head: formData.department_head || null,
+        tenant: tenantId
+      };
+      
+      // Update the team with fallback endpoints
+      try {
+        await api.put(`teams/${id}/`, teamData);
+        console.log('Team updated successfully with main endpoint');
+      } catch (error) {
+        console.log('Main endpoint failed, trying fallback', error);
+        
+        try {
+          await api.put(`auth/teams/${id}/`, teamData);
+          console.log('Team updated successfully with auth endpoint');
+        } catch (error2) {
+          console.log('Auth endpoint failed, trying admin fallback', error2);
+          
+          await api.put(`admin/teams/${id}/`, teamData);
+          console.log('Team updated successfully with admin endpoint');
+        }
+      }
+      
+      // Step 2: Process team hierarchy
+      
+      // First, let's handle deletions - we'll compare the current state with the original state
+      // Get the original hierarchy data to compare what needs to be deleted
+      let originalHierarchyData = null;
+      try {
+        // Use the same endpoint fallback strategy as we did when loading
+        try {
+          const response = await api.get(`teams/${id}/hierarchy/`);
+          originalHierarchyData = response.data;
+        } catch (error) {
+          try {
+            const response = await api.get(`auth/teams/${id}/hierarchy/`);
+            originalHierarchyData = response.data;
+          } catch (error2) {
+            try {
+              const response = await api.get(`admin/teams/${id}/hierarchy/`);
+              originalHierarchyData = response.data;
+            } catch (error3) {
+              console.error("Couldn't fetch original hierarchy for deletion comparison:", error3);
+            }
+          }
+        }
+        
+        if (originalHierarchyData) {
+          // Handle deletion of managers, team leads, and members
+          await handleDeletions(originalHierarchyData);
+        }
+      } catch (deletionError) {
+        console.error("Error handling deletions:", deletionError);
+        // Continue anyway to try the additions
+      }
+      
+      // Next, handle additions
+      const apiCalls = [];
+      
+      // Process managers
+      for (const manager of managers) {
+        // If manager has a temporary ID, it's a new manager to be created
+        if (manager.id.toString().startsWith('temp-')) {
+          const managerData = {
+            team: id,
+            manager: manager.manager
+          };
+          
+          apiCalls.push(async () => {
+            try {
+              const managerResponse = await api.post('team-managers/', managerData);
+              const newManagerId = managerResponse.data.id;
+              
+              // Process team leads for this manager
+              for (const teamLead of manager.team_leads) {
+                // If team lead has a temporary ID, it's new
+                if (teamLead.id.toString().startsWith('temp-')) {
+                  const teamLeadData = {
+                    team: id,
+                    manager: newManagerId,
+                    team_lead: teamLead.team_lead
+                  };
+                  
+                  try {
+                    const teamLeadResponse = await api.post('team-leads/', teamLeadData);
+                    const newTeamLeadId = teamLeadResponse.data.id;
+                    
+                    // Process members for this team lead
+                    for (const member of teamLead.members) {
+                      if (member.id.toString().startsWith('temp-')) {
+                        const memberData = {
+                          team: id,
+                          team_lead: newTeamLeadId,
+                          member: member.member
+                        };
+                        
+                        try {
+                          await api.post('team-members/', memberData);
+                        } catch (memberError) {
+                          console.error('Failed to add team member:', memberError);
+                        }
+                      }
+                    }
+                  } catch (teamLeadError) {
+                    console.error('Failed to add team lead:', teamLeadError);
+                  }
+                }
+              }
+            } catch (managerError) {
+              console.error('Failed to add team manager:', managerError);
+            }
+          });
+        } else {
+          // Existing manager, handle team leads
+          for (const teamLead of manager.team_leads) {
+            // If team lead has a temporary ID, it's new
+            if (teamLead.id.toString().startsWith('temp-')) {
+              const teamLeadData = {
+                team: id,
+                manager: manager.id,
+                team_lead: teamLead.team_lead
+              };
+              
+              apiCalls.push(async () => {
+                try {
+                  const teamLeadResponse = await api.post('team-leads/', teamLeadData);
+                  const newTeamLeadId = teamLeadResponse.data.id;
+                  
+                  // Process members for this team lead
+                  for (const member of teamLead.members) {
+                    if (member.id.toString().startsWith('temp-')) {
+                      const memberData = {
+                        team: id,
+                        team_lead: newTeamLeadId,
+                        member: member.member
+                      };
+                      
+                      try {
+                        await api.post('team-members/', memberData);
+                      } catch (memberError) {
+                        console.error('Failed to add team member:', memberError);
+                      }
+                    }
+                  }
+                } catch (teamLeadError) {
+                  console.error('Failed to add team lead:', teamLeadError);
+                }
+              });
+            } else {
+              // Existing team lead, handle members
+              for (const member of teamLead.members) {
+                if (member.id.toString().startsWith('temp-')) {
+                  const memberData = {
+                    team: id,
+                    team_lead: teamLead.id,
+                    member: member.member
+                  };
+                  
+                  apiCalls.push(async () => {
+                    try {
+                      await api.post('team-members/', memberData);
+                    } catch (memberError) {
+                      console.error('Failed to add team member:', memberError);
+                    }
+                  });
+                }
+              }
+            }
+          }
+        }
+      }
+      
+      // Execute all API calls - we'll continue even if some fail
+      if (apiCalls.length > 0) {
+        try {
+          await Promise.allSettled(apiCalls.map(call => call()));
+          console.log('Processed team hierarchy additions');
+        } catch (hierarchyError) {
+          console.error('Some team hierarchy updates failed:', hierarchyError);
+          // Continue anyway - main team data has been saved
+        }
+      }
       
       setSubmitting(false);
       message.success('Team updated successfully!');
       
-      // Navigate to the team detail page
-      navigate(`/dashboard/teams/${id}`);
+      // Navigate back to the teams list using a simple approach
+      // This avoids any potential issues with the navigation hooks
+      window.location.href = '/dashboard/teams';
+      
     } catch (error) {
       setSubmitting(false);
       console.error('Error updating team:', error);
@@ -273,12 +1181,160 @@ const EditTeam = () => {
     }
   };
   
-  // Handle cancel/back
-  const handleCancel = () => {
-    navigate(`/dashboard/teams/${id}`);
+  // New function to handle deletions of team members, team leads, and managers
+  const handleDeletions = async (originalHierarchy) => {
+    try {
+      // Extract the original managers, team leads, and members
+      const originalManagers = originalHierarchy.managers || [];
+      
+      // 1. Handle Member Deletions
+      for (const originalManager of originalManagers) {
+        const currentManager = managers.find(m => m.id === originalManager.id);
+        
+        // If manager still exists, check team leads
+        if (currentManager) {
+          for (const originalTeamLead of (originalManager.team_leads || [])) {
+            const currentTeamLead = currentManager.team_leads.find(tl => tl.id === originalTeamLead.id);
+            
+            // If team lead still exists, check members
+            if (currentTeamLead) {
+              // Find members to delete (in original but not in current)
+              for (const originalMember of (originalTeamLead.members || [])) {
+                const memberExists = currentTeamLead.members.some(m => m.id === originalMember.id);
+                
+                // If member doesn't exist in current team lead, delete it
+                if (!memberExists) {
+                  console.log(`Deleting member: ${originalMember.id}`);
+                  try {
+                    await api.delete(`team-members/${originalMember.id}/`);
+                  } catch (error) {
+                    console.error(`Failed to delete member ${originalMember.id}:`, error);
+                    // Try fallback endpoints
+                    try {
+                      await api.delete(`auth/team-members/${originalMember.id}/`);
+                    } catch (error2) {
+                      try {
+                        await api.delete(`admin/team-members/${originalMember.id}/`);
+                      } catch (error3) {
+                        console.error(`All deletion attempts failed for member ${originalMember.id}`);
+                      }
+                    }
+                  }
+                }
+              }
+            } else {
+              // Team lead was deleted - delete all its members first
+              for (const originalMember of (originalTeamLead.members || [])) {
+                console.log(`Deleting member due to team lead deletion: ${originalMember.id}`);
+                try {
+                  await api.delete(`team-members/${originalMember.id}/`);
+                } catch (error) {
+                  console.error(`Failed to delete member ${originalMember.id}:`, error);
+                  // Try fallback endpoints
+                  try {
+                    await api.delete(`auth/team-members/${originalMember.id}/`);
+                  } catch (error2) {
+                    try {
+                      await api.delete(`admin/team-members/${originalMember.id}/`);
+                    } catch (error3) {
+                      console.error(`All deletion attempts failed for member ${originalMember.id}`);
+                    }
+                  }
+                }
+              }
+              
+              // Then delete the team lead itself
+              console.log(`Deleting team lead: ${originalTeamLead.id}`);
+              try {
+                await api.delete(`team-leads/${originalTeamLead.id}/`);
+              } catch (error) {
+                console.error(`Failed to delete team lead ${originalTeamLead.id}:`, error);
+                // Try fallback endpoints
+                try {
+                  await api.delete(`auth/team-leads/${originalTeamLead.id}/`);
+                } catch (error2) {
+                  try {
+                    await api.delete(`admin/team-leads/${originalTeamLead.id}/`);
+                  } catch (error3) {
+                    console.error(`All deletion attempts failed for team lead ${originalTeamLead.id}`);
+                  }
+                }
+              }
+            }
+          }
+        } else {
+          // Manager was deleted - delete all team leads and members first
+          for (const originalTeamLead of (originalManager.team_leads || [])) {
+            // Delete all members of this team lead
+            for (const originalMember of (originalTeamLead.members || [])) {
+              console.log(`Deleting member due to manager deletion: ${originalMember.id}`);
+              try {
+                await api.delete(`team-members/${originalMember.id}/`);
+              } catch (error) {
+                console.error(`Failed to delete member ${originalMember.id}:`, error);
+                // Try fallback endpoints
+                try {
+                  await api.delete(`auth/team-members/${originalMember.id}/`);
+                } catch (error2) {
+                  try {
+                    await api.delete(`admin/team-members/${originalMember.id}/`);
+                  } catch (error3) {
+                    console.error(`All deletion attempts failed for member ${originalMember.id}`);
+                  }
+                }
+              }
+            }
+            
+            // Then delete the team lead
+            console.log(`Deleting team lead due to manager deletion: ${originalTeamLead.id}`);
+            try {
+              await api.delete(`team-leads/${originalTeamLead.id}/`);
+            } catch (error) {
+              console.error(`Failed to delete team lead ${originalTeamLead.id}:`, error);
+              // Try fallback endpoints
+              try {
+                await api.delete(`auth/team-leads/${originalTeamLead.id}/`);
+              } catch (error2) {
+                try {
+                  await api.delete(`admin/team-leads/${originalTeamLead.id}/`);
+                } catch (error3) {
+                  console.error(`All deletion attempts failed for team lead ${originalTeamLead.id}`);
+                }
+              }
+            }
+          }
+          
+          // Finally, delete the manager
+          console.log(`Deleting manager: ${originalManager.id}`);
+          try {
+            await api.delete(`team-managers/${originalManager.id}/`);
+          } catch (error) {
+            console.error(`Failed to delete manager ${originalManager.id}:`, error);
+            // Try fallback endpoints
+            try {
+              await api.delete(`auth/team-managers/${originalManager.id}/`);
+            } catch (error2) {
+              try {
+                await api.delete(`admin/team-managers/${originalManager.id}/`);
+              } catch (error3) {
+                console.error(`All deletion attempts failed for manager ${originalManager.id}`);
+              }
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error in handleDeletions:", error);
+      throw error;
+    }
   };
   
-  if (loading && !team) {
+  // Handle cancel/back
+  const handleCancel = () => {
+    navigate('/dashboard/teams');
+  };
+  
+  if (loading) {
     return (
       <Container maxWidth="md" sx={{ pt: 4, pb: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
@@ -289,7 +1345,7 @@ const EditTeam = () => {
   }
   
   return (
-    <Container maxWidth="md" sx={{ pt: 2, pb: 4 }}>
+    <Container maxWidth="lg" sx={{ pt: 2, pb: 4 }}>
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Paper
@@ -312,15 +1368,22 @@ const EditTeam = () => {
                 Back
               </Button>
               <Typography variant="h6" component="h1" sx={{ fontWeight: 600 }}>
-                Edit Team: {team?.name}
+                Edit Team: {formData.name}
               </Typography>
             </Box>
             
             {/* Form */}
             <form onSubmit={handleSubmit}>
               <Grid container spacing={3}>
-                {/* Team Name */}
+                {/* Basic Info Section */}
                 <Grid item xs={12}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+                    Basic Information
+                  </Typography>
+                  
+                  <Grid container spacing={2}>
+                    {/* Team Name */}
+                    <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
                     label="Team Name"
@@ -334,7 +1397,7 @@ const EditTeam = () => {
                 </Grid>
                 
                 {/* Description */}
-                <Grid item xs={12}>
+                    <Grid item xs={12} md={6}>
                   <TextField
                     fullWidth
                     label="Description"
@@ -342,14 +1405,14 @@ const EditTeam = () => {
                     value={formData.description}
                     onChange={handleInputChange}
                     multiline
-                    rows={3}
+                        rows={1}
                     error={!!errors.description}
                     helperText={errors.description}
                   />
                 </Grid>
                 
                 {/* Branch */}
-                <Grid item xs={12} md={6}>
+                    <Grid item xs={12} md={4}>
                   <FormControl fullWidth error={!!errors.branch} required>
                     <InputLabel>Branch</InputLabel>
                     <Select
@@ -369,7 +1432,7 @@ const EditTeam = () => {
                 </Grid>
                 
                 {/* Department */}
-                <Grid item xs={12} md={6}>
+                    <Grid item xs={12} md={4}>
                   <FormControl fullWidth error={!!errors.department} required>
                     <InputLabel>Department</InputLabel>
                     <Select
@@ -388,27 +1451,27 @@ const EditTeam = () => {
                   </FormControl>
                 </Grid>
                 
-                {/* Team Lead */}
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth error={!!errors.team_lead}>
-                    <InputLabel>Team Lead</InputLabel>
+                    {/* Department Head */}
+                    <Grid item xs={12} md={4}>
+                      <FormControl fullWidth error={!!errors.department_head}>
+                        <InputLabel>Department Head</InputLabel>
                     <Select
-                      name="team_lead"
-                      value={formData.team_lead}
+                          name="department_head"
+                          value={formData.department_head || ''}
                       onChange={handleInputChange}
-                      label="Team Lead"
+                          label="Department Head"
                       disabled={!formData.branch || !formData.department}
                     >
                       <MenuItem value="">
                         <em>None</em>
                       </MenuItem>
-                      {teamLeads.map(user => (
+                          {departmentHeads.map(user => (
                         <MenuItem key={user.id} value={user.id}>
-                          {`${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email}
+                              {formatUserName(user)}
                         </MenuItem>
                       ))}
                     </Select>
-                    {errors.team_lead && <FormHelperText>{errors.team_lead}</FormHelperText>}
+                        {errors.department_head && <FormHelperText>{errors.department_head}</FormHelperText>}
                     {(!formData.branch || !formData.department) && (
                       <FormHelperText>
                         Please select branch and department first
@@ -416,34 +1479,159 @@ const EditTeam = () => {
                     )}
                   </FormControl>
                 </Grid>
+                  </Grid>
+                </Grid>
                 
-                {/* Manager */}
-                <Grid item xs={12} md={6}>
-                  <FormControl fullWidth error={!!errors.manager}>
-                    <InputLabel>Manager</InputLabel>
-                    <Select
-                      name="manager"
-                      value={formData.manager}
-                      onChange={handleInputChange}
-                      label="Manager"
-                      disabled={!formData.branch || !formData.department}
-                    >
-                      <MenuItem value="">
-                        <em>None</em>
-                      </MenuItem>
-                      {managers.map(user => (
-                        <MenuItem key={user.id} value={user.id}>
-                          {`${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                    {errors.manager && <FormHelperText>{errors.manager}</FormHelperText>}
-                    {(!formData.branch || !formData.department) && (
-                      <FormHelperText>
-                        Please select branch and department first
-                      </FormHelperText>
+                {/* Team Structure Section */}
+                <Grid item xs={12}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2, mt: 2 }}>
+                    Team Structure
+                  </Typography>
+                  
+                  {/* Managers Section */}
+                  <Paper elevation={0} sx={{ p: 2, mb: 3, border: '1px solid #e0e0e0', borderRadius: 1 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+                        Managers
+                      </Typography>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<AddIcon />}
+                        onClick={() => handleOpenDialog('manager')}
+                        disabled={!formData.branch || !formData.department || availableManagers.length === 0}
+                      >
+                        Add Manager
+                      </Button>
+                    </Box>
+                    
+                    {managers.length === 0 ? (
+                      <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic', py: 2 }}>
+                        No managers assigned to this team yet.
+                      </Typography>
+                    ) : (
+                      <List dense sx={{ bgcolor: '#f5f5f5', borderRadius: 1, mb: 2 }}>
+                        {managers.map((manager) => (
+                          <React.Fragment key={manager.id}>
+                            <ListItem
+                              secondaryAction={
+                                <IconButton edge="end" onClick={() => handleRemoveManager(manager.id)}>
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              }
+                            >
+                              <ListItemAvatar>
+                                <Avatar>{manager.manager_details?.first_name?.charAt(0) || 'M'}</Avatar>
+                              </ListItemAvatar>
+                              <ListItemText
+                                primary={formatUserName(manager.manager_details)}
+                                secondary={manager.manager_details?.email || 'No email'}
+                              />
+                            </ListItem>
+                            
+                            {/* Team Leads Section for this manager */}
+                            <Box sx={{ pl: 6, pr: 2, pb: 2 }}>
+                              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                  Team Leads
+                                </Typography>
+                                <Button
+                                  variant="outlined"
+                                  size="small"
+                                  startIcon={<AddIcon />}
+                                  onClick={() => handleOpenDialog('team_lead', manager.id)}
+                                  disabled={availableTeamLeads.length === 0}
+                                >
+                                  Add Team Lead
+                                </Button>
+                              </Box>
+                              
+                              {manager.team_leads && manager.team_leads.length > 0 ? (
+                                <List dense sx={{ bgcolor: '#f0f0f0', borderRadius: 1, mb: 1 }}>
+                                  {manager.team_leads.map((teamLead) => (
+                                    <React.Fragment key={teamLead.id}>
+                                      <ListItem
+                                        secondaryAction={
+                                          <IconButton edge="end" onClick={() => handleRemoveTeamLead(manager.id, teamLead.id)}>
+                                            <DeleteIcon fontSize="small" />
+                                          </IconButton>
+                                        }
+                                      >
+                                        <ListItemAvatar>
+                                          <Avatar sx={{ width: 30, height: 30 }}>{teamLead.team_lead_details?.first_name?.charAt(0) || 'T'}</Avatar>
+                                        </ListItemAvatar>
+                                        <ListItemText
+                                          primary={formatUserName(teamLead.team_lead_details)}
+                                          secondary={teamLead.team_lead_details?.email || 'No email'}
+                                        />
+                                      </ListItem>
+                                      
+                                      {/* Members Section for this team lead */}
+                                      <Box sx={{ pl: 4, pr: 2, pb: 1 }}>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                                          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                                            Members
+                                          </Typography>
+                                          <Button
+                                            variant="outlined"
+                                            size="small"
+                                            startIcon={<AddIcon />}
+                                            onClick={() => handleOpenDialog('member', manager.id, teamLead.id)}
+                                            disabled={availableMembers.length === 0}
+                                          >
+                                            Add Member
+                                          </Button>
+                                        </Box>
+                                        
+                                        {teamLead.members && teamLead.members.length > 0 ? (
+                                          <List dense sx={{ bgcolor: '#e8e8e8', borderRadius: 1 }}>
+                                            {teamLead.members.map((member) => (
+                                              <ListItem
+                                                key={member.id}
+                                                secondaryAction={
+                                                  <IconButton edge="end" onClick={() => handleRemoveMember(manager.id, teamLead.id, member.id)}>
+                                                    <DeleteIcon fontSize="small" />
+                                                  </IconButton>
+                                                }
+                                              >
+                                                <ListItemAvatar>
+                                                  <Avatar sx={{ width: 24, height: 24 }}>{member.member_details?.first_name?.charAt(0) || 'M'}</Avatar>
+                                                </ListItemAvatar>
+                                                <ListItemText
+                                                  primary={formatUserName(member.member_details)}
+                                                  secondary={member.member_details?.email || 'No email'}
+                                                />
+                                              </ListItem>
+                                            ))}
+                                          </List>
+                                        ) : (
+                                          <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic', py: 1, pl: 2 }}>
+                                            No members assigned to this team lead yet.
+                                          </Typography>
+                                        )}
+                                      </Box>
+                                      
+                                      {manager.team_leads.length > 1 && manager.team_leads.indexOf(teamLead) < manager.team_leads.length - 1 && (
+                                        <Divider variant="inset" component="li" />
+                                      )}
+                                    </React.Fragment>
+                                  ))}
+                                </List>
+                              ) : (
+                                <Typography variant="body2" sx={{ color: 'text.secondary', fontStyle: 'italic', py: 1, pl: 2 }}>
+                                  No team leads assigned to this manager yet.
+                                </Typography>
+                              )}
+                            </Box>
+                            
+                            {managers.length > 1 && managers.indexOf(manager) < managers.length - 1 && (
+                              <Divider component="li" />
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </List>
                     )}
-                  </FormControl>
+                  </Paper>
                 </Grid>
                 
                 {/* Submit Buttons */}
@@ -473,6 +1661,52 @@ const EditTeam = () => {
           </Paper>
         </Grid>
       </Grid>
+      
+      {/* Add User Dialog */}
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          {dialogType === 'manager' ? 'Add Manager' : 
+           dialogType === 'team_lead' ? 'Add Team Lead' : 'Add Member'}
+        </DialogTitle>
+        <DialogContent>
+          <FormControl fullWidth sx={{ mt: 1 }}>
+            <InputLabel>
+              {dialogType === 'manager' ? 'Manager' : 
+               dialogType === 'team_lead' ? 'Team Lead' : 'Member'}
+            </InputLabel>
+            <Select
+              value={dialogValue}
+              onChange={handleDialogOptionChange}
+              label={dialogType === 'manager' ? 'Manager' : 
+                    dialogType === 'team_lead' ? 'Team Lead' : 'Member'}
+            >
+              {dialogType === 'manager' && availableManagers.map(manager => (
+                <MenuItem key={manager.id} value={manager.id}>
+                  {formatUserName(manager)}
+                </MenuItem>
+              ))}
+              
+              {dialogType === 'team_lead' && availableTeamLeads.map(teamLead => (
+                <MenuItem key={teamLead.id} value={teamLead.id}>
+                  {formatUserName(teamLead)}
+                </MenuItem>
+              ))}
+              
+              {dialogType === 'member' && availableMembers.map(member => (
+                <MenuItem key={member.id} value={member.id}>
+                  {formatUserName(member)}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleAddFromDialog} variant="contained" color="primary">
+            Add
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
