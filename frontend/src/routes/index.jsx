@@ -54,6 +54,9 @@ import CreateDepartment from '../components/departments/createDepartment';
 import DepartmentDetail from '../components/departments/departmentDetail';
 import EditDepartment from '../components/departments/editDepartment';
 
+// Chat Components
+import Chat from '../components/chats/Chat';
+
 const AppRoutes = () => {
   return (
     <ErrorBoundary>
@@ -68,6 +71,9 @@ const AppRoutes = () => {
         {/* Protected routes */}
         <Route path="/dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
           <Route index element={<Dashboard />} />
+          
+          {/* Chat Routes */}
+          <Route path="chats" element={<Chat />} />
           
           {/* Hajj & Umrah Routes */}
           <Route path="hajj-umrah">
