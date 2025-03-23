@@ -10,6 +10,7 @@ import DownloadButton from '../universalComponents/downloadButton';
 import FilterButton from '../universalComponents/filterButton';
 import CreateButton from '../universalComponents/createButton';
 import TableList from '../universalComponents/tableList';
+import TableSkeleton from '../universalComponents/tableSkeleton';
 
 // Import auth utilities
 import { getUser } from '../../utils/auth';
@@ -52,6 +53,13 @@ const TeamsIndex = () => {
       navigate('/login');
     }
   }, [navigate]);
+
+  // Initial fetch on component mount
+  useEffect(() => {
+    if (tenantId) {
+      refreshTeams();
+    }
+  }, [tenantId]);
 
   // Add this effect to refresh when navigating to the page
   useEffect(() => {
@@ -113,7 +121,7 @@ const TeamsIndex = () => {
       minWidth: 180,
       sortable: true,
       render: (value, row) => (
-        value ? (
+        value && value !== 'Not Assigned' ? (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Avatar 
               src={row.team_lead_details?.profile_picture} 
@@ -128,24 +136,23 @@ const TeamsIndex = () => {
       )
     },
     { 
-      field: 'members', 
+      field: 'member_count', 
       headerName: 'MEMBERS', 
       width: '15%',
       minWidth: 120,
-      sortable: false,
+      sortable: true,
       render: (value, row) => (
-        <AvatarGroup max={4} sx={{ '& .MuiAvatar-root': { width: 28, height: 28, fontSize: '0.75rem' } }}>
-          {Array.isArray(value) && value.map((member, index) => (
-            <Avatar 
-              key={index} 
-              src={member.user?.profile_picture} 
-              alt={member.user?.first_name}
-              sx={{ width: 28, height: 28 }}
-            >
-              {member.user?.first_name ? member.user.first_name.charAt(0) : '?'}
-            </Avatar>
-          ))}
-        </AvatarGroup>
+        <Chip 
+          label={value || '0'} 
+          color="primary" 
+          size="small"
+          variant="outlined"
+          sx={{ 
+            minWidth: '40px', 
+            justifyContent: 'center',
+            fontWeight: 'bold'
+          }} 
+        />
       )
     },
     { 
@@ -158,11 +165,33 @@ const TeamsIndex = () => {
     }
   ];
 
-  // Define fetchTeams before it's used in refreshTeams
+  // Add this debugging function
+  const debugApiResponse = (response) => {
+    console.group('API Response Debugging');
+    console.log('Raw response:', response);
+    
+    // Check for different ways the data might be structured
+    if (Array.isArray(response.data)) {
+      console.log('Data is an array with length:', response.data.length);
+    } else if (response.data && response.data.results && Array.isArray(response.data.results)) {
+      console.log('Data has results array with length:', response.data.results.length);
+    } else if (response.data) {
+      console.log('Data structure:', Object.keys(response.data));
+      if (typeof response.data === 'object') {
+        console.log('Data object entries:', Object.entries(response.data).slice(0, 3)); // Show first 3 entries
+      }
+    }
+    
+    // Check for status code
+    console.log('Response status:', response.status);
+    console.groupEnd();
+  };
+
+  // Define fetchTeams with the correct API endpoint path (without double /api/)
   const fetchTeams = async () => {
     try {
       // Determine endpoint and parameters based on user role
-      let endpoint = 'teams/';
+      let endpoint = 'teams/';  // Remove /api/ prefix since it might be added elsewhere
       const params = { tenant: tenantId };
       
       // Role-based API calls
@@ -202,31 +231,73 @@ const TeamsIndex = () => {
       }
       
       console.log('API request parameters:', params);
-      const response = await api.get(endpoint, { params });
+      console.log('Sending request to endpoint:', endpoint);
       
-      console.log('API response:', response);
+      const response = await api.get(endpoint, { 
+        params: { 
+          ...params,
+          include_related: true,
+        }
+      });
+      
+      // Use our debugging function
+      debugApiResponse(response);
       
       // Process response data
-      let teamsArray = Array.isArray(response.data) 
-        ? response.data
-        : (response.data?.results && Array.isArray(response.data.results))
-          ? response.data.results
-          : [];
+      let teamsArray = [];
       
-      console.log(`Fetched ${teamsArray.length} teams:`, teamsArray);
+      if (Array.isArray(response.data)) {
+        teamsArray = response.data;
+        console.log('Data is directly an array');
+      } else if (response.data?.results && Array.isArray(response.data.results)) {
+        teamsArray = response.data.results;
+        console.log('Data is in results property');
+      } else if (response.data && typeof response.data === 'object') {
+        // Try to extract from object
+        console.log('Trying to extract teams from object');
+        const possibleArrays = Object.values(response.data).filter(val => Array.isArray(val));
+        if (possibleArrays.length > 0) {
+          teamsArray = possibleArrays[0];
+          console.log('Found possible teams array with length:', teamsArray.length);
+        } else {
+          // Last resort: treat the object itself as an array of teams
+          teamsArray = Object.values(response.data);
+          console.log('Using object values as teams array');
+        }
+      }
       
-      // Transform data for UI representation
-      const formattedData = teamsArray.map(team => ({
-        ...team,
-        id: team.id,
-        department_name: team.department?.name || 'Unknown',
-        branch_name: team.branch?.name || 'Unknown',
-        team_lead_display: team.team_lead_details ? 
-          `${team.team_lead_details.first_name || ''} ${team.team_lead_details.last_name || ''}`.trim() : 
-          null
-      }));
+      console.log(`Found ${teamsArray.length} teams:`, teamsArray.slice(0, 2)); // Show first 2 teams
       
-      console.log('Formatted teams data:', formattedData);
+      if (teamsArray.length === 0) {
+        console.warn('No teams found in the response');
+        message.info('No teams found. Try creating a new team.');
+      }
+      
+      // More detailed debugging for team structure
+      if (teamsArray.length > 0) {
+        console.group('Team Structure Debug');
+        const sampleTeam = teamsArray[0];
+        console.log('Team ID:', sampleTeam.id);
+        console.log('Team Name:', sampleTeam.name);
+        
+        console.log('Department:', sampleTeam.department);
+        if (typeof sampleTeam.department === 'object') {
+          console.log('Department Structure:', Object.keys(sampleTeam.department));
+        }
+        
+        console.log('Branch:', sampleTeam.branch);
+        if (typeof sampleTeam.branch === 'object') {
+          console.log('Branch Structure:', Object.keys(sampleTeam.branch));
+        }
+        
+        console.log('Team Lead Details:', sampleTeam.team_lead_details);
+        console.log('Team Leads Array:', sampleTeam.team_leads);
+        console.log('Members Array:', sampleTeam.members);
+        console.groupEnd();
+      }
+      
+      // Create a separate function to format the data for display
+      const formattedData = formatTeamsForDisplay(teamsArray);
       
       setTeams(formattedData);
       setFilteredTeams(formattedData);
@@ -236,11 +307,90 @@ const TeamsIndex = () => {
       
     } catch (error) {
       console.error('Error fetching teams:', error);
-      console.error('Error details:', error.response?.data);
+      console.error('Response data:', error.response?.data);
+      console.error('Response status:', error.response?.status);
+      console.error('Response headers:', error.response?.headers);
       message.error('Failed to load teams. Please try again.');
     }
   };
   
+  // Separate function to format teams for display
+  const formatTeamsForDisplay = (teamsArray) => {
+    return teamsArray.map(team => {
+      // Helper function to convert department/branch IDs to names
+      const getDepartmentName = () => {
+        if (!team.department) return 'Unknown';
+        
+        // If department is an object with name property
+        if (typeof team.department === 'object' && team.department.name) {
+          return team.department.name;
+        }
+        
+        // If department is a string ID, try to use the department's name directly
+        // This is important to show the name instead of ID
+        return 'Department';
+      };
+      
+      const getBranchName = () => {
+        if (!team.branch) return 'Unknown';
+        
+        // If branch is an object with name property
+        if (typeof team.branch === 'object' && team.branch.name) {
+          return team.branch.name;
+        }
+        
+        // If branch is a string ID, try to use the branch's name directly
+        return 'Branch';
+      };
+      
+      // Format team lead display name
+      const formatTeamLeadDisplay = () => {
+        if (team.team_lead_details) {
+          return `${team.team_lead_details.first_name || ''} ${team.team_lead_details.last_name || ''}`.trim();
+        }
+        
+        // Try to find team lead in the team structure
+        if (team.team_leads && team.team_leads.length > 0) {
+          const lead = team.team_leads[0];
+          return lead.team_lead?.first_name ? 
+            `${lead.team_lead.first_name || ''} ${lead.team_lead.last_name || ''}`.trim() :
+            lead.team_lead?.email || 'Not Assigned';
+        }
+        
+        return 'Not Assigned';
+      };
+      
+      // Count members in the team
+      const countMembers = () => {
+        if (Array.isArray(team.members)) {
+          return team.members.length;
+        }
+        
+        // Try to count members in team structure if available
+        let count = 0;
+        if (team.team_leads) {
+          team.team_leads.forEach(tl => {
+            if (tl.team_members && Array.isArray(tl.team_members)) {
+              count += tl.team_members.length;
+            }
+          });
+        }
+        
+        return count;
+      };
+      
+      // Return a formatted team object for display
+      return {
+        ...team,
+        id: team.id,
+        department_name: getDepartmentName(),
+        branch_name: getBranchName(),
+        team_lead_display: formatTeamLeadDisplay(),
+        member_count: countMembers()
+      };
+    });
+  };
+
   // Function to refresh teams (after fetchTeams is defined)
   const refreshTeams = async () => {
     try {
@@ -253,7 +403,7 @@ const TeamsIndex = () => {
     }
   };
 
-  // Fetch branches for filter
+  // Update the fetchBranches function with the correct endpoint path
   const fetchBranches = async () => {
     try {
       const response = await api.get('branches/', { params: { tenant: tenantId } });
@@ -344,8 +494,8 @@ const TeamsIndex = () => {
               return value ? new Date(value).toLocaleDateString() : '';
             }
             // Handle members field specially
-            if (col.field === 'members') {
-              return Array.isArray(value) ? value.length.toString() : '0';
+            if (col.field === 'member_count') {
+              return value.toString();
             }
             return value || '';
           });
@@ -392,7 +542,7 @@ const TeamsIndex = () => {
     navigate(`/dashboard/teams/${team.id}/edit`);
   };
 
-  // Handle delete team
+  // Handle delete team - make sure this uses the correct endpoint format too
   const handleDeleteTeam = async (team) => {
     try {
       // Show loading message
@@ -484,19 +634,24 @@ const TeamsIndex = () => {
               />
             </Box>
             
-            {/* Data Table */}
-            <TableList
-              columns={columns}
-              data={filteredTeams}
-              loading={loading}
-              onRowClick={handleViewTeam}
-              onEditClick={handleEditTeam}
-              onDeleteClick={handleDeleteTeam}
-              pagination={true}
-              rowsPerPage={10}
-              defaultSortField="created_at"
-              defaultSortDirection="desc"
-            />
+            {/* Show skeleton while loading */}
+            {loading ? (
+              <TableSkeleton columns={columns.length} rows={5} />
+            ) : (
+              /* Data Table */
+              <TableList
+                columns={columns}
+                data={filteredTeams}
+                loading={false}
+                onRowClick={handleViewTeam}
+                onEditClick={handleEditTeam}
+                onDeleteClick={handleDeleteTeam}
+                pagination={true}
+                rowsPerPage={10}
+                defaultSortField="created_at"
+                defaultSortDirection="desc"
+              />
+            )}
           </Paper>
         </Grid>
       </Grid>

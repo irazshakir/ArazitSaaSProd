@@ -289,11 +289,46 @@ const BranchesIndex = () => {
       // Show loading message
       message.loading('Deleting branch...', 0);
       
-      // Make the delete request
-      await api.delete(`branches/${branch.id}/`);
+      // Try 3 different API endpoints in sequence
+      let deleteSuccessful = false;
+      let errorMessages = [];
+      
+      // Try main endpoint first
+      try {
+        await api.delete(`branches/${branch.id}/`);
+        console.log('Main API delete success');
+        deleteSuccessful = true;
+      } catch (error) {
+        errorMessages.push(`Main endpoint error: ${error.message}`);
+        console.log('Main API endpoint failed, trying fallback');
+        
+        // Try auth endpoint next
+        try {
+          await api.delete(`auth/branches/${branch.id}/`);
+          console.log('Auth API delete success');
+          deleteSuccessful = true;
+        } catch (error2) {
+          errorMessages.push(`Auth endpoint error: ${error2.message}`);
+          console.log('Auth API endpoint failed, trying users endpoint');
+          
+          // Try users endpoint as last resort
+          try {
+            await api.delete(`users/branches/${branch.id}/`);
+            console.log('Users API delete success');
+            deleteSuccessful = true;
+          } catch (error3) {
+            errorMessages.push(`Users endpoint error: ${error3.message}`);
+            console.error('All API attempts failed');
+          }
+        }
+      }
       
       // Hide loading message
       message.destroy();
+      
+      if (!deleteSuccessful) {
+        throw new Error(`All API attempts failed: ${errorMessages.join(', ')}`);
+      }
       
       // Show success message
       message.success(`Branch "${branch.name}" deleted successfully`);
@@ -302,11 +337,15 @@ const BranchesIndex = () => {
       const updatedBranches = branches.filter(item => item.id !== branch.id);
       setBranches(updatedBranches);
       setFilteredBranches(filteredBranches.filter(item => item.id !== branch.id));
+      
+      // Refresh the branches list to ensure sync with backend
+      refreshBranches();
     } catch (error) {
       // Hide loading message
       message.destroy();
       
       // Show error message
+      console.error('Error deleting branch:', error);
       message.error('Failed to delete branch. Please try again.');
     }
   };

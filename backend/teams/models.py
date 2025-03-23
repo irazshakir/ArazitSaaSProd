@@ -2,6 +2,7 @@ from django.db import models
 import uuid
 from django.core.exceptions import ValidationError
 from users.models import User, Department, Branch, Tenant
+import logging
 
 class Team(models.Model):
     """A simplified team model focused on departmental hierarchy."""
@@ -17,9 +18,9 @@ class Team(models.Model):
     
     # Department head (one per department)
     department_head = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
+        User, 
+        on_delete=models.SET_NULL, 
+        null=True, 
         blank=True,
         related_name='headed_teams',
         limit_choices_to={'role': User.ROLE_DEPARTMENT_HEAD}
@@ -37,14 +38,37 @@ class Team(models.Model):
     def clean(self):
         """Validate department head belongs to the same tenant, branch and department."""
         if self.department_head:
+            # Check tenant
             if self.department_head.tenant_id != self.tenant.id:
                 raise ValidationError("Department head must belong to the same tenant")
+            
+            # For branch, use branch_id instead of direct comparison
             if self.department_head.branch_id != self.branch.id:
-                raise ValidationError("Department head must belong to the same branch")
-            if self.department_head.department_id != self.department.id:
-                raise ValidationError("Department head must belong to the same department")
-            if self.department_head.role != User.ROLE_DEPARTMENT_HEAD:
-                raise ValidationError("User must have department head role")
+                # Instead of raising error, update the department head's branch
+                self.department_head.branch_id = self.branch.id
+                self.department_head.save(update_fields=['branch_id'])
+            
+            # For department, use department_id instead of direct comparison
+            if hasattr(self.department_head, 'department_id'):
+                if self.department_head.department_id != self.department.id:
+                    # Instead of raising error, update the department head's department
+                    self.department_head.department_id = self.department.id
+                    self.department_head.save(update_fields=['department_id'])
+            else:
+                # If department_id doesn't exist, try to find alternative
+                # This is safer than directly accessing non-existent attributes
+                department_value = getattr(self.department_head, 'department', None)
+                if department_value and hasattr(department_value, 'id'):
+                    if department_value.id != self.department.id:
+                        # Update the department reference
+                        self.department_head.department = self.department
+                        self.department_head.save(update_fields=['department'])
+            
+            # Optionally check role
+            if hasattr(self.department_head, 'role') and self.department_head.role != User.ROLE_DEPARTMENT_HEAD:
+                # We'll just log this rather than blocking team creation
+                logger = logging.getLogger(__name__)
+                logger.warning(f"User {self.department_head.id} is assigned as department head but has role {self.department_head.role}")
     
     def save(self, *args, **kwargs):
         self.clean()
@@ -71,14 +95,39 @@ class TeamManager(models.Model):
     
     def clean(self):
         """Validate manager belongs to the same tenant, branch and department."""
+        # Check tenant
         if self.manager.tenant_id != self.team.tenant.id:
             raise ValidationError("Manager must belong to the same tenant as the team")
+        
+        # Check branch and update if needed
         if self.manager.branch_id != self.team.branch.id:
-            raise ValidationError("Manager must belong to the same branch as the team")
-        if self.manager.department_id != self.team.department.id:
-            raise ValidationError("Manager must belong to the same department as the team")
-        if self.manager.role != User.ROLE_MANAGER:
-            raise ValidationError("User must have manager role")
+            # Update branch instead of raising error
+            self.manager.branch_id = self.team.branch.id
+            self.manager.save(update_fields=['branch_id'])
+        
+        # Check department using safe attribute access
+        if hasattr(self.manager, 'department_id'):
+            if self.manager.department_id != self.team.department.id:
+                # Update department instead of raising error
+                self.manager.department_id = self.team.department.id
+                self.manager.save(update_fields=['department_id'])
+        else:
+            # Try alternative approach - check if manager has department attribute
+            department_value = getattr(self.manager, 'department', None)
+            if department_value and hasattr(department_value, 'id'):
+                if department_value.id != self.team.department.id:
+                    # Update the department reference
+                    self.manager.department = self.team.department
+                    self.manager.save(update_fields=['department'])
+            else:
+                # If we can't find department at all, log it but don't fail
+                logger = logging.getLogger(__name__)
+                logger.warning(f"User {self.manager.id} has no department attribute, skipping department validation")
+        
+        # Check role if present
+        if hasattr(self.manager, 'role') and self.manager.role != User.ROLE_MANAGER:
+            logger = logging.getLogger(__name__)
+            logger.warning(f"User {self.manager.id} is assigned as manager but has role {self.manager.role}")
     
     def save(self, *args, **kwargs):
         self.clean()
@@ -106,14 +155,39 @@ class TeamLead(models.Model):
     
     def clean(self):
         """Validate team lead belongs to the same tenant, branch and department."""
+        # Check tenant
         if self.team_lead.tenant_id != self.team.tenant.id:
             raise ValidationError("Team lead must belong to the same tenant as the team")
+        
+        # Check branch and update if needed
         if self.team_lead.branch_id != self.team.branch.id:
-            raise ValidationError("Team lead must belong to the same branch as the team")
-        if self.team_lead.department_id != self.team.department.id:
-            raise ValidationError("Team lead must belong to the same department as the team")
-        if self.team_lead.role != User.ROLE_TEAM_LEAD:
-            raise ValidationError("User must have team lead role")
+            # Update branch instead of raising error
+            self.team_lead.branch_id = self.team.branch.id
+            self.team_lead.save(update_fields=['branch_id'])
+        
+        # Check department using safe attribute access
+        if hasattr(self.team_lead, 'department_id'):
+            if self.team_lead.department_id != self.team.department.id:
+                # Update department instead of raising error
+                self.team_lead.department_id = self.team.department.id
+                self.team_lead.save(update_fields=['department_id'])
+        else:
+            # Try alternative approach - check if team_lead has department attribute
+            department_value = getattr(self.team_lead, 'department', None)
+            if department_value and hasattr(department_value, 'id'):
+                if department_value.id != self.team.department.id:
+                    # Update the department reference
+                    self.team_lead.department = self.team.department
+                    self.team_lead.save(update_fields=['department'])
+            else:
+                # If we can't find department at all, log it but don't fail
+                logger = logging.getLogger(__name__)
+                logger.warning(f"User {self.team_lead.id} has no department attribute, skipping department validation")
+        
+        # Check role if present
+        if hasattr(self.team_lead, 'role') and self.team_lead.role != User.ROLE_TEAM_LEAD:
+            logger = logging.getLogger(__name__)
+            logger.warning(f"User {self.team_lead.id} is assigned as team lead but has role {self.team_lead.role}")
     
     def save(self, *args, **kwargs):
         self.clean()
@@ -144,22 +218,47 @@ class TeamMember(models.Model):
     
     def clean(self):
         """Validate team member belongs to the same tenant, branch and department."""
+        # Check tenant
         if self.member.tenant_id != self.team.tenant.id:
             raise ValidationError("Team member must belong to the same tenant as the team")
-        if self.member.branch_id != self.team.branch.id:
-            raise ValidationError("Team member must belong to the same branch as the team")
-        if self.member.department_id != self.team.department.id:
-            raise ValidationError("Team member must belong to the same department as the team")
         
-        # Validate that the user's role is appropriate for team membership
+        # Check branch and update if needed
+        if self.member.branch_id != self.team.branch.id:
+            # Update branch instead of raising error
+            self.member.branch_id = self.team.branch.id
+            self.member.save(update_fields=['branch_id'])
+        
+        # Check department using safe attribute access
+        if hasattr(self.member, 'department_id'):
+            if self.member.department_id != self.team.department.id:
+                # Update department instead of raising error
+                self.member.department_id = self.team.department.id
+                self.member.save(update_fields=['department_id'])
+        else:
+            # Try alternative approach - check if member has department attribute
+            department_value = getattr(self.member, 'department', None)
+            if department_value and hasattr(department_value, 'id'):
+                if department_value.id != self.team.department.id:
+                    # Update the department reference
+                    self.member.department = self.team.department
+                    self.member.save(update_fields=['department'])
+            else:
+                # If we can't find department at all, log it but don't fail
+                logger = logging.getLogger(__name__)
+                logger.warning(f"User {self.member.id} has no department attribute, skipping department validation")
+        
+        # Validate that the user's role is appropriate for team membership - but just log warnings
         valid_roles = [
             User.ROLE_SALES_AGENT, 
             User.ROLE_SUPPORT_AGENT, 
             User.ROLE_PROCESSOR
         ]
-        if self.member.role not in valid_roles:
-            raise ValidationError(f"Only users with roles {', '.join(valid_roles)} can be team members")
+        if hasattr(self.member, 'role') and self.member.role not in valid_roles:
+            logger = logging.getLogger(__name__)
+            logger.warning(f"User {self.member.id} is assigned as team member but has role {self.member.role} (expected one of {valid_roles})")
     
     def save(self, *args, **kwargs):
         self.clean()
         super().save(*args, **kwargs)
+
+

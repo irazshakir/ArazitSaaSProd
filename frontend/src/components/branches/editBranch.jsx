@@ -17,7 +17,43 @@ const EditBranch = () => {
     const fetchBranch = async () => {
       try {
         setLoading(true);
-        const response = await api.get(`branches/${id}/`);
+        
+        // Try 3 different API endpoints in sequence
+        let response = null;
+        let errorMessages = [];
+        
+        // Try main endpoint first
+        try {
+          response = await api.get(`branches/${id}/`);
+          console.log('Main API response success:', response);
+        } catch (error) {
+          errorMessages.push(`Main endpoint error: ${error.message}`);
+          console.log('Main API endpoint failed, trying fallback');
+          
+          // Try auth endpoint next
+          try {
+            response = await api.get(`auth/branches/${id}/`);
+            console.log('Auth API response success:', response);
+          } catch (error2) {
+            errorMessages.push(`Auth endpoint error: ${error2.message}`);
+            console.log('Auth API endpoint failed, trying users endpoint');
+            
+            // Try users endpoint as last resort
+            try {
+              response = await api.get(`users/branches/${id}/`);
+              console.log('Users API endpoint success:', response);
+            } catch (error3) {
+              errorMessages.push(`Users endpoint error: ${error3.message}`);
+              console.error('All API attempts failed');
+              throw new Error(`All API attempts failed: ${errorMessages.join(', ')}`);
+            }
+          }
+        }
+        
+        if (!response) {
+          throw new Error('No valid response from any API endpoint');
+        }
+        
         setBranch(response.data);
         setLoading(false);
       } catch (error) {

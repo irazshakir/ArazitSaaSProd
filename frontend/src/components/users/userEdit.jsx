@@ -22,14 +22,78 @@ const UserEdit = () => {
       try {
         setLoading(true);
         
-        // Fetch user and departments in parallel
-        const [userResponse, departmentsResponse] = await Promise.all([
-          api.get(`users/${id}/`),
-          api.get('departments/')
-        ]);
+        // Variables to store responses
+        let userResponse = null;
+        let departmentsResponse = null;
+        let userErrorMessages = [];
+        let departmentsErrorMessages = [];
+        
+        // Fetch user data with fallback endpoints
+        try {
+          // Try main users endpoint first
+          userResponse = await api.get(`users/${id}/`);
+          console.log('Main users API success:', userResponse);
+        } catch (error) {
+          userErrorMessages.push(`Main endpoint error: ${error.message}`);
+          console.log('Main users API failed, trying fallback');
+          
+          // Try auth endpoint
+          try {
+            userResponse = await api.get(`auth/users/${id}/`);
+            console.log('Auth users API success:', userResponse);
+          } catch (error2) {
+            userErrorMessages.push(`Auth endpoint error: ${error2.message}`);
+            console.log('Auth users API failed, trying admin endpoint');
+            
+            // Try admin endpoint as last resort
+            try {
+              userResponse = await api.get(`admin/users/${id}/`);
+              console.log('Admin users API success:', userResponse);
+            } catch (error3) {
+              userErrorMessages.push(`Admin endpoint error: ${error3.message}`);
+              console.error('All user API attempts failed');
+              throw new Error(`Failed to fetch user data: ${userErrorMessages.join(', ')}`);
+            }
+          }
+        }
+        
+        // Fetch departments with fallback endpoints
+        try {
+          // Try main departments endpoint first
+          departmentsResponse = await api.get('departments/');
+          console.log('Main departments API success:', departmentsResponse);
+        } catch (error) {
+          departmentsErrorMessages.push(`Main endpoint error: ${error.message}`);
+          console.log('Main departments API failed, trying fallback');
+          
+          // Try auth endpoint
+          try {
+            departmentsResponse = await api.get('auth/departments/');
+            console.log('Auth departments API success:', departmentsResponse);
+          } catch (error2) {
+            departmentsErrorMessages.push(`Auth endpoint error: ${error2.message}`);
+            console.log('Auth departments API failed, trying users endpoint');
+            
+            // Try users endpoint as last resort
+            try {
+              departmentsResponse = await api.get('users/departments/');
+              console.log('Users departments API success:', departmentsResponse);
+            } catch (error3) {
+              departmentsErrorMessages.push(`Users endpoint error: ${error3.message}`);
+              console.log('All departments API attempts failed. Continuing with empty departments list.');
+              // Don't throw error for departments, just use empty array
+              departmentsResponse = { data: [] };
+            }
+          }
+        }
+        
+        if (!userResponse) {
+          throw new Error('No valid response for user data');
+        }
         
         setUserData(userResponse.data);
-        setDepartments(departmentsResponse.data);
+        setDepartments(departmentsResponse?.data || []);
+        
       } catch (err) {
         console.error('Error fetching data:', err);
         setError('Failed to load user details. Please try again.');
