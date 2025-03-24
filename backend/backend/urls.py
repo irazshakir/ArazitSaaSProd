@@ -10,6 +10,7 @@ urlpatterns = [
     path('api/', include('hajjPackages.urls')),  # Hajj Packages API endpoints
     path('api/', include('leads.urls')),  # Leads API endpoints
     path('api/', include('teams.urls')),  # Teams API endpoints
+    path('api/', include('waba_int.urls')),  # Waba Integration API endpoints
 ]
 
 # Serve media files in development

@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'hajjPackages',  # Hajj Packages app
     'leads',  # Leads app
     'teams',  # Teams app
+    'waba_int', # Waba Integration app
 ]
 
 MIDDLEWARE = [
@@ -206,3 +207,10 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
 ]
+
+
+# OnCloud API settings
+# OnCloud API settings
+ONCLOUD_API_URL = os.environ.get('ONCLOUD_API_URL', 'https://apps.oncloudapi.com')
+ONCLOUD_EMAIL = os.environ.get('ONCLOUD_EMAIL', 'info@easyvisapk.com')
+ONCLOUD_PASSWORD = os.environ.get('ONCLOUD_PASSWORD', '7Axcrb888MvBzEQ')

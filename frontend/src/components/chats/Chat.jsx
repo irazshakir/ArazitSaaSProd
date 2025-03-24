@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import ChatList from './chatList';
 import Chatbox from './chatbox';
 import ChatDetails from './chatDetails';
-import { Box, Paper } from '@mui/material';
+import TemplateList from './TemplateList';
+import { Box, Paper, Tabs, Tab } from '@mui/material';
 import './Chat.css';
 
 // Dummy data - replace with your API calls later
@@ -107,6 +108,7 @@ const Chat = () => {
   const [chats, setChats] = useState(dummyChats);
   const [activeChat, setActiveChat] = useState(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
 
   useEffect(() => {
     // Set first chat as active on initial load
@@ -114,6 +116,10 @@ const Chat = () => {
       setActiveChat(chats[0]);
     }
   }, [chats]);
+
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
+  };
 
   const toggleDetailsDrawer = () => {
     setDetailsOpen(!detailsOpen);
@@ -158,25 +164,43 @@ const Chat = () => {
     <Box>
       <Paper sx={{ 
         display: 'flex', 
+        flexDirection: 'column',
         height: 'calc(100vh - 136px)', 
         overflow: 'hidden',
         borderRadius: '8px',
         boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
       }}>
-        <Box sx={{ width: '280px', borderRight: '1px solid #e0e0e0' }}>
-          <ChatList 
-            chats={chats} 
-            activeChat={activeChat} 
-            setActiveChat={setActiveChat} 
-          />
+        {/* Tabs */}
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs value={activeTab} onChange={handleTabChange}>
+            <Tab label="Chats" />
+            <Tab label="Templates" />
+          </Tabs>
         </Box>
-        <Box sx={{ flex: 1 }}>
-          <Chatbox 
-            activeChat={activeChat} 
-            sendMessage={sendMessage}
-            toggleDetailsDrawer={toggleDetailsDrawer}
-          />
-        </Box>
+
+        {/* Content */}
+        {activeTab === 0 ? (
+          // Chat Interface
+          <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+            <Box sx={{ width: '280px', borderRight: '1px solid #e0e0e0' }}>
+              <ChatList 
+                chats={chats} 
+                activeChat={activeChat} 
+                setActiveChat={setActiveChat} 
+              />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Chatbox 
+                activeChat={activeChat} 
+                sendMessage={sendMessage}
+                toggleDetailsDrawer={toggleDetailsDrawer}
+              />
+            </Box>
+          </Box>
+        ) : (
+          // Templates Interface
+          <TemplateList />
+        )}
       </Paper>
       
       {/* Mobile overlay for the drawer */}
