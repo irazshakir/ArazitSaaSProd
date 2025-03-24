@@ -3,6 +3,8 @@ import ChatList from './chatList';
 import Chatbox from './chatbox';
 import ChatDetails from './chatDetails';
 import TemplateList from './TemplateList';
+import GroupList from './GroupList';
+import ContactList from './ContactList';
 import { Box, Paper, Tabs, Tab } from '@mui/material';
 import './Chat.css';
 
@@ -175,6 +177,8 @@ const Chat = () => {
           <Tabs value={activeTab} onChange={handleTabChange}>
             <Tab label="Chats" />
             <Tab label="Templates" />
+            <Tab label="Groups" />
+            <Tab label="Contacts" />
           </Tabs>
         </Box>
 
@@ -197,9 +201,15 @@ const Chat = () => {
               />
             </Box>
           </Box>
-        ) : (
+        ) : activeTab === 1 ? (
           // Templates Interface
           <TemplateList />
+        ) : activeTab === 2 ? (
+          // Groups Interface
+          <GroupList />
+        ) : (
+          // Contacts Interface
+          <ContactList />
         )}
       </Paper>
       

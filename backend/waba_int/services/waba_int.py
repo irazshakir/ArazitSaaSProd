@@ -72,13 +72,46 @@ class OnCloudAPIClient:
         response.raise_for_status()
         return response.json()
     
-    def get_messages(self, chat_id):
-        """Fetch messages for a specific chat"""
-        endpoint = f"{self.base_url}/chats/{chat_id}/messages"
+    def get_messages(self, contact_id):
+        """
+        Fetch messages for a specific contact from OnCloud API
         
-        response = requests.get(endpoint, headers=self.headers)
-        response.raise_for_status()
-        return response.json()
+        Args:
+            contact_id (int): The ID of the contact to fetch messages for
+            
+        Returns:
+            dict: Response containing messages array with message details
+        """
+        try:
+            token = self._get_access_token()
+            messages_url = f"{self.base_url}/api/wpbox/getMessages"
+            
+            # Prepare request data
+            data = {
+                'token': token,
+                'contact_id': contact_id
+            }
+            
+            # Make POST request
+            print(f"Fetching messages for contact {contact_id}")  # Debug log
+            response = requests.post(messages_url, json=data)
+            
+            print(f"Response status code: {response.status_code}")  # Debug log
+            print(f"Response body: {response.text}")  # Debug log
+            
+            if response.status_code != 200:
+                raise Exception(f"Failed to fetch messages: {response.text}")
+            
+            messages_data = response.json()
+            
+            if messages_data.get('status') == 'error':
+                raise Exception(f"API Error: {messages_data.get('message')}")
+                
+            return messages_data
+            
+        except Exception as e:
+            print(f"Messages fetch error: {str(e)}")
+            raise
 
     def get_templates(self):
         """
@@ -161,4 +194,341 @@ class OnCloudAPIClient:
             
         except Exception as e:
             print(f"Template message send error: {str(e)}")
+            raise
+
+    def get_groups(self, show_contacts=False):
+        """
+        Fetch WhatsApp groups from OnCloud API
+        
+        Args:
+            show_contacts (bool): Whether to include contacts in the response
+        """
+        try:
+            token = self._get_access_token()
+            groups_url = f"{self.base_url}/api/wpbox/getGroups"
+            
+            # Prepare query parameters
+            params = {
+                'token': token,
+                'showContacts': 'yes' if show_contacts else 'no'
+            }
+            
+            # Make GET request
+            print(f"Fetching groups with URL: {groups_url}")  # Debug log
+            response = requests.get(groups_url, params=params)
+            
+            print(f"Response status code: {response.status_code}")  # Debug log
+            print(f"Response body: {response.text}")  # Debug log
+            
+            if response.status_code != 200:
+                raise Exception(f"Failed to fetch groups: {response.text}")
+            
+            groups_data = response.json()
+            
+            if groups_data.get('status') == 'error':
+                raise Exception(f"API Error: {groups_data.get('message')}")
+                
+            return groups_data
+            
+        except Exception as e:
+            print(f"Groups fetch error: {str(e)}")
+            raise
+
+    def get_contacts(self):
+        """
+        Fetch contacts from OnCloud API
+        
+        Returns:
+            dict: Response containing contacts array with contact details
+        """
+        try:
+            token = self._get_access_token()
+            contacts_url = f"{self.base_url}/api/wpbox/getContacts"
+            
+            # Prepare query parameters
+            params = {
+                'token': token
+            }
+            
+            # Make GET request
+            print(f"Fetching contacts with URL: {contacts_url}")  # Debug log
+            response = requests.get(contacts_url, params=params)
+            
+            print(f"Response status code: {response.status_code}")  # Debug log
+            print(f"Response body: {response.text}")  # Debug log
+            
+            if response.status_code != 200:
+                raise Exception(f"Failed to fetch contacts: {response.text}")
+            
+            contacts_data = response.json()
+            
+            if contacts_data.get('status') == 'error':
+                raise Exception(f"API Error: {contacts_data.get('message')}")
+                
+            return contacts_data
+            
+        except Exception as e:
+            print(f"Contacts fetch error: {str(e)}")
+            raise
+
+    def get_single_contact(self, phone=None, contact_id=None):
+        """
+        Fetch a single contact from OnCloud API
+        
+        Args:
+            phone (str, optional): Phone number of the contact
+            contact_id (str, optional): ID of the contact
+            
+        Returns:
+            dict: Response containing contact details
+            
+        Raises:
+            ValueError: If neither phone nor contact_id is provided
+        """
+        try:
+            if not phone and not contact_id:
+                raise ValueError("Either phone or contact_id must be provided")
+                
+            token = self._get_access_token()
+            contact_url = f"{self.base_url}/api/wpbox/getSingleContact"
+            
+            # Prepare query parameters
+            params = {
+                'token': token
+            }
+            
+            # Add either phone or contact_id to params
+            if phone:
+                params['phone'] = phone
+            if contact_id:
+                params['contact_id'] = contact_id
+            
+            # Make GET request
+            print(f"Fetching single contact with URL: {contact_url}")  # Debug log
+            response = requests.get(contact_url, params=params)
+            
+            print(f"Response status code: {response.status_code}")  # Debug log
+            print(f"Response body: {response.text}")  # Debug log
+            
+            if response.status_code != 200:
+                raise Exception(f"Failed to fetch contact: {response.text}")
+            
+            contact_data = response.json()
+            
+            if contact_data.get('status') == 'error':
+                raise Exception(f"API Error: {contact_data.get('message')}")
+                
+            return contact_data
+            
+        except Exception as e:
+            print(f"Single contact fetch error: {str(e)}")
+            raise
+
+    def send_message(self, data):
+        """
+        Send a custom message via WhatsApp
+        
+        Args:
+            data (dict): Contains:
+                - phone: recipient's phone number
+                - message: message text
+                - buttons (optional): list of button objects
+                - header (optional): header text for buttons
+                - footer (optional): footer text for buttons
+        """
+        try:
+            token = self._get_access_token()
+            send_url = f"{self.base_url}/api/wpbox/sendmessage"
+            
+            # Prepare message data
+            message_data = {
+                "token": token,
+                "phone": data.get("phone"),
+                "message": data.get("message")
+            }
+            
+            # Add optional fields if present
+            if data.get("buttons"):
+                message_data["buttons"] = data.get("buttons")
+                if data.get("header"):
+                    message_data["header"] = data.get("header")
+                if data.get("footer"):
+                    message_data["footer"] = data.get("footer")
+            
+            # Validate required fields
+            required_fields = ["phone", "message"]
+            missing_fields = [field for field in required_fields if not message_data.get(field)]
+            
+            if missing_fields:
+                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
+            
+            # Send POST request
+            print(f"Sending message: {message_data}")  # Debug log
+            response = requests.post(
+                send_url,
+                json=message_data
+            )
+            
+            print(f"Response status: {response.status_code}")  # Debug log
+            print(f"Response body: {response.text}")  # Debug log
+            
+            if response.status_code != 200:
+                raise Exception(f"Failed to send message: {response.text}")
+                
+            return response.json()
+            
+        except Exception as e:
+            print(f"Message send error: {str(e)}")
+            raise
+
+    def send_image_message(self, data):
+        """
+        Send an image message via WhatsApp
+        
+        Args:
+            data (dict): Contains:
+                - phone: recipient's phone number
+                - image: image file or URL
+                - caption (optional): caption text for the image
+        """
+        try:
+            token = self._get_access_token()
+            send_url = f"{self.base_url}/api/wpbox/sendmessage"
+            
+            # Prepare form data
+            files = {
+                'token': (None, token),
+                'phone': (None, data.get("phone")),
+                'image': ('image.jpg', data.get("image"), 'image/jpeg')
+            }
+            
+            # Add caption if provided
+            if data.get("caption"):
+                files['caption'] = (None, data.get("caption"))
+            
+            # Validate required fields
+            required_fields = ["phone", "image"]
+            missing_fields = [field for field in required_fields if not data.get(field)]
+            
+            if missing_fields:
+                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
+            
+            # Send POST request
+            print(f"Sending image message to: {data.get('phone')}")  # Debug log
+            response = requests.post(
+                send_url,
+                files=files
+            )
+            
+            print(f"Response status: {response.status_code}")  # Debug log
+            print(f"Response body: {response.text}")  # Debug log
+            
+            if response.status_code != 200:
+                raise Exception(f"Failed to send image message: {response.text}")
+                
+            return response.json()
+            
+        except Exception as e:
+            print(f"Image message send error: {str(e)}")
+            raise
+
+    def get_conversations(self):
+        """
+        Fetch conversations from OnCloud API
+        
+        Returns:
+            dict: Response containing conversations array with conversation details
+        """
+        try:
+            token = self._get_access_token()
+            conversations_url = f"{self.base_url}/api/wpbox/getConversations/none"
+            
+            # Prepare request body with token
+            data = {
+                'token': token
+            }
+            
+            # Make POST request
+            print(f"Fetching conversations with URL: {conversations_url}")  # Debug log
+            response = requests.post(
+                conversations_url,
+                json=data,
+                params={'mobile_api': 'true'}
+            )
+            
+            print(f"Response status code: {response.status_code}")  # Debug log
+            print(f"Response body: {response.text}")  # Debug log
+            
+            if response.status_code != 200:
+                raise Exception(f"Failed to fetch conversations: {response.text}")
+            
+            conversations_data = response.json()
+            
+            if conversations_data.get('status') == 'error':
+                raise Exception(f"API Error: {conversations_data.get('message')}")
+                
+            return conversations_data
+            
+        except Exception as e:
+            print(f"Conversations fetch error: {str(e)}")
+            raise
+
+    def send_message_via_contact(self, data):
+        """
+        Send a message via contact using OnCloud API
+        
+        Args:
+            data (dict): Contains:
+                - contact_id: ID of the contact
+                - message: message text
+                - buttons (optional): list of button objects
+                - header (optional): header text for buttons
+                - footer (optional): footer text for buttons
+                
+        Returns:
+            dict: Response containing message status and IDs
+        """
+        try:
+            token = self._get_access_token()
+            send_url = f"{self.base_url}/api/wpbox/sendMessagesViaContact"
+            
+            # Prepare message data
+            message_data = {
+                "token": token,
+                "contact_id": data.get("contact_id"),
+                "message": data.get("message")
+            }
+            
+            # Add optional fields if present
+            if data.get("buttons"):
+                message_data["buttons"] = data.get("buttons")
+                if data.get("header"):
+                    message_data["header"] = data.get("header")
+                if data.get("footer"):
+                    message_data["footer"] = data.get("footer")
+            
+            # Validate required fields
+            required_fields = ["contact_id", "message"]
+            missing_fields = [field for field in required_fields if not message_data.get(field)]
+            
+            if missing_fields:
+                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
+            
+            # Send POST request
+            print(f"Sending message via contact: {message_data}")  # Debug log
+            response = requests.post(
+                send_url,
+                json=message_data
+            )
+            
+            print(f"Response status: {response.status_code}")  # Debug log
+            print(f"Response body: {response.text}")  # Debug log
+            
+            if response.status_code != 200:
+                raise Exception(f"Failed to send message: {response.text}")
+                
+            return response.json()
+            
+        except Exception as e:
+            print(f"Message send error: {str(e)}")
             raise
