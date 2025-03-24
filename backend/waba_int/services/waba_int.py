@@ -479,43 +479,37 @@ class OnCloudAPIClient:
         
         Args:
             data (dict): Contains:
-                - contact_id: ID of the contact
+                - phone: recipient's phone number
                 - message: message text
                 - buttons (optional): list of button objects
                 - header (optional): header text for buttons
                 - footer (optional): footer text for buttons
-                
-        Returns:
-            dict: Response containing message status and IDs
         """
         try:
             token = self._get_access_token()
-            send_url = f"{self.base_url}/api/wpbox/sendMessagesViaContact"
+            send_url = "https://apps.oncloudapi.com/api/wpbox/sendmessage"
             
             # Prepare message data
             message_data = {
                 "token": token,
-                "contact_id": data.get("contact_id"),
+                "phone": data.get("phone"),
                 "message": data.get("message")
             }
             
             # Add optional fields if present
             if data.get("buttons"):
                 message_data["buttons"] = data.get("buttons")
-                if data.get("header"):
-                    message_data["header"] = data.get("header")
-                if data.get("footer"):
-                    message_data["footer"] = data.get("footer")
+            if data.get("header"):
+                message_data["header"] = data.get("header")
+            if data.get("footer"):
+                message_data["footer"] = data.get("footer")
             
             # Validate required fields
-            required_fields = ["contact_id", "message"]
-            missing_fields = [field for field in required_fields if not message_data.get(field)]
-            
-            if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
+            if not message_data.get("phone") or not message_data.get("message"):
+                raise ValueError("Both phone and message are required fields")
             
             # Send POST request
-            print(f"Sending message via contact: {message_data}")  # Debug log
+            print(f"Sending message: {message_data}")  # Debug log
             response = requests.post(
                 send_url,
                 json=message_data
@@ -527,7 +521,11 @@ class OnCloudAPIClient:
             if response.status_code != 200:
                 raise Exception(f"Failed to send message: {response.text}")
                 
-            return response.json()
+            response_data = response.json()
+            if response_data.get('status') == 'error':
+                raise Exception(f"API Error: {response_data.get('message')}")
+                
+            return response_data
             
         except Exception as e:
             print(f"Message send error: {str(e)}")

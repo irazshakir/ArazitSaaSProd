@@ -43,14 +43,16 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
       }
 
       // Transform messages data
-      const transformedMessages = data.data.map(msg => ({
-        id: msg.id,
-        text: msg.value || '',
-        sent: msg.is_message_by_contact !== 1,
-        timestamp: new Date(msg.created_at),
-        isImage: msg.message_type === 2,
-        image: msg.message_type === 2 ? msg.header_image : null
-      }));
+      const transformedMessages = data.data
+        .map(msg => ({
+          id: msg.id,
+          text: msg.value || '',
+          sent: msg.is_message_by_contact !== 1,
+          timestamp: new Date(msg.created_at),
+          isImage: msg.message_type === 2,
+          image: msg.message_type === 2 ? msg.header_image : null
+        }))
+        .sort((a, b) => a.timestamp - b.timestamp); // Sort messages by timestamp in ascending order
 
       setMessages(transformedMessages);
       setError(null);
@@ -86,12 +88,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
       if (selectedImage) {
         // Send image message
         const formData = new FormData();
-        if (activeChat.phone) {
-          formData.append('phone', activeChat.phone);
-        }
-        if (activeChat.id) {
-          formData.append('contact_id', activeChat.id);
-        }
+        formData.append('phone', activeChat.phone);
         formData.append('image', selectedImage);
         if (message.trim()) {
           formData.append('caption', message.trim());
@@ -104,16 +101,15 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
 
         const data = await response.json();
         
-        if (data.status === 'error') {
+        if (!data.status || data.status === 'error') {
           throw new Error(data.message || 'Failed to send image');
         }
 
         newMessage = {
-          id: data.message_id,
+          id: Date.now(),
           text: message.trim() || 'Image',
           sent: true,
           timestamp: new Date(),
-          wamid: data.message_wamid,
           image: imagePreview,
           isImage: true
         };
@@ -122,16 +118,9 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
         if (!message.trim()) return;
 
         const messageData = {
+          phone: activeChat.phone,
           message: message.trim()
         };
-
-        // Add either phone or contact_id
-        if (activeChat.phone) {
-          messageData.phone = activeChat.phone;
-        }
-        if (activeChat.id) {
-          messageData.contact_id = activeChat.id;
-        }
 
         response = await fetch('http://localhost:8000/api/messages/send/', {
           method: 'POST',
@@ -141,28 +130,34 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
           body: JSON.stringify(messageData)
         });
 
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
         const data = await response.json();
         
-        if (data.status === 'error') {
+        if (!data.status || data.status === 'error') {
           throw new Error(data.message || 'Failed to send message');
         }
 
         newMessage = {
-          id: data.message_id,
+          id: Date.now(),
           text: message.trim(),
           sent: true,
-          timestamp: new Date(),
-          wamid: data.message_wamid
+          timestamp: new Date()
         };
       }
 
+      // Add new message to state immediately for better UX
       setMessages(prevMessages => [...prevMessages, newMessage]);
       setMessage('');
       setSelectedImage(null);
       setImagePreview(null);
     } catch (error) {
       console.error('Error sending message:', error);
-      // You might want to show an error notification here
+      setError(error.message || 'Failed to send message');
+      // Clear error after 3 seconds
+      setTimeout(() => setError(null), 3000);
     } finally {
       setSending(false);
     }
