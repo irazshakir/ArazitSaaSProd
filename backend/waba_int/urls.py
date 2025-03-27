@@ -1,18 +1,23 @@
 from django.urls import path
-from . import views
+from .views import (
+    GroupView, TemplateView, ChatListView, ChatMessageView, 
+    ContactView, SingleContactView, SendMessageView,
+    SendImageMessageView, ConversationListView, ChatLeadView
+)
 
 app_name = 'waba_int'
 
 urlpatterns = [
-    path('groups/', views.GroupView.as_view(), name='groups'),
-    path('templates/', views.TemplateView.as_view(), name='templates'),
-    path('chats/', views.ChatListView.as_view(), name='chat-list'),
-    path('messages/<int:contact_id>/', views.ChatMessageView.as_view(), name='chat-messages'),
-    path('contacts/', views.ContactView.as_view(), name='contacts'),
-    path('contacts/single/', views.SingleContactView.as_view(), name='single-contact'),
-    path('messages/send/', views.SendMessageView.as_view(), name='send-message'),
-    path('messages/send-image/', views.SendImageMessageView.as_view(), name='send-image-message'),
-    path('conversations/', views.ConversationListView.as_view(), name='conversations'),
+    path('groups/', GroupView.as_view(), name='groups'),
+    path('templates/', TemplateView.as_view(), name='templates'),
+    path('chats/', ChatListView.as_view(), name='chats'),
+    path('messages/<int:contact_id>/', ChatMessageView.as_view(), name='chat_messages'),
+    path('contacts/', ContactView.as_view(), name='contacts'),
+    path('contact/', SingleContactView.as_view(), name='single_contact'),
+    path('messages/send/', SendMessageView.as_view(), name='send_message'),
+    path('messages/send-image/', SendImageMessageView.as_view(), name='send_image'),
+    path('conversations/', ConversationListView.as_view(), name='conversations'),
+    path('lead/<int:contact_id>/', ChatLeadView.as_view(), name='chat_lead'),
 ]
 
 print("WABA_INT URL patterns loaded:", urlpatterns)  # Debug print

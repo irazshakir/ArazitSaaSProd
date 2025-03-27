@@ -28,7 +28,44 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
         setLoading(true);
         const tenantId = localStorage.getItem('tenant_id');
         
-        // First check if there's a lead specifically tied to this WhatsApp contact
+        // First explicitly create/update lead from this chat to ensure we have one
+        try {
+          console.log(`Creating/updating lead for contact ${activeChat.id}`);
+          
+          const createLeadResponse = await api.post(`/api/waba/create-lead/${activeChat.id}/`, {
+            tenant_id: tenantId
+          });
+          
+          if (createLeadResponse.status === 200) {
+            console.log('Lead created/updated:', createLeadResponse.data);
+            
+            if (createLeadResponse.data.lead) {
+              const leadData = createLeadResponse.data.lead;
+              setExistingLead(leadData);
+              
+              // Populate form with lead data
+              const formData = {
+                name: leadData.name,
+                email: leadData.email,
+                phone: leadData.phone,
+                lead_type: leadData.lead_type,
+                status: leadData.status,
+                source: leadData.source || 'whatsapp',
+                assigned_to: leadData.assigned_to_id,
+                lead_activity_status: leadData.lead_activity_status === 'active',
+                next_follow_up: leadData.next_follow_up ? dayjs(leadData.next_follow_up) : null
+              };
+              
+              form.setFieldsValue(formData);
+              setLoading(false);
+              return;
+            }
+          }
+        } catch (createLeadError) {
+          console.error('Error creating/updating lead:', createLeadError);
+        }
+        
+        // If the explicit creation failed, try to get existing lead
         try {
           const whatsAppLeadResponse = await api.get(`/api/waba/lead/${activeChat.id}/`, {
             params: { tenant_id: tenantId }
