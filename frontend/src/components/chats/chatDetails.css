@@ -46,16 +46,13 @@
 
 .details-section {
   margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #e1e4e8;
 }
 
 .details-section h3 {
-  margin-top: 0;
-  margin-bottom: 16px;
   font-size: 16px;
   font-weight: 600;
-  color: #111827;
+  margin-bottom: 16px;
+  color: #1f2937;
 }
 
 .detail-item {
@@ -75,24 +72,30 @@
 }
 
 .action-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  margin-top: 24px;
 }
 
 .action-button {
-  padding: 10px 16px;
-  background-color: #9d277c;
+  width: 100%;
+  padding: 8px 16px;
   color: white;
   border: none;
-  border-radius: 6px;
-  font-weight: 500;
+  border-radius: 4px;
   cursor: pointer;
-  transition: background-color 0.2s;
+  font-weight: 500;
+  transition: background-color 0.3s;
 }
 
 .action-button:hover {
-  background-color: #8a1f6c;
+  background-color: rgba(157, 39, 124, 0.8) !important; /* Lighter version of primary color */
+}
+
+.ant-form-item {
+  margin-bottom: 16px;
+}
+
+.ant-switch {
+  width: 100%;
 }
 
 .no-chat-selected {
@@ -120,4 +123,29 @@
   .chat-details-overlay.open {
     display: block;
   }
+}
+
+.status-switch {
+  width: auto !important;
+}
+
+/* Override Ant Design's default switch colors */
+.status-switch.ant-switch-checked {
+  background-color: #9d277c !important; /* Primary color */
+}
+
+.status-switch.ant-switch:hover:not(.ant-switch-disabled) {
+  background-color: rgba(157, 39, 124, 0.8) !important; /* Lighter version of primary color */
+}
+
+/* Style the department groups in the dropdown */
+.ant-select-tree-title {
+  font-weight: 600;
+  color: #9d277c;
+}
+
+.ant-select-item-group {
+  font-weight: 600;
+  color: #9d277c;
+  background-color: rgba(157, 39, 124, 0.05);
 } 

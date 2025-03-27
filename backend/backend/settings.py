@@ -209,7 +209,7 @@ CORS_ALLOW_HEADERS = [
 ]
 
 
-# OnCloud API settings
+
 # OnCloud API settings
 ONCLOUD_API_URL = os.environ.get('ONCLOUD_API_URL', 'https://apps.oncloudapi.com')
 ONCLOUD_EMAIL = os.environ.get('ONCLOUD_EMAIL', 'info@easyvisapk.com')

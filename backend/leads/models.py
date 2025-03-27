@@ -109,6 +109,9 @@ class Lead(models.Model):
     tags = models.JSONField(null=True, blank=True, help_text="Custom tags to categorize leads")
     custom_fields = models.JSONField(null=True, blank=True, help_text="Dynamic custom fields specific to tenant or lead type")
     
+    # Add a field to store chat_id - can be null for leads not from WhatsApp
+    chat_id = models.CharField(max_length=255, null=True, blank=True, help_text="WhatsApp chat ID if lead originated from WhatsApp")
+    
     class Meta:
         ordering = ['-created_at']
         indexes = [
@@ -116,6 +119,7 @@ class Lead(models.Model):
             models.Index(fields=['status']),
             models.Index(fields=['created_at']),
             models.Index(fields=['lead_activity_status']),
+            models.Index(fields=['chat_id']),  # Add index for chat_id
         ]
     
     def __str__(self):
