@@ -26,14 +26,27 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
 
       try {
         setLoading(true);
+        
+        // Get tenant ID from localStorage
         const tenantId = localStorage.getItem('tenant_id');
+        console.log('Using tenant ID for lead:', tenantId);
+        
+        if (!tenantId) {
+          message.error('Tenant information is missing');
+          setLoading(false);
+          return;
+        }
         
         // First explicitly create/update lead from this chat to ensure we have one
         try {
-          console.log(`Creating/updating lead for contact ${activeChat.id}`);
+          console.log(`Creating/updating lead for contact ${activeChat.id} with tenant ${tenantId}`);
           
           const createLeadResponse = await api.post(`/api/waba/create-lead/${activeChat.id}/`, {
             tenant_id: tenantId
+          }, {
+            headers: {
+              'X-Tenant-ID': tenantId
+            }
           });
           
           if (createLeadResponse.status === 200) {

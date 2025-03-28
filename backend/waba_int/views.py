@@ -106,29 +106,40 @@ class ChatMessageView(APIView):
         """
         client = OnCloudAPIClient()
         try:
-            # Get tenant ID
-            tenant_id = (
-                request.data.get('tenant_id') or 
-                request.query_params.get('tenant_id') or 
-                request.headers.get('X-Tenant-ID') or
-                request.COOKIES.get('tenant_id')
-            )
+            # Get tenant ID with the same priority order
+            tenant_id = None
             
-            # If no tenant_id but in debug mode, use first tenant
-            if not tenant_id and settings.DEBUG:
-                from users.models import Tenant
-                default_tenant = Tenant.objects.first()
-                if default_tenant:
-                    tenant_id = default_tenant.id
+            # Check request body first
+            if request.data and 'tenant_id' in request.data:
+                tenant_id = request.data.get('tenant_id')
+                print(f"Using tenant_id from request body: {tenant_id}")
+                
+            # If not in body, check headers
+            if not tenant_id and 'X-Tenant-ID' in request.headers:
+                tenant_id = request.headers.get('X-Tenant-ID')
+                print(f"Using tenant_id from request headers: {tenant_id}")
+                
+            # If not in headers, check query params
+            if not tenant_id and 'tenant_id' in request.query_params:
+                tenant_id = request.query_params.get('tenant_id')
+                print(f"Using tenant_id from query params: {tenant_id}")
             
-            # Fetch messages from API
-            messages_response = client.get_messages(contact_id)
+            # Finally check cookies
+            if not tenant_id and 'tenant_id' in request.COOKIES:
+                tenant_id = request.COOKIES.get('tenant_id')
+                print(f"Using tenant_id from cookies: {tenant_id}")
             
-            # Process and store messages if we have tenant_id
-            if tenant_id and messages_response.get('status') == True:
-                self._process_messages(contact_id, messages_response.get('data', []), tenant_id)
+            # Never use a default tenant
+            if not tenant_id:
+                print("WARNING: No tenant_id provided. Will not store messages in database.")
             
-            return Response(messages_response, status=status.HTTP_200_OK)
+            messages = client.get_messages(contact_id)
+            
+            # Only process and store messages if we have a valid tenant_id
+            if tenant_id and messages.get('status') == True and 'data' in messages:
+                self._process_messages(contact_id, messages.get('data', []), tenant_id)
+            
+            return Response(messages, status=status.HTTP_200_OK)
         except Exception as e:
             print(f"ChatMessageView error: {str(e)}")
             return Response(
@@ -342,41 +353,40 @@ class ConversationListView(APIView):
         """
         client = OnCloudAPIClient()
         try:
-            # Get tenant ID from request data, query params, or headers
-            tenant_id = (
-                request.data.get('tenant_id') or 
-                request.query_params.get('tenant_id') or 
-                request.headers.get('X-Tenant-ID')
-            )
+            # Get tenant ID from request body, headers, or query params (in that order of priority)
+            tenant_id = None
             
-            if not tenant_id:
-                # Try to get from localStorage via JavaScript
-                tenant_id = request.COOKIES.get('tenant_id')
+            # Check request body first
+            if request.data and 'tenant_id' in request.data:
+                tenant_id = request.data.get('tenant_id')
+                print(f"Using tenant_id from request body: {tenant_id}")
                 
-                # If still not found, use a default for testing
-                if not tenant_id and settings.DEBUG:
-                    from users.models import Tenant
-                    default_tenant = Tenant.objects.first()
-                    if default_tenant:
-                        tenant_id = default_tenant.id
-                        print(f"Using default tenant ID: {tenant_id}")
+            # If not in body, check headers
+            if not tenant_id and 'X-Tenant-ID' in request.headers:
+                tenant_id = request.headers.get('X-Tenant-ID')
+                print(f"Using tenant_id from request headers: {tenant_id}")
+                
+            # If not in headers, check query params
+            if not tenant_id and 'tenant_id' in request.query_params:
+                tenant_id = request.query_params.get('tenant_id')
+                print(f"Using tenant_id from query params: {tenant_id}")
             
-            # Log the tenant_id for debugging
-            print(f"Processing conversations for tenant_id: {tenant_id}")
+            # Finally check cookies
+            if not tenant_id and 'tenant_id' in request.COOKIES:
+                tenant_id = request.COOKIES.get('tenant_id')
+                print(f"Using tenant_id from cookies: {tenant_id}")
             
-            # Get conversations from API
+            # IMPORTANT: Never fallback to default/superadmin tenant
+            if not tenant_id:
+                print("WARNING: No tenant_id provided. Will not create or update database records.")
+            
             conversations = client.get_conversations()
             
-            # Process conversations if we have a valid tenant_id
+            # Process each conversation to create/update local records and leads
             if tenant_id and conversations.get('status') == True and 'data' in conversations:
-                conversation_count = len(conversations.get('data', []))
-                print(f"Found {conversation_count} conversations to process")
-                
+                print(f"Processing {len(conversations.get('data', []))} conversations for tenant {tenant_id}")
                 for conv_data in conversations.get('data', []):
-                    # Process each conversation
                     self._process_conversation(conv_data, tenant_id)
-            elif not tenant_id:
-                print("WARNING: No tenant_id found, skipping conversation processing")
             
             return Response(conversations, status=status.HTTP_200_OK)
         except Exception as e:
@@ -575,25 +585,40 @@ class CreateLeadFromChatView(APIView):
         Create or update a lead for a specific WhatsApp contact
         """
         try:
-            # Get tenant ID
-            tenant_id = (
-                request.data.get('tenant_id') or 
-                request.query_params.get('tenant_id') or 
-                request.headers.get('X-Tenant-ID') or
-                request.COOKIES.get('tenant_id')
-            )
+            # Get tenant ID with consistent priority order
+            tenant_id = None
+            
+            # Check request body first
+            if request.data and 'tenant_id' in request.data:
+                tenant_id = request.data.get('tenant_id')
+                print(f"Using tenant_id from request body: {tenant_id}")
+                
+            # If not in body, check headers
+            if not tenant_id and 'X-Tenant-ID' in request.headers:
+                tenant_id = request.headers.get('X-Tenant-ID')
+                print(f"Using tenant_id from request headers: {tenant_id}")
+                
+            # If not in headers, check query params
+            if not tenant_id and 'tenant_id' in request.query_params:
+                tenant_id = request.query_params.get('tenant_id')
+                print(f"Using tenant_id from query params: {tenant_id}")
+            
+            # Finally check cookies
+            if not tenant_id and 'tenant_id' in request.COOKIES:
+                tenant_id = request.COOKIES.get('tenant_id')
+                print(f"Using tenant_id from cookies: {tenant_id}")
             
             if not tenant_id:
                 return Response(
                     {"error": "Tenant ID is required"}, 
                     status=status.HTTP_400_BAD_REQUEST
                 )
-                
-            # Find chat by contact_id
-            from users.models import Tenant
             
+            # Validate the tenant exists
+            from users.models import Tenant
             try:
                 tenant = Tenant.objects.get(id=tenant_id)
+                print(f"Found tenant: {tenant.name} with ID {tenant_id}")
             except Tenant.DoesNotExist:
                 return Response(
                     {"error": f"Tenant with ID {tenant_id} not found"}, 
@@ -678,6 +703,42 @@ class CreateLeadFromChatView(APIView):
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
                 
+        except Exception as e:
+            return Response(
+                {"error": str(e)}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+# Add this new view to help with debugging
+class TenantDebugView(APIView):
+    """Helper view for debugging tenant ID issues"""
+    
+    def post(self, request):
+        """Return all possible tenant IDs from the request"""
+        try:
+            # Gather all possible tenant ID sources
+            tenant_data = {
+                "from_body": request.data.get('tenant_id') if request.data else None,
+                "from_headers": request.headers.get('X-Tenant-ID'),
+                "from_query_params": request.query_params.get('tenant_id'),
+                "from_cookies": request.COOKIES.get('tenant_id'),
+                "current_user": request.user.id if request.user.is_authenticated else None,
+                "current_user_tenant": request.user.tenant_id if request.user.is_authenticated and hasattr(request.user, 'tenant_id') else None,
+            }
+            
+            # Also include raw data for inspection
+            raw_data = {
+                "request.data": dict(request.data) if request.data else None,
+                "request.headers": dict(request.headers),
+                "request.query_params": dict(request.query_params),
+                "request.COOKIES": dict(request.COOKIES)
+            }
+            
+            return Response({
+                "tenant_sources": tenant_data,
+                "raw_data": raw_data
+            }, status=status.HTTP_200_OK)
+            
         except Exception as e:
             return Response(
                 {"error": str(e)}, 

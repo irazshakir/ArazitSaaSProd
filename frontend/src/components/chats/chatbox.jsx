@@ -30,12 +30,22 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
   const fetchMessages = async () => {
     try {
       setLoading(true);
+      
+      // Get tenant ID from localStorage
+      const tenantId = localStorage.getItem('tenant_id');
+      console.log('Using tenant ID for messages:', tenantId);
+      
       const response = await fetch(`http://localhost:8000/api/messages/${activeChat.id}/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-        }
+          'X-Tenant-ID': tenantId // Add tenant ID in header
+        },
+        body: JSON.stringify({
+          tenant_id: tenantId // Also include in body
+        })
       });
+      
       const data = await response.json();
 
       if (!data.status || data.status === 'error') {
