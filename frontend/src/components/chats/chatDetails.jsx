@@ -16,6 +16,58 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
   // Primary color of the app
   const primaryColor = '#9d277c'; // Your app's primary color
 
+  // Helper function to safely convert to number
+  const safeNumberConversion = (value) => {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+    const num = Number(value);
+    return isNaN(num) ? null : num;
+  };
+
+  // Force update the assigned_to field
+  const forceUpdateAssignedTo = (value) => {
+    if (value === undefined || value === null) return;
+    
+    console.log(`Force updating assigned_to to ${value} (${typeof value})`);
+    
+    // Convert to string to ensure consistent type comparison
+    const stringValue = String(value);
+    
+    // Log all available user IDs for comparison
+    const allIds = users.map(u => String(u.id));
+    console.log('Available user IDs (as strings):', allIds);
+    
+    // Check if the value exists in our user list
+    const userExists = allIds.includes(stringValue);
+    console.log(`User ID ${stringValue} exists in options: ${userExists}`);
+    
+    if (userExists) {
+      // Direct DOM manipulation as a last resort
+      setTimeout(() => {
+        try {
+          // First try the Ant Design way
+          form.setFields([
+            {
+              name: 'assigned_to',
+              value: value
+            }
+          ]);
+          
+          // Then try to directly set the value
+          const assignedToField = document.querySelector('input[name="assigned_to"]');
+          if (assignedToField) {
+            assignedToField.value = value;
+          }
+          
+          console.log('Forced assigned_to update complete');
+        } catch (e) {
+          console.error('Error forcing assigned_to update:', e);
+        }
+      }, 500);
+    }
+  };
+
   // Check for existing lead when chat is opened
   useEffect(() => {
     const checkExistingLead = async () => {
@@ -56,6 +108,22 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
               const leadData = createLeadResponse.data.lead;
               setExistingLead(leadData);
               
+              // Debug assigned_to value
+              console.log('DEBUG - Lead data from API:', leadData);
+              
+              // Extract assigned_to from various possible sources
+              let assignedToId = null;
+              if (leadData.assigned_to_details && leadData.assigned_to_details.id) {
+                assignedToId = leadData.assigned_to_details.id;
+                console.log('DEBUG - Using assigned_to_details.id:', assignedToId);
+              } else if (leadData.assigned_to_id !== undefined) {
+                assignedToId = leadData.assigned_to_id;
+                console.log('DEBUG - Using assigned_to_id:', assignedToId);
+              } else if (leadData.assigned_to !== undefined) {
+                assignedToId = leadData.assigned_to;
+                console.log('DEBUG - Using assigned_to:', assignedToId);
+              }
+              
               // Populate form with lead data
               const formData = {
                 name: leadData.name,
@@ -64,12 +132,19 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
                 lead_type: leadData.lead_type,
                 status: leadData.status,
                 source: leadData.source || 'whatsapp',
-                assigned_to: leadData.assigned_to_id,
+                assigned_to: {
+                  value: assignedToId,
+                  label: leadData.assigned_to_details ? 
+                    `${leadData.assigned_to_details.first_name} ${leadData.assigned_to_details.last_name || ''}`.trim() :
+                    ''
+                },
                 lead_activity_status: leadData.lead_activity_status === 'active',
                 next_follow_up: leadData.next_follow_up ? dayjs(leadData.next_follow_up) : null
               };
               
+              console.log('Setting form data with assigned_to:', assignedToId);
               form.setFieldsValue(formData);
+              
               setLoading(false);
               return;
             }
@@ -86,24 +161,51 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
           
           if (whatsAppLeadResponse.status === 200) {
             console.log('Found WhatsApp lead:', whatsAppLeadResponse.data);
-            setExistingLead(whatsAppLeadResponse.data);
+            const leadData = whatsAppLeadResponse.data; // Define leadData for this scope
+            setExistingLead(leadData);
             
+            // Debug assigned_to value
+            console.log('DEBUG - WhatsApp lead data:', leadData);
+            
+            // Extract assigned_to value from various possible sources
+            let assignedTo = null;
+            
+            // Check for assigned_to_details (which contains the actual user object)
+            if (leadData.assigned_to_details && leadData.assigned_to_details.id) {
+              assignedTo = leadData.assigned_to_details.id;
+              console.log('DEBUG - Using assigned_to_details.id:', assignedTo);
+            } 
+            // Fallback to direct properties
+            else if (leadData.assigned_to_id !== undefined) {
+              assignedTo = leadData.assigned_to_id;
+              console.log('DEBUG - Using assigned_to_id:', assignedTo);
+            } else if (leadData.assigned_to !== undefined) {
+              assignedTo = leadData.assigned_to;
+              console.log('DEBUG - Using assigned_to:', assignedTo);
+            }
+
             // Populate form with existing lead data
             const formData = {
-              name: whatsAppLeadResponse.data.name,
-              email: whatsAppLeadResponse.data.email,
-              phone: whatsAppLeadResponse.data.phone,
-              lead_type: whatsAppLeadResponse.data.lead_type,
-              status: whatsAppLeadResponse.data.status,
-              source: whatsAppLeadResponse.data.source || 'whatsapp',
-              assigned_to: whatsAppLeadResponse.data.assigned_to_id,
-              lead_activity_status: whatsAppLeadResponse.data.lead_activity_status === 'active',
-              next_follow_up: whatsAppLeadResponse.data.next_follow_up ? dayjs(whatsAppLeadResponse.data.next_follow_up) : null
+              name: leadData.name,
+              email: leadData.email,
+              phone: leadData.phone,
+              lead_type: leadData.lead_type,
+              status: leadData.status,
+              source: leadData.source || 'whatsapp',
+              assigned_to: {
+                value: assignedTo,
+                label: leadData.assigned_to_details ? 
+                  `${leadData.assigned_to_details.first_name} ${leadData.assigned_to_details.last_name || ''}`.trim() :
+                  ''
+              },
+              lead_activity_status: leadData.lead_activity_status === 'active',
+              next_follow_up: leadData.next_follow_up ? dayjs(leadData.next_follow_up) : null
             };
-            
+
+            console.log('Setting form data with assigned_to:', assignedTo);
             form.setFieldsValue(formData);
+            
             setLoading(false);
-            return;
           }
         } catch (whatsAppError) {
           console.log('No WhatsApp lead found, falling back to phone search:', whatsAppError);
@@ -140,6 +242,26 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
           console.log('Found existing lead:', lead);
           setExistingLead(lead);
 
+          // Debug assigned_to value
+          console.log('DEBUG - Lead from phone search:', lead);
+          
+          // Extract assigned_to value from various possible sources
+          let assignedTo = null;
+          
+          // Check for assigned_to_details (which contains the actual user object)
+          if (lead.assigned_to_details && lead.assigned_to_details.id) {
+            assignedTo = lead.assigned_to_details.id;
+            console.log('DEBUG - Using assigned_to_details.id:', assignedTo);
+          } 
+          // Fallback to direct properties
+          else if (lead.assigned_to_id !== undefined) {
+            assignedTo = lead.assigned_to_id;
+            console.log('DEBUG - Using assigned_to_id:', assignedTo);
+          } else if (lead.assigned_to !== undefined) {
+            assignedTo = lead.assigned_to;
+            console.log('DEBUG - Using assigned_to:', assignedTo);
+          }
+
           // Populate form with existing lead data
           const formData = {
             name: lead.name,
@@ -148,16 +270,23 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
             lead_type: lead.lead_type,
             status: lead.status,
             source: lead.source || 'whatsapp',
-            assigned_to: lead.assigned_to,
+            assigned_to: {
+              value: assignedTo,
+              label: lead.assigned_to_details ? 
+                `${lead.assigned_to_details.first_name} ${lead.assigned_to_details.last_name || ''}`.trim() :
+                ''
+            },
             lead_activity_status: lead.lead_activity_status === 'active',
             next_follow_up: lead.next_follow_up ? dayjs(lead.next_follow_up) : null
           };
 
-          console.log('Setting form data:', formData);
+          console.log('Setting form data with assigned_to:', assignedTo);
           form.setFieldsValue(formData);
+          
+          setLoading(false);
         } else {
           console.log('No existing lead found, will create new');
-          // Reset form for new lead
+          // Reset form for new lead - do not set assigned_to to avoid NaN
           form.setFieldsValue({
             name: activeChat.name || '',
             phone: activeChat.phone || '',
@@ -166,6 +295,7 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
             status: 'new',
             source: 'whatsapp',
             lead_activity_status: true
+            // Do not set assigned_to here
           });
         }
       } catch (error) {
@@ -176,10 +306,44 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
       }
     };
 
-    if (isOpen && activeChat?.id) {
+    if (isOpen && activeChat?.id && users.length > 0) {
       checkExistingLead();
     }
-  }, [activeChat?.id, activeChat?.phone, isOpen, form]);
+  }, [activeChat?.id, activeChat?.phone, isOpen, form, users]);
+
+  // Add a new useEffect to handle existing lead changes
+  useEffect(() => {
+    if (existingLead && users.length > 0) {
+      console.log('Existing lead changed, updating assigned_to');
+      
+      // Extract assigned_to from various possible sources
+      let assignedToId = null;
+      if (existingLead.assigned_to_details && existingLead.assigned_to_details.id) {
+        assignedToId = existingLead.assigned_to_details.id;
+        console.log('From effect - Using assigned_to_details.id:', assignedToId);
+      } else if (existingLead.assigned_to_id !== undefined) {
+        assignedToId = existingLead.assigned_to_id;
+        console.log('From effect - Using assigned_to_id:', assignedToId);
+      } else if (existingLead.assigned_to !== undefined) {
+        assignedToId = existingLead.assigned_to;
+        console.log('From effect - Using assigned_to:', assignedToId);
+      }
+      
+      if (assignedToId) {
+        console.log(`Found assigned_to value: ${assignedToId}`);
+        // Try to set it multiple ways
+        form.setFieldValue('assigned_to', assignedToId);
+        
+        // Also try using setFields for more control
+        form.setFields([
+          {
+            name: 'assigned_to',
+            value: assignedToId
+          }
+        ]);
+      }
+    }
+  }, [existingLead, users.length, form]);
 
   // Fetch users when component mounts
   useEffect(() => {
@@ -193,57 +357,83 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
         return;
       }
 
-      const endpoints = [
-        { url: 'auth/users/', description: 'Auth prefix endpoint' },
-        { url: 'users/', description: 'Direct users endpoint' }
-      ];
-
-      for (const endpoint of endpoints) {
+      try {
+        // Try to get users from both endpoints
+        let userData = [];
+        
         try {
-          console.log(`Trying to fetch users from ${endpoint.description}...`);
-          const response = await api.get(endpoint.url, {
+          const response = await api.get('auth/users/', {
             params: {
               tenant: tenantId,
               is_active: true
             }
           });
-
-          let userData = [];
+          
           if (Array.isArray(response.data)) {
             userData = response.data;
           } else if (response.data?.results && Array.isArray(response.data.results)) {
             userData = response.data.results;
           }
-
-          // Organize users by department
-          const usersByDepartment = userData.reduce((acc, user) => {
-            const deptName = user.department_name || 'No Department';
-            if (!acc[deptName]) {
-              acc[deptName] = [];
-            }
-            acc[deptName].push(user);
-            return acc;
-          }, {});
-
-          console.log('Users organized by department:', usersByDepartment);
-          setDepartmentUsers(usersByDepartment);
-          setUsers(userData);
-          setLoading(false);
-          break;
-
         } catch (error) {
-          console.log(`${endpoint.description} failed:`, error.response?.status || error.message);
+          console.log('Auth users endpoint failed, trying direct users endpoint');
+          const response = await api.get('users/', {
+            params: {
+              tenant: tenantId,
+              is_active: true
+            }
+          });
           
-          if (error.response?.status !== 404 || endpoint === endpoints[endpoints.length - 1]) {
-            message.error('Failed to load users');
-            setLoading(false);
+          if (Array.isArray(response.data)) {
+            userData = response.data;
+          } else if (response.data?.results && Array.isArray(response.data.results)) {
+            userData = response.data.results;
           }
         }
+
+        // Log the full user data to check its structure
+        console.log('DEBUG - Full user data:', userData);
+        
+        // Organize users by department
+        const usersByDepartment = userData.reduce((acc, user) => {
+          const deptName = user.department_name || 'No Department';
+          if (!acc[deptName]) {
+            acc[deptName] = [];
+          }
+          acc[deptName].push(user);
+          return acc;
+        }, {});
+
+        console.log('Users organized by department:', usersByDepartment);
+        
+        // Map IDs to help with debugging
+        const userIds = userData.map(u => u.id);
+        console.log('All available user IDs:', userIds);
+        
+        setDepartmentUsers(usersByDepartment);
+        setUsers(userData);
+        
+        // After users are loaded, explicitly get and set the assigned_to value again
+        const currentAssignedTo = form.getFieldValue('assigned_to');
+        console.log('Current assigned_to after loading users:', currentAssignedTo);
+        
+        if (currentAssignedTo !== undefined && currentAssignedTo !== null) {
+          // This uses a longer timeout to ensure users are fully rendered
+          setTimeout(() => {
+            console.log('Setting assigned_to explicitly after users loaded:', currentAssignedTo);
+            form.setFieldValue('assigned_to', currentAssignedTo);
+          }, 500);
+        }
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Failed to load users:', error);
+        message.error('Failed to load users');
+        setLoading(false);
       }
     };
 
     fetchUsers();
-  }, []);
+  }, [form]);
 
   // Lead type options based on your Lead model
   const leadTypeOptions = [
@@ -300,7 +490,7 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
         lead_type: values.lead_type,
         status: values.status,
         source: values.source,
-        assigned_to: values.assigned_to,
+        assigned_to: values.assigned_to?.value || values.assigned_to,
         lead_activity_status: values.lead_activity_status ? 'active' : 'inactive',
         next_follow_up: values.next_follow_up?.format('YYYY-MM-DD')
       };
@@ -438,24 +628,23 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
                 rules={[{ required: true, message: 'Please select assignee' }]}
               >
                 <Select
-                  placeholder={loading ? "Loading users..." : "Select user"}
+                  placeholder="Select user"
                   loading={loading}
                   showSearch
-                  optionFilterProp="children"
-                >
-                  {Object.entries(departmentUsers).map(([department, deptUsers]) => (
-                    <Select.OptGroup key={department} label={department}>
-                      {deptUsers.map(user => (
-                        <Select.Option 
-                          key={user.id} 
-                          value={user.id}
-                        >
-                          {`${user.first_name} ${user.last_name}`.trim() || user.email}
-                        </Select.Option>
-                      ))}
-                    </Select.OptGroup>
-                  ))}
-                </Select>
+                  labelInValue
+                  optionFilterProp="label"
+                  filterOption={(input, option) =>
+                    (option?.label || '').toLowerCase().includes(input.toLowerCase())
+                  }
+                  options={Object.entries(departmentUsers).flatMap(([department, deptUsers]) =>
+                    deptUsers.map(user => ({
+                      value: String(user.id),
+                      label: `${user.first_name} ${user.last_name || ''}`.trim() || user.email,
+                      group: department
+                    }))
+                  )}
+                  optionGroupRender={(group) => <span>{group.label}</span>}
+                />
               </Form.Item>
 
               <Form.Item
