@@ -93,7 +93,8 @@ const Login = () => {
         
         // Store role separately for easy access
         if (userData.role) {
-          localStorage.setItem('role', userData.role);
+          console.log('Storing user role:', userData.role);
+          localStorage.setItem('user_role', userData.role);
         }
         
         // Store department information separately

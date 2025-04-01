@@ -3,6 +3,7 @@ import { Box, Container, Typography, Stack, Grid, Paper, Chip } from '@mui/mater
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../../services/api';
 import { message } from 'antd';
+import dataAccessService from '../../services/dataAccessService';
 
 // Import universal components
 import SearchBar from '../universalComponents/searchBar';
@@ -13,7 +14,7 @@ import TableList from '../universalComponents/tableList';
 import TableSkeleton from '../universalComponents/tableSkeleton';
 
 // Import auth utilities
-import { getUser } from '../../utils/auth';
+import { getUser, getUserRole } from '../../utils/auth';
 
 const LeadsIndex = () => {
   const navigate = useNavigate();
@@ -26,6 +27,7 @@ const LeadsIndex = () => {
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [tenantId, setTenantId] = useState(null);
+  const [departmentId, setDepartmentId] = useState(null);
   
   // Get current user and role from localStorage
   useEffect(() => {
@@ -39,21 +41,24 @@ const LeadsIndex = () => {
     try {
       // Get user data from localStorage
       const userData = JSON.parse(localStorage.getItem('user') || '{}');
-      const userRole = localStorage.getItem('role');
+      const userRole = getUserRole();
       const tenantId = localStorage.getItem('tenant_id');
+      
+      // IMPORTANT FIX: Get department_id from user object directly, not localStorage
+      const departmentId = userData.department_id || localStorage.getItem('department_id');
       
       setUser(userData);
       setUserRole(userRole);
       setTenantId(tenantId);
+      setDepartmentId(departmentId);
       
-      console.log('User data loaded:', { userData, userRole, tenantId });
-      console.log('User data details:', {
-        id: userData?.id,
-        email: userData?.email,
-        role: userRole,
-        department: userData?.department,
-        department_name: userData?.department_name,
-        tenant_id: tenantId
+      // Log both sources for debugging
+      console.log('User data loaded:', { 
+        userData, 
+        userRole, 
+        tenantId, 
+        departmentId,
+        departmentIdFromLocalStorage: localStorage.getItem('department_id')
       });
     } catch (error) {
       console.error('Error parsing user data:', error);
@@ -127,6 +132,14 @@ const LeadsIndex = () => {
       minWidth: 120,
       sortable: true,
       render: (value) => value ? new Date(value).toLocaleDateString() : 'N/A'
+    },
+    { 
+      field: 'department_name', 
+      headerName: 'DEPARTMENT', 
+      width: '15%',
+      minWidth: 120,
+      sortable: true,
+      render: (value) => value || 'Unassigned'
     }
   ];
 
@@ -190,226 +203,169 @@ const LeadsIndex = () => {
     }
   ];
 
-  // Fetch data from API based on user role
+  // Fetch data from API
   useEffect(() => {
-    if (!user || !userRole || !tenantId) return;
-    
-    const fetchLeads = async () => {
-      try {
-        setLoading(true);
-        
-        // Determine endpoint and parameters based on user role
-        let endpoint = 'leads/';
-        const params = { tenant: tenantId };
-        
-        // Role-based API calls
-        switch(userRole) {
-          case 'admin':
-            // Admin sees all leads for the tenant
-            console.log('Admin role: Fetching all leads for tenant', tenantId);
-            break;
-          case 'department_head':
-            // Department head sees all leads in their department
-            if (user.department) {
-              params.department = user.department; // Use department directly from user object
-              console.log('Department Head role: Fetching leads for department', user.department, user.department_name);
-            } else {
-              // If no department, fetch all leads for the tenant (like admin)
-              console.log('Department Head with no department: Fetching all leads for tenant', tenantId);
-            }
-            break;
-          case 'manager':
-            // Manager sees all leads in their department
-            if (user.department) {
-              params.department = user.department; // Use department directly from user object
-              console.log('Manager role: Fetching leads for department', user.department, user.department_name);
-            } else {
-              // If no department, fetch all leads for the tenant (like admin)
-              console.log('Manager with no department: Fetching all leads for tenant', tenantId);
-            }
-            break;
-          case 'team_lead':
-            // Team lead sees leads assigned to their team members
-            params.team_lead = user.id; // Make sure parameter name matches backend
-            console.log('Team Lead role: Fetching leads for team lead', user.id);
-            break;
-          default:
-            // All other roles see only their assigned leads
-            params.assigned_to = user.id; // This parameter name should match backend
-            console.log('Agent role: Fetching leads assigned to', user.id);
-            break;
-        }
-        
-        console.log('API request parameters:', params);
-        const response = await api.get(endpoint, { params });
-        
-        console.log('API response:', response);
-        
-        // Process response data
-        let leadsArray = Array.isArray(response.data) 
-          ? response.data
-          : (response.data?.results && Array.isArray(response.data.results))
-            ? response.data.results
-            : [];
-        
-        console.log(`Fetched ${leadsArray.length} leads:`, leadsArray);
-        
-        // Extract all assigned user IDs - check multiple possible field names
-        const userIds = new Set();
-        leadsArray.forEach(lead => {
-          // Check all possible field names for assigned user ID
-          const assignedUserId = lead.assigned_to_id || lead.assigned_to || null;
+    if (user && userRole && tenantId) {
+      const fetchLeads = async () => {
+        try {
+          setLoading(true);
           
-          if (assignedUserId && typeof assignedUserId !== 'object') {
-            userIds.add(assignedUserId);
-            console.log(`Lead ${lead.id} has assigned user ID: ${assignedUserId}`);
-          } else {
-            console.log(`Lead ${lead.id} has no assigned user or assigned user is already an object`);
-          }
-        });
-        
-        console.log('Collected user IDs to fetch:', Array.from(userIds));
-        
-        // Fetch user data for all assigned_to users
-        let userMap = {};
-        if (userIds.size > 0) {
-          try {
-            console.log('Fetching user data for IDs:', Array.from(userIds));
-            
-            // Make separate requests for each user ID to ensure we get data
-            for (const userId of userIds) {
-              try {
-                const userResponse = await api.get(`users/${userId}/`);
-                console.log(`User data for ID ${userId}:`, userResponse.data);
-                
-                if (userResponse.data) {
-                  const userData = userResponse.data;
-                  const userName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.email;
-                  userMap[userId] = userName;
-                  console.log(`Mapped user ID ${userId} to name: ${userName}`);
-                }
-              } catch (userError) {
-                console.error(`Error fetching user with ID ${userId}:`, userError);
-              }
-            }
-            
-            // Also try the bulk endpoint as a fallback
-            const usersResponse = await api.get('users/', {
-              params: {
-                tenant: tenantId,
-                ids: Array.from(userIds).join(',')
-              }
-            });
-            
-            console.log('Bulk users API response:', usersResponse);
-            
-            // Add data from bulk response to the map
-            if (usersResponse?.data) {
-              const userData = Array.isArray(usersResponse.data) 
-                ? usersResponse.data 
-                : usersResponse.data.results || [];
-              
-              userData.forEach(user => {
-                const userName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email;
-                userMap[user.id] = userName;
-                console.log(`Mapped user ID ${user.id} to name: ${userName} (from bulk)`);
-              });
-            }
-          } catch (error) {
-            console.error('Error fetching user data:', error);
-          }
-        }
-        
-        console.log('Final user map:', userMap);
-        
-        // Format the leads data with user names
-        const formattedData = leadsArray.map(lead => {
-          // Determine the assigned user ID from multiple possible fields
-          const assignedUserId = lead.assigned_to_id || lead.assigned_to || null;
-          
-          return {
-            ...lead,
-            id: lead.id,
-            lead_type_display: lead.lead_type_display || lead.get_lead_type_display || 
-                              (lead.lead_type === 'hajj_package' ? 'Hajj Package' : 
-                               lead.lead_type === 'custom_umrah' ? 'Custom Umrah' : 
-                               lead.lead_type === 'readymade_umrah' ? 'Readymade Umrah' : 
-                               lead.lead_type === 'flight' ? 'Flight' : 
-                               lead.lead_type === 'visa' ? 'Visa' : 
-                               lead.lead_type === 'transfer' ? 'Transfer' : 
-                               lead.lead_type === 'ziyarat' ? 'Ziyarat' : lead.lead_type),
-            status_display: lead.status_display || lead.get_status_display || 
-                           (lead.status === 'new' ? 'New' : 
-                            lead.status === 'qualified' ? 'Qualified' : 
-                            lead.status === 'non_potential' ? 'Non-Potential' : 
-                            lead.status === 'proposal' ? 'Proposal' : 
-                            lead.status === 'negotiation' ? 'Negotiation' : 
-                            lead.status === 'won' ? 'Won' : 
-                            lead.status === 'lost' ? 'Lost' : lead.status),
-            // Resolve assigned_to_name with multiple fallback options, prioritizing assigned_to_details
-            assigned_to_name: (() => {
-              // First check if assigned_to_details exists and contains name information
-              if (lead.assigned_to_details) {
-                const details = lead.assigned_to_details;
-                const firstName = details.first_name || '';
-                const lastName = details.last_name || '';
-                
-                if (firstName || lastName) {
-                  const fullName = `${firstName} ${lastName}`.trim();
-                  console.log(`Lead ${lead.id} has assigned_to_details with name: ${fullName}`);
-                  return fullName;
-                }
-                
-                // Fall back to email if name is not available
-                if (details.email) {
-                  console.log(`Lead ${lead.id} has assigned_to_details with email: ${details.email}`);
-                  return details.email;
-                }
-              }
-              
-              // If the API already provides assigned_to_name, use it
-              if (lead.assigned_to_name) {
-                console.log(`Lead ${lead.id} already has assigned_to_name: ${lead.assigned_to_name}`);
-                return lead.assigned_to_name;
-              }
-              
-              // If assigned_to is an object with name information
-              if (lead.assigned_to && typeof lead.assigned_to === 'object') {
-                const firstName = lead.assigned_to.first_name || '';
-                const lastName = lead.assigned_to.last_name || '';
-                const email = lead.assigned_to.email || '';
-                const name = `${firstName} ${lastName}`.trim() || email;
-                console.log(`Lead ${lead.id} has assigned_to as object, extracted name: ${name}`);
-                return name || 'Unknown User';
-              }
-              
-              // Look up user in our map using either assigned_to_id or assigned_to
-              if (assignedUserId && userMap[assignedUserId]) {
-                console.log(`Lead ${lead.id} assigned user found in map: ${userMap[assignedUserId]}`);
-                return userMap[assignedUserId];
-              }
-              
-              // No assigned user
-              console.log(`Lead ${lead.id} has no assigned user or user not found`);
-              return null;
-            })()
+          const apiParams = {
+            tenant: tenantId
           };
-        });
-        
-        console.log('Formatted data:', formattedData);
-        
-        setLeads(formattedData);
-        setFilteredLeads(formattedData);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching leads:', error);
-        console.error('Error details:', error.response?.data);
-        setLoading(false);
-        message.error('Failed to load leads. Please try again.');
-      }
-    };
+          
+          console.log('Fetching leads with params:', apiParams);
+          const response = await api.get('leads/by-role/', { params: apiParams });
+          
+          // Process response data
+          let leadsArray = Array.isArray(response.data) 
+            ? response.data
+            : (response.data?.results && Array.isArray(response.data.results))
+              ? response.data.results
+              : [];
+          
+          console.log(`Fetched ${leadsArray.length} leads based on role ${userRole}`);
+          
+          // Extract all assigned user IDs - check multiple possible field names
+          const userIds = new Set();
+          leadsArray.forEach(lead => {
+            // Check all possible field names for assigned user ID
+            const assignedUserId = lead.assigned_to_id || lead.assigned_to || null;
+            
+            if (assignedUserId && typeof assignedUserId !== 'object') {
+              userIds.add(assignedUserId);
+            }
+          });
+          
+          // Fetch user data for all assigned_to users
+          let userMap = {};
+          if (userIds.size > 0) {
+            try {
+              // Make separate requests for each user ID to ensure we get data
+              for (const userId of userIds) {
+                try {
+                  const userResponse = await api.get(`auth/users/${userId}/`);
+                  
+                  if (userResponse.data) {
+                    const userData = userResponse.data;
+                    const userName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.email;
+                    userMap[userId] = userName;
+                  }
+                } catch (userError) {
+                  console.error(`Error fetching user with ID ${userId}:`, userError);
+                }
+              }
+              
+              // Also try the bulk endpoint as a fallback
+              const usersResponse = await api.get('auth/users/', {
+                params: {
+                  tenant: tenantId,
+                  ids: Array.from(userIds).join(',')
+                }
+              });
+              
+              // Add data from bulk response to the map
+              if (usersResponse?.data) {
+                const userData = Array.isArray(usersResponse.data) 
+                  ? usersResponse.data 
+                  : usersResponse.data.results || [];
+                
+                userData.forEach(user => {
+                  const userName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email;
+                  userMap[user.id] = userName;
+                });
+              }
+            } catch (error) {
+              console.error('Error fetching user data:', error);
+            }
+          }
+          
+          // Format the leads data with user names
+          const formattedData = leadsArray.map(lead => {
+            // Determine the assigned user ID from multiple possible fields
+            const assignedUserId = lead.assigned_to_id || lead.assigned_to || null;
+            
+            return {
+              ...lead,
+              id: lead.id,
+              lead_type_display: lead.lead_type_display || lead.get_lead_type_display || 
+                                (lead.lead_type === 'hajj_package' ? 'Hajj Package' : 
+                                 lead.lead_type === 'custom_umrah' ? 'Custom Umrah' : 
+                                 lead.lead_type === 'readymade_umrah' ? 'Readymade Umrah' : 
+                                 lead.lead_type === 'flight' ? 'Flight' : 
+                                 lead.lead_type === 'visa' ? 'Visa' : 
+                                 lead.lead_type === 'transfer' ? 'Transfer' : 
+                                 lead.lead_type === 'ziyarat' ? 'Ziyarat' : lead.lead_type),
+              status_display: lead.status_display || lead.get_status_display || 
+                             (lead.status === 'new' ? 'New' : 
+                              lead.status === 'qualified' ? 'Qualified' : 
+                              lead.status === 'non_potential' ? 'Non-Potential' : 
+                              lead.status === 'proposal' ? 'Proposal' : 
+                              lead.status === 'negotiation' ? 'Negotiation' : 
+                              lead.status === 'won' ? 'Won' : 
+                              lead.status === 'lost' ? 'Lost' : lead.status),
+              // Resolve assigned_to_name with multiple fallback options, prioritizing assigned_to_details
+              assigned_to_name: (() => {
+                // First check if assigned_to_details exists and contains name information
+                if (lead.assigned_to_details) {
+                  const details = lead.assigned_to_details;
+                  const firstName = details.first_name || '';
+                  const lastName = details.last_name || '';
+                  
+                  if (firstName || lastName) {
+                    const fullName = `${firstName} ${lastName}`.trim();
+                    return fullName;
+                  }
+                  
+                  // Fall back to email if name is not available
+                  if (details.email) {
+                    return details.email;
+                  }
+                }
+                
+                // If the API already provides assigned_to_name, use it
+                if (lead.assigned_to_name) {
+                  return lead.assigned_to_name;
+                }
+                
+                // If assigned_to is an object with name information
+                if (lead.assigned_to && typeof lead.assigned_to === 'object') {
+                  const firstName = lead.assigned_to.first_name || '';
+                  const lastName = lead.assigned_to.last_name || '';
+                  const email = lead.assigned_to.email || '';
+                  const name = `${firstName} ${lastName}`.trim() || email;
+                  return name || 'Unknown User';
+                }
+                
+                // Look up user in our map using either assigned_to_id or assigned_to
+                if (assignedUserId && userMap[assignedUserId]) {
+                  return userMap[assignedUserId];
+                }
+                
+                // No assigned user
+                return null;
+              })(),
+              department_name: lead.department_details?.name || 
+                               (lead.department_name ? lead.department_name : 
+                               (lead.department ? 
+                                 (typeof lead.department === 'object' ? lead.department.name : 'Unknown') 
+                                 : 'None')),
+            };
+          });
+          
+          setLeads(formattedData);
+          setFilteredLeads(formattedData);
+          setLoading(false);
+        } catch (error) {
+          console.error('Error fetching leads:', error);
+          console.error('Error details:', error.response?.data);
+          setLoading(false);
+          message.error('Failed to load leads. Please try again.');
+        }
+      };
 
-    fetchLeads();
+      fetchLeads();
+    }
   }, [user, userRole, tenantId]);
 
   // Handle search
@@ -573,200 +529,163 @@ const LeadsIndex = () => {
     }
   };
 
-  // Add a function to refresh leads data
-  const refreshLeads = () => {
+  // Update refreshLeads function to use DataAccessService
+  const refreshLeads = async () => {
     if (user && userRole && tenantId) {
-      const fetchLead = async () => {
-        try {
-          setLoading(true);
+      try {
+        setLoading(true);
+        
+        const apiParams = {
+          tenant: tenantId
+        };
+        
+        console.log('Refreshing leads with params:', apiParams);
+        const response = await api.get('leads/by-role/', { params: apiParams });
+        
+        // Process response data
+        let leadsArray = Array.isArray(response.data) 
+          ? response.data
+          : (response.data?.results && Array.isArray(response.data.results))
+            ? response.data.results
+            : [];
+        
+        console.log(`Refreshed ${leadsArray.length} leads based on role ${userRole}`);
+        
+        // Extract all assigned user IDs - check multiple possible field names
+        const userIds = new Set();
+        leadsArray.forEach(lead => {
+          // Check all possible field names for assigned user ID
+          const assignedUserId = lead.assigned_to_id || lead.assigned_to || null;
           
-          // Determine endpoint and parameters based on user role
-          let endpoint = 'leads/';
-          const params = { tenant: tenantId };
-          
-          // Role-based API calls
-          if (userRole === 'admin') {
-            // Admin sees all leads for the tenant
-            console.log('Admin role: Fetching all leads for tenant', tenantId);
-          } else if (['department_head', 'manager'].includes(userRole) && user.department) {
-            // Department head or manager sees all leads in their department
-            params.department = user.department;
-            console.log(`${userRole} role: Fetching leads for department`, user.department, user.department_name);
-          } else if (userRole === 'team_lead') {
-            // Team lead sees leads assigned to their team members
-            params.team_lead = user.id;
-            console.log('Team Lead role: Fetching leads for team lead', user.id);
-          } else {
-            // All other roles see only their assigned leads
-            params.assigned_to = user.id;
-            console.log('Agent role: Fetching leads assigned to', user.id);
+          if (assignedUserId && typeof assignedUserId !== 'object') {
+            userIds.add(assignedUserId);
           }
-          
-          console.log('Refreshing leads, API request parameters:', params);
-          const response = await api.get(endpoint, { params });
-          
-          // Process response data
-          let leadsArray = Array.isArray(response.data) 
-            ? response.data
-            : (response.data?.results && Array.isArray(response.data.results))
-              ? response.data.results
-              : [];
-          
-          // Extract all assigned user IDs - check multiple possible field names
-          const userIds = new Set();
-          leadsArray.forEach(lead => {
-            // Check all possible field names for assigned user ID
-            const assignedUserId = lead.assigned_to_id || lead.assigned_to || null;
-            
-            if (assignedUserId && typeof assignedUserId !== 'object') {
-              userIds.add(assignedUserId);
-              console.log(`Lead ${lead.id} has assigned user ID: ${assignedUserId}`);
-            } else {
-              console.log(`Lead ${lead.id} has no assigned user or assigned user is already an object`);
-            }
-          });
-          
-          console.log('Collected user IDs to fetch:', Array.from(userIds));
-          
-          // Fetch user data for all assigned_to users
-          let userMap = {};
-          if (userIds.size > 0) {
-            try {
-              console.log('Fetching user data for IDs:', Array.from(userIds));
-              
-              // Make separate requests for each user ID to ensure we get data
-              for (const userId of userIds) {
-                try {
-                  const userResponse = await api.get(`users/${userId}/`);
-                  console.log(`User data for ID ${userId}:`, userResponse.data);
-                  
-                  if (userResponse.data) {
-                    const userData = userResponse.data;
-                    const userName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.email;
-                    userMap[userId] = userName;
-                    console.log(`Mapped user ID ${userId} to name: ${userName}`);
-                  }
-                } catch (userError) {
-                  console.error(`Error fetching user with ID ${userId}:`, userError);
+        });
+        
+        // Fetch user data for all assigned_to users
+        let userMap = {};
+        if (userIds.size > 0) {
+          try {
+            // Make separate requests for each user ID to ensure we get data
+            for (const userId of userIds) {
+              try {
+                const userResponse = await api.get(`auth/users/${userId}/`);
+                
+                if (userResponse.data) {
+                  const userData = userResponse.data;
+                  const userName = `${userData.first_name || ''} ${userData.last_name || ''}`.trim() || userData.email;
+                  userMap[userId] = userName;
                 }
+              } catch (userError) {
+                console.error(`Error fetching user with ID ${userId}:`, userError);
               }
+            }
+            
+            // Also try the bulk endpoint as a fallback
+            const usersResponse = await api.get('auth/users/', {
+              params: {
+                tenant: tenantId,
+                ids: Array.from(userIds).join(',')
+              }
+            });
+            
+            // Add data from bulk response to the map
+            if (usersResponse?.data) {
+              const userData = Array.isArray(usersResponse.data) 
+                ? usersResponse.data 
+                : usersResponse.data.results || [];
               
-              // Also try the bulk endpoint as a fallback
-              const usersResponse = await api.get('users/', {
-                params: {
-                  tenant: tenantId,
-                  ids: Array.from(userIds).join(',')
-                }
+              userData.forEach(user => {
+                const userName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email;
+                userMap[user.id] = userName;
               });
-              
-              console.log('Bulk users API response:', usersResponse);
-              
-              // Add data from bulk response to the map
-              if (usersResponse?.data) {
-                const userData = Array.isArray(usersResponse.data) 
-                  ? usersResponse.data 
-                  : usersResponse.data.results || [];
-                
-                userData.forEach(user => {
-                  const userName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email;
-                  userMap[user.id] = userName;
-                  console.log(`Mapped user ID ${user.id} to name: ${userName} (from bulk)`);
-                });
-              }
-            } catch (error) {
-              console.error('Error fetching user data:', error);
             }
+          } catch (error) {
+            console.error('Error fetching user data:', error);
           }
-          
-          console.log('Final user map:', userMap);
-          
-          // Format the leads data with user names
-          const formattedData = leadsArray.map(lead => {
-            // Determine the assigned user ID from multiple possible fields
-            const assignedUserId = lead.assigned_to_id || lead.assigned_to || null;
-            console.log(`Processing lead ${lead.id}, assigned user ID: ${assignedUserId}`);
-            
-            return {
-              ...lead,
-              id: lead.id,
-              lead_type_display: lead.lead_type_display || lead.get_lead_type_display || 
-                                (lead.lead_type === 'hajj_package' ? 'Hajj Package' : 
-                                lead.lead_type === 'custom_umrah' ? 'Custom Umrah' : 
-                                lead.lead_type === 'readymade_umrah' ? 'Readymade Umrah' : 
-                                lead.lead_type === 'flight' ? 'Flight' : 
-                                lead.lead_type === 'visa' ? 'Visa' : 
-                                lead.lead_type === 'transfer' ? 'Transfer' : 
-                                lead.lead_type === 'ziyarat' ? 'Ziyarat' : lead.lead_type),
-              status_display: lead.status_display || lead.get_status_display || 
-                            (lead.status === 'new' ? 'New' : 
-                              lead.status === 'qualified' ? 'Qualified' : 
-                              lead.status === 'non_potential' ? 'Non-Potential' : 
-                              lead.status === 'proposal' ? 'Proposal' : 
-                              lead.status === 'negotiation' ? 'Negotiation' : 
-                              lead.status === 'won' ? 'Won' : 
-                              lead.status === 'lost' ? 'Lost' : lead.status),
-              // Resolve assigned_to_name with multiple fallback options, prioritizing assigned_to_details
-              assigned_to_name: (() => {
-                // First check if assigned_to_details exists and contains name information
-                if (lead.assigned_to_details) {
-                  const details = lead.assigned_to_details;
-                  const firstName = details.first_name || '';
-                  const lastName = details.last_name || '';
-                  
-                  if (firstName || lastName) {
-                    const fullName = `${firstName} ${lastName}`.trim();
-                    console.log(`Lead ${lead.id} has assigned_to_details with name: ${fullName}`);
-                    return fullName;
-                  }
-                  
-                  // Fall back to email if name is not available
-                  if (details.email) {
-                    console.log(`Lead ${lead.id} has assigned_to_details with email: ${details.email}`);
-                    return details.email;
-                  }
-                }
-                
-                // If the API already provides assigned_to_name, use it
-                if (lead.assigned_to_name) {
-                  console.log(`Lead ${lead.id} already has assigned_to_name: ${lead.assigned_to_name}`);
-                  return lead.assigned_to_name;
-                }
-                
-                // If assigned_to is an object with name information
-                if (lead.assigned_to && typeof lead.assigned_to === 'object') {
-                  const firstName = lead.assigned_to.first_name || '';
-                  const lastName = lead.assigned_to.last_name || '';
-                  const email = lead.assigned_to.email || '';
-                  const name = `${firstName} ${lastName}`.trim() || email;
-                  console.log(`Lead ${lead.id} has assigned_to as object, extracted name: ${name}`);
-                  return name || 'Unknown User';
-                }
-                
-                // Look up user in our map using either assigned_to_id or assigned_to
-                if (assignedUserId && userMap[assignedUserId]) {
-                  console.log(`Lead ${lead.id} assigned user found in map: ${userMap[assignedUserId]}`);
-                  return userMap[assignedUserId];
-                }
-                
-                // No assigned user
-                console.log(`Lead ${lead.id} has no assigned user or user not found`);
-                return null;
-              })()
-            };
-          });
-          
-          setLeads(formattedData);
-          setFilteredLeads(formattedData);
-          setLoading(false);
-          
-        } catch (error) {
-          console.error('Error refreshing leads:', error);
-          setLoading(false);
-          message.error('Failed to refresh leads. Please try again.');
         }
-      };
-      
-      fetchLead();
+        
+        // Format the leads data with user names
+        const formattedData = leadsArray.map(lead => {
+          // Determine the assigned user ID from multiple possible fields
+          const assignedUserId = lead.assigned_to_id || lead.assigned_to || null;
+          
+          return {
+            ...lead,
+            id: lead.id,
+            lead_type_display: lead.lead_type_display || lead.get_lead_type_display || 
+                              (lead.lead_type === 'hajj_package' ? 'Hajj Package' : 
+                               lead.lead_type === 'custom_umrah' ? 'Custom Umrah' : 
+                               lead.lead_type === 'readymade_umrah' ? 'Readymade Umrah' : 
+                               lead.lead_type === 'flight' ? 'Flight' : 
+                               lead.lead_type === 'visa' ? 'Visa' : 
+                               lead.lead_type === 'transfer' ? 'Transfer' : 
+                               lead.lead_type === 'ziyarat' ? 'Ziyarat' : lead.lead_type),
+            status_display: lead.status_display || lead.get_status_display || 
+                           (lead.status === 'new' ? 'New' : 
+                            lead.status === 'qualified' ? 'Qualified' : 
+                            lead.status === 'non_potential' ? 'Non-Potential' : 
+                            lead.status === 'proposal' ? 'Proposal' : 
+                            lead.status === 'negotiation' ? 'Negotiation' : 
+                            lead.status === 'won' ? 'Won' : 
+                            lead.status === 'lost' ? 'Lost' : lead.status),
+            // Resolve assigned_to_name with multiple fallback options, prioritizing assigned_to_details
+            assigned_to_name: (() => {
+              // First check if assigned_to_details exists and contains name information
+              if (lead.assigned_to_details) {
+                const details = lead.assigned_to_details;
+                const firstName = details.first_name || '';
+                const lastName = details.last_name || '';
+                
+                if (firstName || lastName) {
+                  const fullName = `${firstName} ${lastName}`.trim();
+                  return fullName;
+                }
+                
+                // Fall back to email if name is not available
+                if (details.email) {
+                  return details.email;
+                }
+              }
+              
+              // If the API already provides assigned_to_name, use it
+              if (lead.assigned_to_name) {
+                return lead.assigned_to_name;
+              }
+              
+              // If assigned_to is an object with name information
+              if (lead.assigned_to && typeof lead.assigned_to === 'object') {
+                const firstName = lead.assigned_to.first_name || '';
+                const lastName = lead.assigned_to.last_name || '';
+                const email = lead.assigned_to.email || '';
+                const name = `${firstName} ${lastName}`.trim() || email;
+                return name || 'Unknown User';
+              }
+              
+              // Look up user in our map using either assigned_to_id or assigned_to
+              if (assignedUserId && userMap[assignedUserId]) {
+                return userMap[assignedUserId];
+              }
+              
+              // No assigned user
+              return null;
+            })(),
+            department_name: lead.department_details?.name || 
+                             (lead.department_name ? lead.department_name : 
+                             (lead.department ? 
+                               (typeof lead.department === 'object' ? lead.department.name : 'Unknown') 
+                               : 'None')),
+          };
+        });
+        
+        setLeads(formattedData);
+        setFilteredLeads(formattedData);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error refreshing leads:', error);
+        setLoading(false);
+        message.error('Failed to refresh leads. Please try again.');
+      }
     }
   };
 

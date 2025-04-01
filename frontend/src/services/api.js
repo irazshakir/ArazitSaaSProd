@@ -422,4 +422,52 @@ export const branchService = {
   }
 };
 
+// Lead service
+export const leadService = {
+  // Get leads with role-based filtering
+  getLeadsByRole: async (params) => {
+    try {
+      const response = await api.get('/leads/by-role/', { params });
+      return response.data;
+    } catch (error) {
+      // If 404, fall back to the main leads endpoint
+      if (error.response && error.response.status === 404) {
+        const fallbackResponse = await api.get('/leads/', { params });
+        return fallbackResponse.data;
+      }
+      throw error;
+    }
+  },
+  
+  // Get all leads
+  getLeads: async (params) => {
+    const response = await api.get('/leads/', { params });
+    return response.data;
+  },
+  
+  // Get lead by ID
+  getLead: async (id) => {
+    const response = await api.get(`/leads/${id}/`);
+    return response.data;
+  },
+  
+  // Create lead
+  createLead: async (leadData) => {
+    const response = await api.post('/leads/', leadData);
+    return response.data;
+  },
+  
+  // Update lead
+  updateLead: async (id, leadData) => {
+    const response = await api.put(`/leads/${id}/`, leadData);
+    return response.data;
+  },
+  
+  // Delete lead
+  deleteLead: async (id) => {
+    const response = await api.delete(`/leads/${id}/`);
+    return response.data;
+  }
+};
+
 export default api; 

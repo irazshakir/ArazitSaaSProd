@@ -154,6 +154,8 @@ class LeadSerializer(serializers.ModelSerializer):
     source_display = serializers.CharField(source='get_source_display', read_only=True)
     activity_status_display = serializers.CharField(source='get_lead_activity_status_display', read_only=True)
     
+    department_details = serializers.SerializerMethodField()
+    
     class Meta:
         model = Lead
         fields = (
@@ -164,7 +166,8 @@ class LeadSerializer(serializers.ModelSerializer):
             'lead_activity_status', 'activity_status_display',
             'created_at', 'updated_at', 'last_contacted', 'next_follow_up',
             'tags', 'custom_fields',
-            'activities', 'notes', 'documents', 'events'
+            'activities', 'notes', 'documents', 'events',
+            'department', 'department_details'
         )
         read_only_fields = ('id', 'created_at', 'updated_at', 'created_by')
     
@@ -184,6 +187,14 @@ class LeadSerializer(serializers.ModelSerializer):
         )
         
         return lead
+
+    def get_department_details(self, obj):
+        if obj.department:
+            return {
+                'id': obj.department.id,
+                'name': obj.department.name
+            }
+        return None
 
 
 class LeadListSerializer(serializers.ModelSerializer):

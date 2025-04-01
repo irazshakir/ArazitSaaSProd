@@ -40,14 +40,18 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
                 'last_name': user.last_name,
                 'role': user.role,
                 'industry': tenant_user.industry,
-                'industry_display': tenant_user.get_industry_display()
+                'industry_display': tenant_user.get_industry_display(),
+                'department_id': str(user.department.id) if user.department else None,
+                'department_name': user.department.name if user.department else None
             }
         except TenantUser.DoesNotExist:
             data['user'] = {
                 'email': user.email,
                 'first_name': user.first_name,
                 'last_name': user.last_name,
-                'role': user.role
+                'role': user.role,
+                'department_id': str(user.department.id) if user.department else None,
+                'department_name': user.department.name if user.department else None
             }
         
         return data
@@ -203,9 +207,23 @@ class UserViewSet(viewsets.ModelViewSet):
         # Get tenant_id from request data or from the authenticated user
         tenant_id = request.data.get('tenant_id', request.user.tenant_id)
         
-        # Create a mutable copy of request.data to add the tenant_id
+        # Create a mutable copy of request.data to add the tenant_id and handle department
         data = request.data.copy() if hasattr(request.data, 'copy') else request.data
         data['tenant_id'] = tenant_id
+        
+        # Handle department assignment
+        department_id = data.get('department')
+        if department_id:
+            try:
+                department = Department.objects.get(
+                    id=department_id,
+                    tenant_id=tenant_id
+                )
+                data['department_id'] = department.id
+                print(f"Department found and assigned: {department.name} (ID: {department.id})")
+            except Department.DoesNotExist:
+                print(f"Department with ID {department_id} not found")
+                raise serializers.ValidationError({"department": "Department not found or does not belong to this tenant."})
         
         print("MODIFIED DATA FOR SERIALIZER:")
         for key, value in data.items():

@@ -69,11 +69,52 @@ export const getUserIndustry = () => {
   return user?.industry || null;
 };
 
-// Log out user by removing all auth data
+// Get user role from localStorage
+export const getUserRole = () => {
+  return localStorage.getItem('user_role');
+};
+
+// Check if user has specific role
+export const hasRole = (requiredRole) => {
+  const userRole = getUserRole();
+  return userRole === requiredRole;
+};
+
+// Check if user has any of the specified roles
+export const hasAnyRole = (roles) => {
+  const userRole = getUserRole();
+  return roles.includes(userRole);
+};
+
+// Enhanced logout to clear role
 export const logout = () => {
   removeToken();
   removeUser();
-  // Remove any other auth-related data
-  localStorage.removeItem('tenant');
+  localStorage.removeItem('tenant_id');
+  localStorage.removeItem('user_role');
   localStorage.removeItem('refreshToken');
+};
+
+// In your login success handler function
+export const handleLoginSuccess = (userData, token) => {
+  localStorage.setItem('token', token);
+  localStorage.setItem('user', JSON.stringify(userData));
+  
+  // Store tenant_id
+  if (userData.tenant_id) {
+    localStorage.setItem('tenant_id', userData.tenant_id);
+  }
+  
+  // Store department_id - make sure this is set
+  if (userData.department_id) {
+    localStorage.setItem('department_id', userData.department_id);
+    console.log('Stored department_id in localStorage:', userData.department_id);
+  } else {
+    console.warn('No department_id available in user data');
+  }
+  
+  // Store role
+  if (userData.role) {
+    localStorage.setItem('role', userData.role);
+  }
 }; 

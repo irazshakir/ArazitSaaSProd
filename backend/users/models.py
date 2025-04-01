@@ -105,6 +105,15 @@ class User(AbstractUser):
     # Branch field (nullable for admin and tenant owner)
     branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, blank=True, related_name='users')
     
+    # Add department field
+    department = models.ForeignKey(
+        Department, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='department_users'
+    )
+    
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
     

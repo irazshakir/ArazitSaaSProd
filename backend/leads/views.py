@@ -16,6 +16,7 @@ from .serializers import (
     LeadNoteSerializer, LeadDocumentSerializer, LeadEventSerializer,
     LeadProfileSerializer, LeadOverdueSerializer
 )
+from teams.models import TeamManager, TeamLead, TeamMember
 
 # Create your views here.
 
@@ -35,10 +36,95 @@ class LeadViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """
         This view should return a list of all the leads
-        for the currently authenticated user's tenant.
+        for the currently authenticated user based on their role and team hierarchy.
         """
         user = self.request.user
-        return Lead.objects.filter(tenant__in=user.tenant_users.values_list('tenant', flat=True))
+        tenant_ids = user.tenant_users.values_list('tenant', flat=True)
+        queryset = Lead.objects.filter(tenant__in=tenant_ids)
+        
+        # Apply role-based filtering
+        if user.role == 'admin':
+            # Admin sees all leads in the tenant
+            pass  # No additional filtering needed
+            
+        elif user.role == 'department_head':
+            # Department head sees all leads in their department
+            if user.department_id:
+                queryset = queryset.filter(department_id=user.department_id)
+            else:
+                # Log warning about missing department
+                print(f"WARNING: Department head user {user.id} has no department_id")
+            
+        elif user.role == 'manager':
+            # Manager sees leads for their teams
+            # First, find teams they manage
+            managed_teams = TeamManager.objects.filter(manager=user).values_list('team_id', flat=True)
+            
+            # Find team leads under those teams
+            team_leads = TeamLead.objects.filter(team_id__in=managed_teams).values_list('team_lead_id', flat=True)
+            
+            # Find team members under those team leads
+            team_members = TeamMember.objects.filter(team_lead__team_lead_id__in=team_leads).values_list('member_id', flat=True)
+            
+            # Return leads assigned to any of these users (or the manager themselves)
+            queryset = queryset.filter(
+                Q(assigned_to=user) | 
+                Q(assigned_to_id__in=team_leads) |
+                Q(assigned_to_id__in=team_members)
+            )
+            
+        elif user.role == 'team_lead':
+            # Team lead sees leads for their team members
+            team_members = TeamMember.objects.filter(team_lead__team_lead=user).values_list('member_id', flat=True)
+            
+            # Return leads assigned to any of these members (or the team lead themselves)
+            queryset = queryset.filter(
+                Q(assigned_to=user) | 
+                Q(assigned_to_id__in=team_members)
+            )
+            
+        else:
+            # Regular users (sales_agent, support_agent, processor) see only their assigned leads
+            queryset = queryset.filter(assigned_to=user)
+        
+        return queryset
+    
+    def filter_queryset(self, queryset):
+        queryset = super().filter_queryset(queryset)
+        
+        # Handle department filtering
+        department_id = self.request.query_params.get('department')
+        if department_id:
+            queryset = queryset.filter(department_id=department_id)
+        
+        # Handle multiple assigned_to filtering
+        assigned_to_in = self.request.query_params.get('assigned_to__in')
+        if assigned_to_in:
+            user_ids = assigned_to_in.split(',')
+            queryset = queryset.filter(assigned_to_id__in=user_ids)
+            
+        # Handle team filtering
+        team_in = self.request.query_params.get('team__in')
+        if team_in:
+            team_ids = team_in.split(',')
+            # Get all users in these teams
+            team_user_ids = set()
+            
+            # Get managers
+            managers = TeamManager.objects.filter(team_id__in=team_ids).values_list('manager_id', flat=True)
+            team_user_ids.update(managers)
+            
+            # Get team leads
+            team_leads = TeamLead.objects.filter(team_id__in=team_ids).values_list('team_lead_id', flat=True)
+            team_user_ids.update(team_leads)
+            
+            # Get team members
+            team_members = TeamMember.objects.filter(team_id__in=team_ids).values_list('member_id', flat=True)
+            team_user_ids.update(team_members)
+            
+            queryset = queryset.filter(assigned_to_id__in=team_user_ids)
+            
+        return queryset
     
     def get_serializer_class(self):
         """
@@ -49,15 +135,33 @@ class LeadViewSet(viewsets.ModelViewSet):
         return self.serializer_class
     
     def perform_create(self, serializer):
-        """Set the tenant based on the user's primary tenant."""
+        """Set the tenant and department based on the user."""
         user = self.request.user
-        # Get the user's tenant where they are the owner or first active tenant
         tenant_user = user.tenant_users.filter(Q(role='owner') | Q(tenant__is_active=True)).first()
         
         if not tenant_user:
             raise ValidationError("User does not belong to any tenant")
             
-        serializer.save(tenant=tenant_user.tenant)
+        # Get the assigned_to user from request data
+        assigned_to_id = self.request.data.get('assigned_to')
+        department = None
+        
+        # If assigned_to is provided, use that user's department
+        if assigned_to_id:
+            try:
+                assigned_user = User.objects.get(id=assigned_to_id)
+                department = assigned_user.department
+            except User.DoesNotExist:
+                # If assigned user doesn't exist, don't set department
+                pass
+        else:
+            # If no assigned_to, use the current user's department
+            department = user.department
+        
+        serializer.save(
+            tenant=tenant_user.tenant,
+            department=department
+        )
     
     @action(detail=True, methods=['post'])
     def assign(self, request, pk=None):
@@ -78,15 +182,35 @@ class LeadViewSet(viewsets.ModelViewSet):
                 tenant_users__tenant=lead.tenant
             )
             
+            # Store previous values for logging
+            previous_assigned_to = lead.assigned_to
+            previous_department = lead.department
+            
+            # Update assigned to user
             lead.assigned_to = user
+            
+            # IMPORTANT: Always update department when assigning to a new user
+            if user.department_id:
+                lead.department = user.department
+                
+                # Debug logging
+                print(f"Updating lead {lead.id} department from {previous_department.id if previous_department else None} to {user.department.id}")
+            else:
+                print(f"WARNING: User {user.id} has no department_id, lead department not updated")
+            
             lead.save()
             
-            # Create a note for the assignment
+            # Create a note for the assignment and department change
+            note_text = f"Lead assigned to {user.get_full_name() or user.email}"
+            if previous_department != lead.department:
+                dept_name = lead.department.name if lead.department else "None"
+                note_text += f" and moved to {dept_name} department"
+            
             LeadNote.objects.create(
                 lead=lead,
                 tenant=lead.tenant,
                 added_by=request.user,
-                note=f"Lead assigned to {user.get_full_name() or user.email}"
+                note=note_text
             )
             
             serializer = self.get_serializer(lead)
@@ -343,6 +467,87 @@ class LeadViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(leads, many=True)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def by_role(self, request):
+        """Get leads filtered based on the user's role."""
+        # The get_queryset method already contains the role-based filtering
+        queryset = self.get_queryset()
+        
+        # Debug logging
+        print(f"by_role endpoint called by user {request.user.id} with role {request.user.role}")
+        print(f"Department ID from user: {request.user.department_id}")
+        
+        # Apply additional filters from query params
+        queryset = self.filter_queryset(queryset)
+        
+        # Log the lead count
+        lead_count = queryset.count()
+        print(f"Returning {lead_count} leads for user {request.user.email}")
+        
+        # Get page if pagination is enabled
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    def update(self, request, *args, **kwargs):
+        """Override update method to handle department changes when assigned_to changes."""
+        # Get the lead object
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        
+        # Check if we're updating assigned_to
+        assigned_to_id = request.data.get('assigned_to')
+        if assigned_to_id and str(instance.assigned_to_id) != str(assigned_to_id):
+            print(f"Lead reassignment detected via update. Old: {instance.assigned_to_id}, New: {assigned_to_id}")
+            
+            try:
+                # Get the new assigned user
+                new_user = User.objects.get(id=assigned_to_id)
+                
+                # Check if we need to update the department
+                if new_user.department_id:
+                    # Store old department for logging
+                    old_department = instance.department
+                    
+                    # Update the lead's department to match the new user's department
+                    request.data['department'] = str(new_user.department_id)
+                    print(f"Updating department from {old_department.id if old_department else None} to {new_user.department_id}")
+                    
+                    # Add a note about the reassignment and department change
+                    LeadNote.objects.create(
+                        lead=instance,
+                        tenant=instance.tenant,
+                        added_by=request.user,
+                        note=f"Lead reassigned to {new_user.get_full_name() or new_user.email} "
+                             f"and moved to {new_user.department.name} department"
+                    )
+            except User.DoesNotExist:
+                print(f"Warning: Couldn't find user with ID {assigned_to_id}")
+        
+        # Continue with normal update
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response(serializer.data)
+
+    def perform_update(self, serializer):
+        """Custom update logic to ensure department alignment with assigned user."""
+        # Get the assigned_to value from validated data
+        assigned_to = serializer.validated_data.get('assigned_to')
+        
+        # If assigned_to is being updated, make sure department matches
+        if assigned_to and not serializer.validated_data.get('department'):
+            if hasattr(assigned_to, 'department') and assigned_to.department:
+                serializer.validated_data['department'] = assigned_to.department
+                print(f"Setting department to match assigned user in perform_update: {assigned_to.department.id}")
+        
+        serializer.save()
 
 
 class LeadActivityViewSet(viewsets.ModelViewSet):

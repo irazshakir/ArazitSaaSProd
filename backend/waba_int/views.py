@@ -399,7 +399,7 @@ class ConversationListView(APIView):
     def _process_conversation(self, conv_data, tenant_id):
         """Process each conversation from the API to store locally and create leads if needed"""
         try:
-            from users.models import Tenant
+            from users.models import Tenant, Department
             
             # Debug log
             contact_id = conv_data.get('id')
@@ -417,6 +417,30 @@ class ConversationListView(APIView):
                 print(f"ERROR: Tenant with ID {tenant_id} not found")
                 return
                 
+            # Find Sales department for this tenant
+            sales_department = None
+            try:
+                from django.db import models
+                
+                # Try to find the Sales department
+                sales_department = Department.objects.filter(
+                    models.Q(name__icontains='sales') | models.Q(name__iexact='sales'),
+                    tenant_id=tenant_id
+                ).first()
+                
+                if sales_department:
+                    print(f"Found Sales department with ID: {sales_department.id}")
+                else:
+                    # If no sales department, get any department
+                    any_department = Department.objects.filter(tenant_id=tenant_id).first()
+                    if any_department:
+                        print(f"No Sales department found, using: {any_department.name} (ID: {any_department.id})")
+                        sales_department = any_department
+                    else:
+                        print("WARNING: No departments found for tenant ID:", tenant_id)
+            except Exception as e:
+                print(f"Error finding Sales department: {e}")
+            
             # Parse timestamp
             last_message_time = None
             if conv_data.get('last_reply_at'):
@@ -451,26 +475,32 @@ class ConversationListView(APIView):
                         chat.last_message_time = last_message_time
                     chat.save()
                 
-                # If this is a new chat, create a lead
-                if created:
-                    try:
-                        # Import the lead service
-                        from .services.lead_service import LeadService
-                        
-                        print(f"Creating lead for new chat: {chat.name or chat.phone}")
-                        lead = LeadService.create_lead_from_contact(conv_data, tenant_id)
-                        
-                        if lead:
-                            print(f"Lead created successfully with ID: {lead.id}")
-                            # Store lead ID reference
-                            chat.lead_id = lead.id
-                            chat.save()
-                        else:
-                            print("WARNING: Lead service returned None")
-                    except Exception as lead_error:
-                        print(f"Error creating lead: {str(lead_error)}")
-                        import traceback
-                        traceback.print_exc()
+                # Create a lead regardless of whether the chat is new or existing
+                try:
+                    # Import the lead service
+                    from .services.lead_service import LeadService
+                    
+                    print(f"Creating/finding lead for chat: {chat.name or chat.phone}")
+                    
+                    # Pass the department ID to ensure proper department assignment
+                    dept_id = sales_department.id if sales_department else None
+                    lead = LeadService.create_lead_from_contact(
+                        conv_data, 
+                        tenant_id, 
+                        department_id=dept_id
+                    )
+                    
+                    if lead:
+                        print(f"Lead processed successfully with ID: {lead.id}")
+                        # Store lead ID reference
+                        chat.lead_id = lead.id
+                        chat.save()
+                    else:
+                        print("WARNING: Lead service returned None")
+                except Exception as lead_error:
+                    print(f"Error creating lead: {str(lead_error)}")
+                    import traceback
+                    traceback.print_exc()
             
             except Exception as chat_error:
                 print(f"Error creating/updating chat: {str(chat_error)}")
@@ -744,3 +774,189 @@ class TenantDebugView(APIView):
                 {"error": str(e)}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+@api_view(['POST'])
+def get_conversations(request):
+    """Fetch conversations from WhatsApp API and create leads for each contact"""
+    try:
+        # Get tenant ID from request
+        tenant_id = request.data.get('tenant_id') or request.headers.get('X-Tenant-ID')
+        if not tenant_id:
+            return Response({
+                'status': 'error',
+                'errMsg': 'Tenant ID is required'
+            }, status=400)
+            
+        print(f"Processing conversations for tenant: {tenant_id}")
+            
+        # Initialize OnCloud client
+        client = OnCloudAPIClient()
+        
+        # Fetch conversations
+        conversations = client.get_conversations()
+        
+        if conversations.get('status') == 'error':
+            return Response({
+                'status': 'error',
+                'errMsg': conversations.get('message', 'Failed to fetch conversations')
+            }, status=400)
+            
+        # Get conversations data
+        conversations_data = conversations.get('data', [])
+        print(f"Found {len(conversations_data)} conversations")
+        
+        # For each conversation, create a lead if it doesn't exist
+        from .services.lead_service import LeadService
+        
+        # Find the Sales department ID directly
+        from users.models import Department
+        
+        # Get Sales department ID
+        sales_department = None
+        try:
+            from django.db import models
+            
+            # Try to find the Sales department
+            sales_department = Department.objects.filter(
+                models.Q(name__icontains='sales') | models.Q(name__iexact='sales'),
+                tenant_id=tenant_id
+            ).first()
+            
+            if sales_department:
+                print(f"Found Sales department with ID: {sales_department.id}")
+            else:
+                # If no sales department, get any department
+                any_department = Department.objects.filter(tenant_id=tenant_id).first()
+                if any_department:
+                    print(f"No Sales department found, using: {any_department.name} (ID: {any_department.id})")
+                    sales_department = any_department
+                else:
+                    print("WARNING: No departments found for tenant ID:", tenant_id)
+        except Exception as e:
+            print(f"Error finding Sales department: {e}")
+        
+        # Process each conversation
+        leads_created = 0
+        leads_found = 0
+        
+        for conversation in conversations_data:
+            try:
+                # Extract contact data
+                contact_data = {
+                    'id': conversation.get('id'),
+                    'name': conversation.get('name'),
+                    'phone': conversation.get('phone')
+                }
+                
+                # Check if lead already exists
+                from leads.models import Lead
+                existing_lead = Lead.objects.filter(
+                    chat_id=contact_data['id'], 
+                    tenant_id=tenant_id
+                ).exists()
+                
+                # Create lead with department info
+                lead = LeadService.create_lead_from_contact(
+                    contact_data=contact_data,
+                    tenant_id=tenant_id,
+                    department_id=sales_department.id if sales_department else None
+                )
+                
+                if lead:
+                    if existing_lead:
+                        leads_found += 1
+                    else:
+                        leads_created += 1
+                    print(f"{'Found' if existing_lead else 'Created'} lead ID {lead.id} for conversation ID {conversation.get('id')}")
+                    
+                    # Make sure the chat record has the lead_id
+                    try:
+                        chat = Chat.objects.filter(contact_id=contact_data['id'], tenant_id=tenant_id).first()
+                        if chat and not chat.lead_id:
+                            chat.lead_id = lead.id
+                            chat.save()
+                            print(f"Updated chat {chat.id} with lead_id {lead.id}")
+                    except Exception as chat_error:
+                        print(f"Error updating chat: {str(chat_error)}")
+                else:
+                    print(f"Failed to create lead for conversation ID {conversation.get('id')}")
+                    
+            except Exception as e:
+                print(f"Error processing conversation for lead creation: {e}")
+                import traceback
+                traceback.print_exc()
+        
+        print(f"SUMMARY: Created {leads_created} new leads, found {leads_found} existing leads")
+        
+        return Response({
+            'status': 'success',
+            'data': conversations_data,
+            'summary': {
+                'total_conversations': len(conversations_data),
+                'leads_created': leads_created,
+                'leads_found': leads_found
+            }
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return Response({
+            'status': 'error',
+            'errMsg': str(e)
+        }, status=500)
+
+@api_view(['GET'])
+def check_lead_departments(request):
+    """Diagnostic endpoint to check lead departments"""
+    try:
+        from leads.models import Lead
+        from users.models import Department
+        
+        # Get tenant ID
+        tenant_id = request.query_params.get('tenant_id')
+        if not tenant_id:
+            return Response({"error": "tenant_id parameter is required"}, status=400)
+        
+        # Get all departments for this tenant
+        departments = Department.objects.filter(tenant_id=tenant_id)
+        dept_info = {str(d.id): d.name for d in departments}
+        
+        # Get leads for this tenant
+        leads = Lead.objects.filter(tenant_id=tenant_id)
+        
+        # Analyze departments
+        leads_by_dept = {}
+        for lead in leads:
+            dept_id = str(lead.department.id) if lead.department else "None"
+            if dept_id not in leads_by_dept:
+                leads_by_dept[dept_id] = []
+            leads_by_dept[dept_id].append({
+                "id": str(lead.id),
+                "name": lead.name,
+                "source": lead.source
+            })
+        
+        # Prepare response
+        response_data = {
+            "tenant_id": tenant_id,
+            "departments": dept_info,
+            "leads_by_department": {
+                dept_id: {
+                    "name": dept_info.get(dept_id, "Unknown"),
+                    "lead_count": len(leads),
+                    "leads": leads[:10]  # Just show first 10 leads
+                }
+                for dept_id, leads in leads_by_dept.items()
+            },
+            "total_leads": leads.count(),
+            "leads_with_department": leads.exclude(department=None).count(),
+            "leads_without_department": leads.filter(department=None).count()
+        }
+        
+        return Response(response_data)
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return Response({"error": str(e)}, status=500)

@@ -7,13 +7,14 @@ class LeadService:
     """Service for handling lead creation and management from WhatsApp chats"""
     
     @staticmethod
-    def create_lead_from_contact(contact_data, tenant_id):
+    def create_lead_from_contact(contact_data, tenant_id, department_id=None):
         """
         Create a lead from WhatsApp contact data
         
         Args:
             contact_data (dict): WhatsApp contact data
             tenant_id (str): Tenant ID of the logged-in user
+            department_id (str, optional): Specific department ID to use
             
         Returns:
             Lead: Created lead object or None if creation fails
@@ -21,11 +22,12 @@ class LeadService:
         try:
             # Import here to avoid circular imports
             from leads.models import Lead
-            from users.models import Tenant
+            from users.models import Tenant, Department
             
             # Debug log
             print(f"Creating lead for contact data: {contact_data}")
             print(f"Using tenant_id: {tenant_id}")
+            print(f"Using department_id: {department_id}")
             
             # Get tenant object
             try:
@@ -61,6 +63,29 @@ class LeadService:
                 print(f"Found existing lead: {existing_lead.name} with ID {existing_lead.id}")
                 return existing_lead
             
+            # Handle department - prioritize the passed department_id
+            department = None
+            
+            if department_id:
+                try:
+                    # Use the provided department_id directly
+                    department = Department.objects.get(id=department_id)
+                    print(f"Using provided department: {department.name} (ID: {department.id})")
+                except Department.DoesNotExist:
+                    print(f"ERROR: Department with ID {department_id} not found")
+            
+            # If no department found, try to find Sales department
+            if not department:
+                department = Department.objects.filter(
+                    tenant=tenant,
+                    name__icontains='sales'
+                ).first()
+                
+                if department:
+                    print(f"Using Sales department: {department.name} (ID: {department.id})")
+                else:
+                    print("WARNING: No Sales department found")
+            
             # Create lead with the required fields
             print("Creating new lead...")
             lead = Lead.objects.create(
@@ -76,16 +101,21 @@ class LeadService:
                 lead_activity_status='active',
                 last_contacted=timezone.now(),
                 next_follow_up=timezone.now(),
-                assigned_to_id=6,  # Default assignment
+                assigned_to_id=19,  # Default assignment
                 created_by_id=3,   # Default creator
                 hajj_package_id=None,
-                tenant=tenant
+                tenant=tenant,
+                department=department  # Set the department directly
             )
             
-            print(f"Lead created successfully with ID: {lead.id}")
+            print(f"Lead created successfully with ID: {lead.id} with department: {department.id if department else 'None'}")
             return lead
             
         except Exception as e:
             print(f"Lead creation error: {str(e)}")
+            print(f"Error details: {type(e).__name__}")
+            print(f"Contact data: {contact_data}")
+            print(f"Tenant ID: {tenant_id}")
+            print(f"Department ID: {department_id}")
             traceback.print_exc()
             return None 

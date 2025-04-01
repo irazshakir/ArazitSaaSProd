@@ -1,7 +1,7 @@
 import uuid
 from django.db import models
 from django.utils import timezone
-from users.models import User, Tenant
+from users.models import User, Tenant, Department
 from hajjPackages.models import HajjPackage
 
 class Lead(models.Model):
@@ -80,6 +80,15 @@ class Lead(models.Model):
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='leads')
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_leads')
     assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_leads')
+    
+    # Add department field
+    department = models.ForeignKey(
+        Department, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='department_leads'
+    )
     
     # Lead type and related product
     lead_type = models.CharField(max_length=50, choices=TYPE_CHOICES, default=TYPE_HAJJ_PACKAGE)

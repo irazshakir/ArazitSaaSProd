@@ -16,7 +16,12 @@ router.register(r'lead-profiles', LeadProfileViewSet)
 router.register(r'lead-overdues', LeadOverdueViewSet)
 
 urlpatterns = [
-    path('', include(router.urls)),
+    # IMPORTANT: Custom actions must be defined BEFORE including router.urls
+    # Filtered lead lists
+    path('leads/by-role/', LeadViewSet.as_view({'get': 'by_role'}), name='leads-by-role'),
+    path('leads/by-type/', LeadViewSet.as_view({'get': 'by_type'}), name='leads-by-type'),
+    path('leads/by-status/', LeadViewSet.as_view({'get': 'by_status'}), name='leads-by-status'),
+    path('leads/overdue/', LeadViewSet.as_view({'get': 'overdue'}), name='leads-overdue'),
     
     # Lead-specific actions
     path('leads/<uuid:pk>/assign/', LeadViewSet.as_view({'post': 'assign'}), name='lead-assign'),
@@ -28,8 +33,6 @@ urlpatterns = [
     path('leads/<uuid:pk>/mark-overdue/', LeadViewSet.as_view({'post': 'mark_overdue'}), name='lead-mark-overdue'),
     path('leads/<uuid:pk>/resolve-overdue/', LeadViewSet.as_view({'post': 'resolve_overdue'}), name='lead-resolve-overdue'),
     
-    # Filtered lead lists
-    path('leads/by-type/', LeadViewSet.as_view({'get': 'by_type'}), name='leads-by-type'),
-    path('leads/by-status/', LeadViewSet.as_view({'get': 'by_status'}), name='leads-by-status'),
-    path('leads/overdue/', LeadViewSet.as_view({'get': 'overdue'}), name='leads-overdue'),
+    # Include router URLs AFTER the custom actions
+    path('', include(router.urls)),
 ] 

@@ -3,52 +3,51 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { Box, CssBaseline, Toolbar } from '@mui/material';
 import Sidebar from './Sidebar';
 import Header from './Header';
-import { ensureAuthenticated } from '../../utils/auth';
+import { ensureAuthenticated, getUserRole } from '../../utils/auth';
 
 const DashboardLayout = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
+  const [userRole, setUserRole] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isAuthChecked, setIsAuthChecked] = useState(false);
 
   useEffect(() => {
-    // Use our more robust auth check
     if (!ensureAuthenticated()) {
-      // Log error instead of alert
       console.error("Authentication failed in DashboardLayout. Token missing.");
       navigate('/login');
       return;
     }
     
-    // Get user from localStorage
+    // Get user and role from localStorage
     const storedUser = localStorage.getItem('user');
+    const storedRole = getUserRole() || 'processor'; // Default to processor if no role is found
+    
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
         
-        // Store it again to ensure it's valid JSON
-        localStorage.setItem('user', JSON.stringify(parsedUser));
+        // If userRole is not in localStorage but is in the user object, use that
+        const effectiveRole = storedRole || parsedUser.role || 'processor';
+        setUserRole(effectiveRole);
         
-        // Add a visible confirmation
-        console.log("Dashboard Layout - User authenticated:", parsedUser);
+        // Store role in localStorage if it came from the user object
+        if (!storedRole && parsedUser.role) {
+          localStorage.setItem('user_role', parsedUser.role);
+        }
+        
+        console.log("Dashboard Layout - User authenticated:", {
+          user: parsedUser,
+          role: effectiveRole
+        });
       } catch (error) {
-        // JSON parse error - invalid user data
         console.error("Invalid user data in localStorage", error);
-        localStorage.removeItem('user');
-        localStorage.removeItem('token');
         navigate('/login');
         return;
       }
     } else {
-      // No user found but token exists - try to populate user with minimal data
-      localStorage.setItem('user', JSON.stringify({ 
-        email: 'unknown@example.com',
-        industry: 'hajj_umrah' // Default to hajj_umrah to allow access
-      }));
-      
-      console.log("Warning: User data was missing but token exists. Created minimal user.");
-      navigate('/dashboard'); // Refresh to load the new user data
+      navigate('/login');
       return;
     }
     
@@ -84,6 +83,7 @@ const DashboardLayout = () => {
         mobileOpen={mobileOpen} 
         handleDrawerToggle={handleDrawerToggle}
         user={user}
+        userRole={userRole}
       />
       
       {/* Main Content */}

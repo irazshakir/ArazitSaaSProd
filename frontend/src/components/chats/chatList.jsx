@@ -18,13 +18,17 @@ const ChatList = ({ activeChat, setActiveChat }) => {
       
       // Get tenant ID from localStorage
       const tenantId = localStorage.getItem('tenant_id');
+      const token = localStorage.getItem('token'); // Get authentication token
+      
       console.log('Using tenant ID from localStorage:', tenantId);
       
+      // Make fetch call with Authorization header
       const response = await fetch('http://localhost:8000/api/conversations/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Tenant-ID': tenantId // Add tenant ID in header
+          'X-Tenant-ID': tenantId, // Add tenant ID in header
+          'Authorization': `Bearer ${token}` // Add auth token
         },
         body: JSON.stringify({
           tenant_id: tenantId // Also include in body

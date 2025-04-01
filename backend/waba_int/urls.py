@@ -3,7 +3,8 @@ from .views import (
     GroupView, TemplateView, ChatListView, ChatMessageView, 
     ContactView, SingleContactView, SendMessageView,
     SendImageMessageView, ConversationListView, ChatLeadView,
-    CreateLeadFromChatView, TenantDebugView
+    CreateLeadFromChatView, TenantDebugView, get_conversations,
+    check_lead_departments
 )
 
 app_name = 'waba_int'
@@ -17,9 +18,10 @@ urlpatterns = [
     path('contact/', SingleContactView.as_view(), name='single_contact'),
     path('messages/send/', SendMessageView.as_view(), name='send_message'),
     path('messages/send-image/', SendImageMessageView.as_view(), name='send_image'),
-    path('conversations/', ConversationListView.as_view(), name='conversations'),
+    path('conversations/', get_conversations, name='conversations'),
     path('lead/<int:contact_id>/', ChatLeadView.as_view(), name='chat_lead'),
     path('debug-tenant/', TenantDebugView.as_view(), name='debug_tenant'),
+    path('check-lead-departments/', check_lead_departments, name='check_lead_departments'),
 ]
 
 print("WABA_INT URL patterns loaded:", urlpatterns)  # Debug print

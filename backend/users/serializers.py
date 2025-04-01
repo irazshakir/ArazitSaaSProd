@@ -42,17 +42,28 @@ class UserSerializer(serializers.ModelSerializer):
     """Serializer for the User model."""
     
     branch_name = serializers.SerializerMethodField()
+    department_details = serializers.SerializerMethodField()
     
     class Meta:
         model = User
-        fields = ('id', 'email', 'first_name', 'last_name', 'phone_number', 
-                 'profile_picture', 'is_tenant_owner', 'role', 'branch', 'branch_name',
-                 'tenant_id')
+        fields = (
+            'id', 'email', 'first_name', 'last_name', 'phone_number', 
+            'profile_picture', 'is_tenant_owner', 'role', 'branch', 
+            'branch_name', 'department', 'department_details', 'tenant_id'
+        )
         read_only_fields = ('id', 'is_tenant_owner')
     
     def get_branch_name(self, obj):
         if obj.branch:
             return obj.branch.name
+        return None
+        
+    def get_department_details(self, obj):
+        if obj.department:
+            return {
+                'id': obj.department.id,
+                'name': obj.department.name
+            }
         return None
 
 
@@ -153,44 +164,37 @@ class UserCreateSerializer(serializers.ModelSerializer):
     
     password = serializers.CharField(write_only=True, required=True, validators=[validate_password])
     branch_id = serializers.UUIDField(required=False, write_only=True)
+    department_id = serializers.UUIDField(required=False, write_only=True)
     industry = serializers.ChoiceField(required=False, write_only=True, choices=TenantUser.INDUSTRY_CHOICES)
     profile_picture = serializers.ImageField(required=False)
     
     class Meta:
         model = User
-        fields = ('email', 'password', 'first_name', 'last_name', 'phone_number', 
-                 'role', 'branch_id', 'industry', 'is_active', 
-                 'profile_picture', 'tenant_id')
+        fields = (
+            'email', 'password', 'first_name', 'last_name', 'phone_number', 
+            'role', 'branch_id', 'department_id', 'industry', 'is_active', 
+            'profile_picture', 'tenant_id'
+        )
         extra_kwargs = {
             'first_name': {'required': True},
             'last_name': {'required': True},
             'role': {'required': True},
-            'tenant_id': {'required': False}  # It will be set from the request user
+            'tenant_id': {'required': False}
         }
     
     def create(self, validated_data):
-        # Print debug info
-        print("VALIDATED DATA KEYS:", validated_data.keys())
-        if 'profile_picture' in validated_data:
-            print("PROFILE PICTURE IS IN VALIDATED DATA")
-        else:
-            print("PROFILE PICTURE NOT IN VALIDATED DATA")
-        
-        # Get tenant_id from the validated data if provided, otherwise from request user
         tenant_id = validated_data.pop('tenant_id', None)
         request = self.context.get('request')
         
-        # If tenant_id not provided in data, use the current user's tenant
         if not tenant_id and request and hasattr(request, 'user'):
             tenant_id = request.user.tenant_id
         
-        # Validate tenant exists
         try:
             tenant = Tenant.objects.get(id=tenant_id)
         except Tenant.DoesNotExist:
             raise serializers.ValidationError({"tenant_id": "Invalid tenant ID or tenant not found."})
         
-        # Handle branch if provided
+        # Handle branch
         branch = None
         if 'branch_id' in validated_data:
             branch_id = validated_data.pop('branch_id')
@@ -198,12 +202,21 @@ class UserCreateSerializer(serializers.ModelSerializer):
                 try:
                     branch = Branch.objects.get(id=branch_id, tenant=tenant)
                 except Branch.DoesNotExist:
-                    raise serializers.ValidationError({"branch_id": "Branch not found or does not belong to this tenant."})
+                    raise serializers.ValidationError({"branch_id": "Branch not found."})
         
-        # Extract industry if provided
+        # Handle department
+        department = None
+        if 'department_id' in validated_data:
+            department_id = validated_data.pop('department_id')
+            if department_id:
+                try:
+                    department = Department.objects.get(id=department_id, tenant=tenant)
+                except Department.DoesNotExist:
+                    raise serializers.ValidationError({"department_id": "Department not found."})
+        
         industry = validated_data.pop('industry', None)
         
-        # Create user
+        # Create user with department
         user = User.objects.create(
             email=validated_data['email'],
             first_name=validated_data['first_name'],
@@ -211,6 +224,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
             phone_number=validated_data.get('phone_number', ''),
             role=validated_data['role'],
             branch=branch,
+            department=department,
             tenant_id=tenant_id,
             is_active=validated_data.get('is_active', True),
             profile_picture=validated_data.get('profile_picture', None)

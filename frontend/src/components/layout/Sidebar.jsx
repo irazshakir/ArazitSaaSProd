@@ -45,7 +45,7 @@ import {
 
 const drawerWidth = 240;
 
-const Sidebar = ({ mobileOpen, handleDrawerToggle, user }) => {
+const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
@@ -73,6 +73,10 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user }) => {
     }
   }, [user]);
 
+  // Define role-based menu access
+  const isAdmin = userRole === 'admin';
+  const isStandardUser = ['department_head', 'manager', 'team_lead', 'sales_agent', 'support_agent', 'processor'].includes(userRole);
+
   const handleMenuToggle = (menu) => {
     setOpenMenus(prev => ({
       ...prev,
@@ -80,27 +84,34 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user }) => {
     }));
   };
 
-  // Core menu items for all users
+  // Determine if industry-specific menus should be shown - MOVED UP before it's used
+  const showHajjUmrahMenu = localUser?.industry === 'hajj_umrah';
+  const showImmigrationMenu = localUser?.industry === 'immigration';
+
+  // Now define showIndustryMenus AFTER its dependent variables are declared
+  const showIndustryMenus = isAdmin && (showHajjUmrahMenu || showImmigrationMenu);
+
+  // Core menu items - available to all authenticated users
   const coreMenuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
     { text: 'Chats', icon: <ChatIcon />, path: '/dashboard/chats' },
     { text: 'Leads', icon: <PersonIcon />, path: '/dashboard/leads' },
   ];
 
-  // Analytics submenu
+  // Analytics submenu - available to all authenticated users
   const analyticsMenuItems = [
     { text: 'Reports', icon: <AssignmentIcon />, path: '/dashboard/analytics/reports' },
     { text: 'Logs', icon: <AssignmentIcon />, path: '/dashboard/analytics/logs' },
     { text: 'Performance', icon: <AssignmentIcon />, path: '/dashboard/analytics/performance' },
   ];
 
-  // Social submenu
+  // Social submenu - only for admin
   const socialMenuItems = [
     { text: 'Templates', icon: <TemplateIcon />, path: '/templates' },
     { text: 'Bulk Messages', icon: <SendIcon />, path: '/dashboard/social/bulk-messages' },
   ];
 
-  // Settings submenu
+  // Settings submenu - only for admin
   const settingsMenuItems = [
     { text: 'WABA', icon: <WhatsAppIcon />, path: '/dashboard/settings/waba' },
     { text: 'Messenger', icon: <FacebookIcon />, path: '/dashboard/settings/messenger' },
@@ -127,10 +138,6 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user }) => {
     { text: 'Countries', icon: <PublicIcon />, path: '/dashboard/immigration/countries' },
     { text: 'Universities', icon: <SchoolIcon />, path: '/dashboard/immigration/universities' },
   ];
-
-  // Determine if industry-specific menus should be shown
-  const showHajjUmrahMenu = localUser?.industry === 'hajj_umrah';
-  const showImmigrationMenu = localUser?.industry === 'immigration';
 
   const renderMenuItems = (items) => {
     return items.map((item) => (
@@ -184,10 +191,10 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user }) => {
       </Toolbar>
       <Divider />
       <List sx={{ px: 1 }}>
-        {/* Core Menu Items */}
+        {/* Core Menu Items - Always visible */}
         {renderMenuItems(coreMenuItems)}
 
-        {/* Analytics Menu */}
+        {/* Analytics Menu - Always visible */}
         <ListItem disablePadding sx={{ mb: 0.5 }}>
           <ListItemButton 
             onClick={() => handleMenuToggle('analytics')}
@@ -252,102 +259,110 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user }) => {
           </List>
         </Collapse>
 
-        {/* Social Section */}
-        <ListItem sx={{ pt: 2, pb: 1 }}>
-          <Typography 
-            variant="overline" 
-            color="text.secondary"
-            sx={{ 
-              fontSize: '0.7rem', 
-              fontWeight: 600,
-              letterSpacing: '0.08em'
-            }}
-          >
-            SOCIAL
-          </Typography>
-        </ListItem>
-        {renderMenuItems(socialMenuItems)}
+        {/* Social Section - Admin only */}
+        {isAdmin && (
+          <>
+            <ListItem sx={{ pt: 2, pb: 1 }}>
+              <Typography 
+                variant="overline" 
+                color="text.secondary"
+                sx={{ 
+                  fontSize: '0.7rem', 
+                  fontWeight: 600,
+                  letterSpacing: '0.08em'
+                }}
+              >
+                SOCIAL
+              </Typography>
+            </ListItem>
+            {renderMenuItems(socialMenuItems)}
+          </>
+        )}
 
-        {/* Settings Section */}
-        <ListItem sx={{ pt: 2, pb: 1 }}>
-          <Typography 
-            variant="overline" 
-            color="text.secondary"
-            sx={{ 
-              fontSize: '0.7rem', 
-              fontWeight: 600,
-              letterSpacing: '0.08em'
-            }}
-          >
-            SETTINGS
-          </Typography>
-        </ListItem>
-        <ListItem disablePadding sx={{ mb: 0.5 }}>
-          <ListItemButton 
-            onClick={() => handleMenuToggle('settings')}
-            sx={{ 
-              borderRadius: 1,
-              '&:hover': {
-                backgroundColor: 'rgba(157, 39, 124, 0.08)',
-              },
-            }}
-          >
-            <ListItemIcon sx={{ minWidth: 40 }}>
-              <SettingsIcon />
-            </ListItemIcon>
-            <ListItemText 
-              primary="General Settings" 
-              primaryTypographyProps={{ 
-                fontSize: '0.8rem',
-                fontWeight: 500
-              }}
-            />
-            {openMenus.settings ? <ExpandLess /> : <ExpandMore />}
-          </ListItemButton>
-        </ListItem>
-        <Collapse in={openMenus.settings} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            {settingsMenuItems.map((item) => (
-              <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
-                <ListItemButton 
-                  onClick={() => navigate(item.path)}
-                  sx={{ 
-                    borderRadius: 1,
-                    pl: 4,
-                    '&:hover': {
-                      backgroundColor: 'rgba(157, 39, 124, 0.08)',
-                    },
-                    '&.Mui-selected': {
-                      backgroundColor: 'rgba(157, 39, 124, 0.16)',
-                      '&:hover': {
-                        backgroundColor: 'rgba(157, 39, 124, 0.24)',
-                      },
-                    },
+        {/* Settings Section - Admin only */}
+        {isAdmin && (
+          <>
+            <ListItem sx={{ pt: 2, pb: 1 }}>
+              <Typography 
+                variant="overline" 
+                color="text.secondary"
+                sx={{ 
+                  fontSize: '0.7rem', 
+                  fontWeight: 600,
+                  letterSpacing: '0.08em'
+                }}
+              >
+                SETTINGS
+              </Typography>
+            </ListItem>
+            <ListItem disablePadding sx={{ mb: 0.5 }}>
+              <ListItemButton 
+                onClick={() => handleMenuToggle('settings')}
+                sx={{ 
+                  borderRadius: 1,
+                  '&:hover': {
+                    backgroundColor: 'rgba(157, 39, 124, 0.08)',
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <SettingsIcon />
+                </ListItemIcon>
+                <ListItemText 
+                  primary="General Settings" 
+                  primaryTypographyProps={{ 
+                    fontSize: '0.8rem',
+                    fontWeight: 500
                   }}
-                  selected={location.pathname === item.path}
-                >
-                  <ListItemIcon sx={{ 
-                    minWidth: 40,
-                    color: location.pathname === item.path ? '#9d277c' : 'inherit'
-                  }}>
-                    {item.icon}
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary={item.text} 
-                    primaryTypographyProps={{ 
-                      fontSize: '0.8rem',
-                      fontWeight: location.pathname === item.path ? 600 : 400,
-                      color: location.pathname === item.path ? '#9d277c' : 'inherit'
-                    }}
-                  />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-        </Collapse>
+                />
+                {openMenus.settings ? <ExpandLess /> : <ExpandMore />}
+              </ListItemButton>
+            </ListItem>
+            <Collapse in={openMenus.settings} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding>
+                {settingsMenuItems.map((item) => (
+                  <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
+                    <ListItemButton 
+                      onClick={() => navigate(item.path)}
+                      sx={{ 
+                        borderRadius: 1,
+                        pl: 4,
+                        '&:hover': {
+                          backgroundColor: 'rgba(157, 39, 124, 0.08)',
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: 'rgba(157, 39, 124, 0.16)',
+                          '&:hover': {
+                            backgroundColor: 'rgba(157, 39, 124, 0.24)',
+                          },
+                        },
+                      }}
+                      selected={location.pathname === item.path}
+                    >
+                      <ListItemIcon sx={{ 
+                        minWidth: 40,
+                        color: location.pathname === item.path ? '#9d277c' : 'inherit'
+                      }}>
+                        {item.icon}
+                      </ListItemIcon>
+                      <ListItemText 
+                        primary={item.text} 
+                        primaryTypographyProps={{ 
+                          fontSize: '0.8rem',
+                          fontWeight: location.pathname === item.path ? 600 : 400,
+                          color: location.pathname === item.path ? '#9d277c' : 'inherit'
+                        }}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+              </List>
+            </Collapse>
+          </>
+        )}
 
-        {/* Hajj and Umrah Settings (conditional) */}
-        {showHajjUmrahMenu && (
+        {/* Hajj and Umrah Settings - Admin only */}
+        {isAdmin && showHajjUmrahMenu && (
           <>
             <ListItem sx={{ pt: 2, pb: 1 }}>
               <Typography 
@@ -428,8 +443,8 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user }) => {
           </>
         )}
 
-        {/* Immigration Settings (conditional) */}
-        {showImmigrationMenu && (
+        {/* Immigration Settings - Admin only */}
+        {isAdmin && showImmigrationMenu && (
           <>
             <ListItem sx={{ pt: 2, pb: 1 }}>
               <Typography 
