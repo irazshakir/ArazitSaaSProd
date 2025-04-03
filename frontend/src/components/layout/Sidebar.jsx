@@ -100,9 +100,8 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
 
   // Analytics submenu - available to all authenticated users
   const analyticsMenuItems = [
-    { text: 'Reports', icon: <AssignmentIcon />, path: '/dashboard/analytics/reports' },
-    { text: 'Logs', icon: <AssignmentIcon />, path: '/dashboard/analytics/logs' },
-    { text: 'Performance', icon: <AssignmentIcon />, path: '/dashboard/analytics/performance' },
+    { text: 'Reports', icon: <AnalyticsIcon />, path: '/dashboard/analytics/analytical-report' },
+    { text: 'Performance', icon: <AssignmentIcon />, path: '/dashboard/analytics/performance-report' },
   ];
 
   // Social submenu - only for admin
@@ -223,7 +222,11 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
             {analyticsMenuItems.map((item) => (
               <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
                 <ListItemButton 
-                  onClick={() => navigate(item.path)}
+                  onClick={() => {
+                    console.log('Navigating to:', item.path);
+                    console.log('Current location:', location.pathname);
+                    navigate(item.path);
+                  }}
                   sx={{ 
                     borderRadius: 1,
                     pl: 4,

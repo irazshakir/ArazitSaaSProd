@@ -11,6 +11,10 @@ import Register from '../components/auth/Register';
 // Dashboard Pages
 import Dashboard from '../components/dashboard/Dashboard';
 
+// Analytics Pages
+import AnalyticalReport from '../components/analytics/analyticalReport';
+import PerformanceReport from '../components/analytics/performanceReport';
+
 // Hajj & Umrah Pages
 import HajjPackagesIndex from '../components/hajjPackages/hajjPackagesIndex';
 import HajjPackageCreate from '../components/forms/products/hajjPackages/HajjPackageCreate';
@@ -74,6 +78,13 @@ const AppRoutes = () => {
           
           {/* Chat Routes */}
           <Route path="chats" element={<Chat />} />
+          
+          {/* Analytics Routes */}
+          <Route path="analytics">
+            <Route index element={<Navigate to="analytical-report" replace />} />
+            <Route path="analytical-report" element={<AnalyticalReport />} />
+            <Route path="performance-report" element={<PerformanceReport />} />
+          </Route>
           
           {/* Hajj & Umrah Routes */}
           <Route path="hajj-umrah">
