@@ -15,6 +15,9 @@ import Dashboard from '../components/dashboard/Dashboard';
 import AnalyticalReport from '../components/analytics/analyticalReport';
 import PerformanceReport from '../components/analytics/performanceReport';
 
+// Company Settings Pages
+import CompanySettings from '../components/company_settings/companySettings';
+
 // Hajj & Umrah Pages
 import HajjPackagesIndex from '../components/hajjPackages/hajjPackagesIndex';
 import HajjPackageCreate from '../components/forms/products/hajjPackages/HajjPackageCreate';
@@ -27,9 +30,9 @@ import LeadEdit from '../components/leads/leadEdit';
 import LeadView from '../components/leads/leadView';
 
 // Groups Pages
-import { GroupIndex } from '../components/groups/GroupIndex';
-import { GroupCreate } from '../components/groups/GroupCreate';
-import { GroupEdit } from '../components/groups/GroupEdit';
+import { GroupIndex } from '../components/groups/groupIndex';
+import { GroupCreate } from '../components/groups/groupCreate';
+import { GroupEdit } from '../components/groups/groupEdit';
 
 // Testing/Debug Pages
 import TestAuthPage from '../components/TestAuthPage';
@@ -140,6 +143,12 @@ const AppRoutes = () => {
           <Route path="departments/create" element={<CreateDepartment />} />
           <Route path="departments/:id" element={<DepartmentDetail />} />
           <Route path="departments/:id/edit" element={<EditDepartment />} />
+          
+          {/* Settings Routes */}
+          <Route path="settings">
+            <Route path="company" element={<CompanySettings />} />
+            {/* Add other settings routes here */}
+          </Route>
           
           {/* Add other module routes here */}
         </Route>

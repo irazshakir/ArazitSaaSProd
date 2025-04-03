@@ -31,12 +31,10 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   const [notes, setNotes] = useState([]);
   const [documents, setDocuments] = useState([]);
   const [activities, setActivities] = useState([]);
-  const [profileData, setProfileData] = useState(null);
   const [newNote, setNewNote] = useState('');
   const [loadingNotes, setLoadingNotes] = useState(false);
   const [loadingDocuments, setLoadingDocuments] = useState(false);
   const [loadingActivities, setLoadingActivities] = useState(false);
-  const [loadingProfile, setLoadingProfile] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [submittingDocuments, setSubmittingDocuments] = useState(false);
   
@@ -417,13 +415,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     }
   }, [isEditMode, initialData.id]);
   
-  // Fetch lead profile if in edit mode
-  useEffect(() => {
-    if (isEditMode && initialData.id) {
-      fetchLeadProfile(initialData.id);
-    }
-  }, [isEditMode, initialData.id]);
-  
   // Function to fetch lead notes
   const fetchLeadNotes = async (leadId) => {
     try {
@@ -531,20 +522,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       message.error('Failed to load lead activities');
     } finally {
       setLoadingActivities(false);
-    }
-  };
-  
-  // Function to fetch lead profile
-  const fetchLeadProfile = async (leadId) => {
-    try {
-      setLoadingProfile(true);
-      const response = await api.get(`/leads/${leadId}/profile/`);
-      setProfileData(response.data);
-    } catch (error) {
-      console.error('Error fetching lead profile:', error);
-      message.error('Failed to load lead profile');
-    } finally {
-      setLoadingProfile(false);
     }
   };
   
@@ -684,29 +661,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     } catch (error) {
       console.error('Error adding activity:', error);
       message.error('Failed to add activity');
-      return false;
-    }
-  };
-  
-  // Function to update lead profile
-  const handleUpdateProfile = async (values) => {
-    if (!isEditMode || !initialData.id) {
-      message.error('Lead must be saved first');
-      return;
-    }
-    
-    try {
-      const response = await api.put(`/leads/${initialData.id}/profile/`, {
-        ...values,
-        lead: initialData.id
-      });
-      
-      setProfileData(response.data);
-      message.success('Profile updated successfully');
-      return true;
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      message.error('Failed to update profile');
       return false;
     }
   };
@@ -1118,7 +1072,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
             <Tab label="Notes" value="notes" />
             <Tab label="Documents" value="documents" />
             <Tab label="Activities" value="activities" />
-            <Tab label="Profile" value="profile" />
           </Tabs>
           
           {/* Basic Information Tab */}
@@ -1922,151 +1875,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
               )}
             </FormSection>
           )}
-          
-          {/* Profile Tab */}
-          {activeTab === 'profile' && (
-            <FormSection title="Lead Profile">
-              {isEditMode ? (
-                <Grid container spacing={3}>
-                  <Grid item xs={12}>
-                    <Form
-                      name="profile_form"
-                      layout="vertical"
-                      initialValues={profileData || {
-                        qualified_lead: false,
-                        buying_level: 'medium',
-                        previous_purchase: false,
-                        previous_purchase_amount: null,
-                        engagement_score: 0,
-                        response_time_score: 0,
-                        budget_match_score: 0
-                      }}
-                      onFinish={handleUpdateProfile}
-                    >
-                      <Row gutter={24}>
-                        <Col span={12}>
-                          <Form.Item
-                            name="qualified_lead"
-                            valuePropName="checked"
-                          >
-                            <Checkbox>Qualified Lead</Checkbox>
-                          </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                          <Form.Item
-                            name="previous_purchase"
-                            valuePropName="checked"
-                          >
-                            <Checkbox>Previous Purchase</Checkbox>
-                          </Form.Item>
-                        </Col>
-                      </Row>
-                      
-                      <Row gutter={24}>
-                        <Col span={12}>
-                          <Form.Item
-                            name="buying_level"
-                            label="Buying Level"
-                            rules={[{ required: true, message: 'Please select buying level' }]}
-                          >
-                            <Select
-                              placeholder="Select buying level"
-                              options={buyingLevelOptions}
-                            />
-                          </Form.Item>
-                        </Col>
-                        <Col span={12}>
-                          <Form.Item
-                            name="previous_purchase_amount"
-                            label="Previous Purchase Amount"
-                            dependencies={['previous_purchase']}
-                            rules={[
-                              ({ getFieldValue }) => ({
-                                required: getFieldValue('previous_purchase'),
-                                message: 'Please enter previous purchase amount'
-                              })
-                            ]}
-                          >
-                            <InputNumber
-                              style={{ width: '100%' }}
-                              min={0}
-                              formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                              parser={value => value.replace(/\$\s?|(,*)/g, '')}
-                              disabled={Form.useWatch('previous_purchase', form) === false}
-                            />
-                          </Form.Item>
-                        </Col>
-                      </Row>
-                      
-                      <Typography variant="subtitle1" sx={{ mt: 2, mb: 2 }}>Scoring</Typography>
-                      
-                      <Row gutter={24}>
-                        <Col span={8}>
-                          <Form.Item
-                            name="engagement_score"
-                            label="Engagement Score (0-100)"
-                            rules={[
-                              { required: true, message: 'Please enter engagement score' },
-                              { type: 'number', min: 0, max: 100, message: 'Score must be between 0 and 100' }
-                            ]}
-                          >
-                            <InputNumber style={{ width: '100%' }} min={0} max={100} />
-                          </Form.Item>
-                        </Col>
-                        <Col span={8}>
-                          <Form.Item
-                            name="response_time_score"
-                            label="Response Time Score (0-100)"
-                            rules={[
-                              { required: true, message: 'Please enter response time score' },
-                              { type: 'number', min: 0, max: 100, message: 'Score must be between 0 and 100' }
-                            ]}
-                          >
-                            <InputNumber style={{ width: '100%' }} min={0} max={100} />
-                          </Form.Item>
-                        </Col>
-                        <Col span={8}>
-                          <Form.Item
-                            name="budget_match_score"
-                            label="Budget Match Score (0-100)"
-                            rules={[
-                              { required: true, message: 'Please enter budget match score' },
-                              { type: 'number', min: 0, max: 100, message: 'Score must be between 0 and 100' }
-                            ]}
-                          >
-                            <InputNumber style={{ width: '100%' }} min={0} max={100} />
-                          </Form.Item>
-                        </Col>
-                      </Row>
-                      
-                      {profileData && (
-                        <Box sx={{ mb: 3, mt: 2, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
-                          <Typography variant="subtitle1" sx={{ mb: 1 }}>
-                            Overall Score: <strong>{profileData.overall_score}/100</strong>
-                          </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            This score is calculated automatically based on the values above and other factors.
-                          </Typography>
-                        </Box>
-                      )}
-                      
-                      <Form.Item>
-                        <Button type="primary" htmlType="submit">
-                          {profileData ? 'Update Profile' : 'Create Profile'}
-                        </Button>
-                      </Form.Item>
-                    </Form>
-                  </Grid>
-                </Grid>
-              ) : (
-                <Typography color="text.secondary">
-                  Save the lead first to manage profile information.
-                </Typography>
-              )}
-            </FormSection>
-          )}
-          
-        
           
           <Box sx={{ mb: 2, textAlign: 'right' }}>
             <Button 

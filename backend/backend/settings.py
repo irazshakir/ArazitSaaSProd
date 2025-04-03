@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'leads',  # Leads app
     'teams',  # Teams app
     'waba_int', # Waba Integration app
+    'company_settings', # Company Settings app
 ]
 
 MIDDLEWARE = [

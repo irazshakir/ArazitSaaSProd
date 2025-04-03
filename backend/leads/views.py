@@ -549,6 +549,14 @@ class LeadViewSet(viewsets.ModelViewSet):
         
         serializer.save()
 
+    @action(detail=True, methods=['get'])
+    def get_activities(self, request, pk=None):
+        """Get all activities for a specific lead."""
+        lead = self.get_object()
+        activities = LeadActivity.objects.filter(lead=lead).order_by('-created_at')
+        serializer = LeadActivitySerializer(activities, many=True, context={'request': request})
+        return Response(serializer.data)
+
 
 class LeadActivityViewSet(viewsets.ModelViewSet):
     """
@@ -670,6 +678,23 @@ class LeadProfileViewSet(viewsets.ModelViewSet):
         user = self.request.user
         tenant_ids = user.tenant_users.values_list('tenant', flat=True)
         return LeadProfile.objects.filter(tenant__in=tenant_ids)
+        
+    def retrieve(self, request, *args, **kwargs):
+        """Override retrieve to handle non-existent profiles gracefully."""
+        try:
+            return super().retrieve(request, *args, **kwargs)
+        except LeadProfile.DoesNotExist:
+            # Return empty profile data instead of 404
+            return Response({
+                'qualified_lead': False,
+                'buying_level': 'medium',
+                'previous_purchase': False,
+                'previous_purchase_amount': None,
+                'engagement_score': 0,
+                'response_time_score': 0,
+                'budget_match_score': 0,
+                'overall_score': 0
+            })
 
 
 class LeadOverdueViewSet(viewsets.ModelViewSet):

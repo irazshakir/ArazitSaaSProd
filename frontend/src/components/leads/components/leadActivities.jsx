@@ -79,25 +79,35 @@ const LeadActivities = ({ leadId, activities = [] }) => {
 
     try {
       setLoading(true);
-      // Use the filtered endpoint
-      const response = await api.get(`/lead-activities/?lead=${leadId}`);
+      let activitiesArray = [];
       
-      console.log('Fetched activities for lead:', {
-        leadId,
-        response: response.data
-      });
+      try {
+        // Try the new endpoint first
+        const response = await api.get(`/leads/${leadId}/activities/`);
+        activitiesArray = response.data;
+      } catch (error) {
+        if (error.response?.status === 404) {
+          // Fallback to the filtered endpoint
+          console.log('Falling back to filtered activities endpoint');
+          const fallbackResponse = await api.get(`/lead-activities/?lead=${leadId}`);
+          activitiesArray = Array.isArray(fallbackResponse.data) 
+            ? fallbackResponse.data
+            : (fallbackResponse.data?.results && Array.isArray(fallbackResponse.data.results))
+              ? fallbackResponse.data.results
+              : [];
+        } else {
+          throw error;
+        }
+      }
       
-      // Process response data
-      let activitiesArray = Array.isArray(response.data) 
-        ? response.data
-        : (response.data?.results && Array.isArray(response.data.results))
-          ? response.data.results
-          : [];
-      
+      console.log(`Retrieved ${activitiesArray.length} activities for lead ${leadId}`);
       setLeadActivities(activitiesArray);
     } catch (error) {
       console.error('Error fetching activities:', error);
-      message.error('Failed to load activities');
+      // Only show error message if we're not using initial activities
+      if (!activities || activities.length === 0) {
+        message.error('Failed to load activities');
+      }
     } finally {
       setLoading(false);
     }

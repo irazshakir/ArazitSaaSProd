@@ -11,6 +11,7 @@ urlpatterns = [
     path('api/', include('leads.urls')),  # Leads API endpoints
     path('api/', include('teams.urls')),  # Teams API endpoints
     path('api/', include('waba_int.urls')),  # Waba Integration API endpoints
+    path('api/', include('company_settings.urls')),  # Company Settings API endpoints
 ]
 
 # Serve media files in development

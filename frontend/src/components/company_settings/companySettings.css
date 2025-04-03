@@ -1,0 +1,86 @@
+.company-settings-submit-btn {
+  background-color: #9d277c !important;
+  border-color: #9d277c !important;
+  box-shadow: 0 4px 14px 0 rgba(157, 39, 124, 0.39);
+}
+
+.company-settings-submit-btn:hover,
+.company-settings-submit-btn:focus {
+  background-color: #85114e !important;
+  border-color: #85114e !important;
+}
+
+.company-settings-form .ant-form-item-label > label {
+  font-weight: 500;
+}
+
+.ant-btn-variant-solid {
+    color: #fff;
+    background: #9d277c;
+}
+
+.ant-btn-variant-solid:hover,
+.ant-btn-variant-solid:focus {
+    color: #fff;
+    background: #85114e;
+}
+
+/* Add some spacing between form items */
+.company-settings-form .ant-form-item {
+  margin-bottom: 24px;
+}
+
+/* Style the card title */
+.company-settings-form .ant-card-head-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.company-settings-form {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.company-settings-submit-btn {
+  margin-top: 20px;
+}
+
+/* Styles for the display component */
+.company-settings-card {
+  max-width: 800px;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+}
+
+.company-logo {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.company-details {
+  margin-top: 20px;
+}
+
+.color-box {
+  width: 100px;
+  height: 40px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: bold;
+  text-shadow: 0px 0px 3px rgba(0, 0, 0, 0.5);
+} 

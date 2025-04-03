@@ -3,7 +3,7 @@ import { Container, Typography, Paper, Box, CircularProgress } from '@mui/materi
 import { useNavigate, useParams } from 'react-router-dom';
 import { message } from 'antd';
 import api from '../../services/api';
-import { GroupForm } from './GroupForm';
+import { GroupForm } from './groupForm';
 
 export const GroupEdit = () => {
   const navigate = useNavigate();
