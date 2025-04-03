@@ -43,6 +43,8 @@ import {
   Category as DepartmentIcon,
   CalendarToday as CalendarTodayIcon,
   Group as GroupIcon,
+  Receipt as ReceiptIcon,
+  AccountBalance as AccountIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -111,6 +113,11 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
   const socialMenuItems = [
     { text: 'Templates', icon: <TemplateIcon />, path: '/templates' },
     { text: 'Bulk Messages', icon: <SendIcon />, path: '/dashboard/social/bulk-messages' },
+  ];
+
+  // Accounts menu items - available to all users
+  const accountsMenuItems = [
+    { text: 'Invoices', icon: <ReceiptIcon />, path: '/dashboard/invoices' },
   ];
 
   // Settings submenu - only for admin
@@ -265,25 +272,21 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
           </List>
         </Collapse>
 
-        {/* Social Section - Admin only */}
-        {/*{isAdmin && (
-          <>
-            <ListItem sx={{ pt: 2, pb: 1 }}>
-              <Typography 
-                variant="overline" 
-                color="text.secondary"
-                sx={{ 
-                  fontSize: '0.7rem', 
-                  fontWeight: 600,
-                  letterSpacing: '0.08em'
-                }}
-              >
-                SOCIAL
-              </Typography>
-            </ListItem>
-            {renderMenuItems(socialMenuItems)}
-          </>
-        )}*/}
+        {/* Accounts Section - Available to all users */}
+        <ListItem sx={{ pt: 2, pb: 1 }}>
+          <Typography 
+            variant="overline" 
+            color="text.secondary"
+            sx={{ 
+              fontSize: '0.7rem', 
+              fontWeight: 600,
+              letterSpacing: '0.08em'
+            }}
+          >
+            ACCOUNTS
+          </Typography>
+        </ListItem>
+        {renderMenuItems(accountsMenuItems)}
 
         {/* Event Reminder Section */}
         <ListItem sx={{ pt: 2, pb: 1 }}>

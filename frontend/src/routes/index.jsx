@@ -34,6 +34,11 @@ import { GroupIndex } from '../components/groups/groupIndex';
 import { GroupCreate } from '../components/groups/groupCreate';
 import { GroupEdit } from '../components/groups/groupEdit';
 
+// Invoice Pages
+import InvoiceIndex from '../components/invoices/invoiceIndex';
+import InvoiceCreate from '../components/invoices/invoiceCreate';
+import InvoiceEdit from '../components/invoices/invoiceEdit';
+
 // Testing/Debug Pages
 import TestAuthPage from '../components/TestAuthPage';
 
@@ -131,6 +136,11 @@ const AppRoutes = () => {
           <Route path="groups" element={<GroupIndex />} />
           <Route path="groups/create" element={<GroupCreate />} />
           <Route path="groups/:id/edit" element={<GroupEdit />} />
+          
+          {/* Invoice Routes */}
+          <Route path="invoices" element={<InvoiceIndex />} />
+          <Route path="invoices/create" element={<InvoiceCreate />} />
+          <Route path="invoices/:id/edit" element={<InvoiceEdit />} />
           
           {/* Teams Routes */}
           <Route path="teams" element={<TeamsIndex />} />
