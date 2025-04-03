@@ -26,6 +26,11 @@ import LeadCreate from '../components/leads/LeadCreate';
 import LeadEdit from '../components/leads/leadEdit';
 import LeadView from '../components/leads/leadView';
 
+// Groups Pages
+import { GroupIndex } from '../components/groups/GroupIndex';
+import { GroupCreate } from '../components/groups/GroupCreate';
+import { GroupEdit } from '../components/groups/GroupEdit';
+
 // Testing/Debug Pages
 import TestAuthPage from '../components/TestAuthPage';
 
@@ -61,6 +66,9 @@ import EditDepartment from '../components/departments/editDepartment';
 // Chat Components
 import Chat from '../components/chats/Chat';
 
+// Reminder Components
+import ReminderActivities from '../components/reminders/reminderActivities';
+
 const AppRoutes = () => {
   return (
     <ErrorBoundary>
@@ -78,6 +86,11 @@ const AppRoutes = () => {
           
           {/* Chat Routes */}
           <Route path="chats" element={<Chat />} />
+          
+          {/* Reminder Routes */}
+          <Route path="reminders">
+            <Route path="events" element={<ReminderActivities />} />
+          </Route>
           
           {/* Analytics Routes */}
           <Route path="analytics">
@@ -110,6 +123,11 @@ const AppRoutes = () => {
           <Route path="leads/create" element={<LeadCreate />} />
           <Route path="leads/:id" element={<LeadView />} />
           <Route path="leads/:id/edit" element={<LeadEdit />} />
+          
+          {/* Groups Routes */}
+          <Route path="groups" element={<GroupIndex />} />
+          <Route path="groups/create" element={<GroupCreate />} />
+          <Route path="groups/:id/edit" element={<GroupEdit />} />
           
           {/* Teams Routes */}
           <Route path="teams" element={<TeamsIndex />} />

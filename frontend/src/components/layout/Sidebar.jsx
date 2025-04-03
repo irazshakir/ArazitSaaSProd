@@ -41,6 +41,8 @@ import {
   Groups as GroupsIcon,
   AccountTree as BranchIcon,
   Category as DepartmentIcon,
+  CalendarToday as CalendarTodayIcon,
+  Group as GroupIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -96,6 +98,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
     { text: 'Chats', icon: <ChatIcon />, path: '/dashboard/chats' },
     { text: 'Leads', icon: <PersonIcon />, path: '/dashboard/leads' },
+    { text: 'Groups', icon: <GroupIcon />, path: '/dashboard/groups' },
   ];
 
   // Analytics submenu - available to all authenticated users
@@ -263,7 +266,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
         </Collapse>
 
         {/* Social Section - Admin only */}
-        {isAdmin && (
+        {/*{isAdmin && (
           <>
             <ListItem sx={{ pt: 2, pb: 1 }}>
               <Typography 
@@ -280,7 +283,55 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
             </ListItem>
             {renderMenuItems(socialMenuItems)}
           </>
-        )}
+        )}*/}
+
+        {/* Event Reminder Section */}
+        <ListItem sx={{ pt: 2, pb: 1 }}>
+          <Typography 
+            variant="overline" 
+            color="text.secondary"
+            sx={{ 
+              fontSize: '0.7rem', 
+              fontWeight: 600,
+              letterSpacing: '0.08em'
+            }}
+          >
+            EVENT REMINDER
+          </Typography>
+        </ListItem>
+        <ListItem disablePadding sx={{ mb: 0.5 }}>
+          <ListItemButton 
+            onClick={() => navigate('/dashboard/reminders/events')}
+            sx={{ 
+              borderRadius: 1,
+              '&:hover': {
+                backgroundColor: 'rgba(157, 39, 124, 0.08)',
+              },
+              '&.Mui-selected': {
+                backgroundColor: 'rgba(157, 39, 124, 0.16)',
+                '&:hover': {
+                  backgroundColor: 'rgba(157, 39, 124, 0.24)',
+                },
+              },
+            }}
+            selected={location.pathname === '/dashboard/reminders/events'}
+          >
+            <ListItemIcon sx={{ 
+              minWidth: 40,
+              color: location.pathname === '/dashboard/reminders/events' ? '#9d277c' : 'inherit'
+            }}>
+              <CalendarTodayIcon />
+            </ListItemIcon>
+            <ListItemText 
+              primary="Events" 
+              primaryTypographyProps={{ 
+                fontSize: '0.8rem',
+                fontWeight: location.pathname === '/dashboard/reminders/events' ? 600 : 400,
+                color: location.pathname === '/dashboard/reminders/events' ? '#9d277c' : 'inherit'
+              }}
+            />
+          </ListItemButton>
+        </ListItem>
 
         {/* Settings Section - Admin only */}
         {isAdmin && (
