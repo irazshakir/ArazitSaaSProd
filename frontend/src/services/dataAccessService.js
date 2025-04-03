@@ -391,6 +391,35 @@ class DataAccessService {
         return chats;
     }
   }
+
+  // Get tenant ID from storage
+  getTenantId() {
+    // Return cached tenant ID if available
+    if (this.tenantId) {
+      return this.tenantId;
+    }
+    
+    // Try to get from localStorage
+    const storedTenantId = localStorage.getItem('tenant_id');
+    if (storedTenantId) {
+      this.tenantId = storedTenantId;
+      return storedTenantId;
+    }
+    
+    // Try to extract from user data
+    try {
+      const userData = JSON.parse(localStorage.getItem('user') || '{}');
+      if (userData.tenant_id) {
+        this.tenantId = userData.tenant_id;
+        return userData.tenant_id;
+      }
+    } catch (error) {
+      console.error('Error parsing user data while getting tenant ID:', error);
+    }
+    
+    console.warn('No tenant ID found in any storage location');
+    return null;
+  }
 }
 
 export default new DataAccessService(); 

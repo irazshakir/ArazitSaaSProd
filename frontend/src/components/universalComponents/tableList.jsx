@@ -33,6 +33,7 @@ const TableList = ({
   onViewClick,
   onEditClick,
   onDeleteClick,
+  extraActions,
   selectable = true,
   pagination = true,
   rowsPerPage = 10,
@@ -262,7 +263,7 @@ const TableList = ({
                   </TableCell>
                 ))}
                 
-                {(onViewClick || onEditClick || onDeleteClick) && (
+                {(onViewClick || onEditClick || onDeleteClick || extraActions) && (
                   <TableCell 
                     align="right" 
                     style={{ 
@@ -314,9 +315,11 @@ const TableList = ({
                       </TableCell>
                     ))}
                     
-                    {(onViewClick || onEditClick || onDeleteClick) && (
+                    {(onViewClick || onEditClick || onDeleteClick || extraActions) && (
                       <TableCell align="right">
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                          {extraActions && extraActions(row)}
+                          
                           {onEditClick && (
                             <IconButton 
                               size="small" 
@@ -348,7 +351,7 @@ const TableList = ({
               {data.length === 0 && (
                 <TableRow>
                   <TableCell 
-                    colSpan={columns.length + (selectable ? 1 : 0) + ((onViewClick || onEditClick || onDeleteClick) ? 1 : 0)} 
+                    colSpan={columns.length + (selectable ? 1 : 0) + ((onViewClick || onEditClick || onDeleteClick || extraActions) ? 1 : 0)} 
                     align="center"
                     sx={{ py: 3 }}
                   >

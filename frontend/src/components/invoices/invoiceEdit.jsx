@@ -26,7 +26,7 @@ import {
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { ArrowBack, Delete, Add, Receipt } from '@mui/icons-material';
+import { ArrowBack, Delete, Add, Receipt, Print } from '@mui/icons-material';
 import { message } from 'antd';
 import api from '../../services/api';
 import dayjs from 'dayjs';
@@ -287,8 +287,9 @@ const InvoiceEdit = () => {
   // Format currency
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD'
+      style: 'decimal',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     }).format(amount);
   };
 
@@ -315,6 +316,15 @@ const InvoiceEdit = () => {
           <Typography variant="h5" component="h1" sx={{ fontWeight: 600 }}>
             Edit Invoice #{formData.invoice_number}
           </Typography>
+          <Box sx={{ flexGrow: 1 }} />
+          <Button
+            variant="outlined"
+            startIcon={<Print />}
+            onClick={() => navigate(`/dashboard/invoices/${id}/print`)}
+            sx={{ ml: 2 }}
+          >
+            Print Invoice
+          </Button>
         </Box>
         
         <Grid container spacing={3}>

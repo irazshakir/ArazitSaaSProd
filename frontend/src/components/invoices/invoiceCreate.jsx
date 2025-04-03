@@ -140,6 +140,11 @@ const InvoiceCreate = () => {
     }
   };
 
+  // Format currency
+  const formatCurrency = (value) => {
+    return parseFloat(value).toFixed(2);
+  };
+
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <Container maxWidth="lg" sx={{ pt: 2, pb: 4 }}>

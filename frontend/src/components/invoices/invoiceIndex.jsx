@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Container, Typography, Stack, Grid, Paper, Chip } from '@mui/material';
+import { Box, Container, Typography, Stack, Grid, Paper, Chip, Button, IconButton, Tooltip } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../../services/api';
 import { message } from 'antd';
 import dataAccessService from '../../services/dataAccessService';
+import { Print as PrintIcon, Visibility as VisibilityIcon } from '@mui/icons-material';
 
 // Import universal components
 import SearchBar from '../universalComponents/searchBar';
@@ -112,7 +113,7 @@ const InvoiceIndex = () => {
       width: '10%',
       minWidth: 100,
       sortable: true,
-      render: (value) => `$${parseFloat(value).toFixed(2)}`
+      render: (value) => parseFloat(value).toFixed(2)
     },
     { 
       field: 'status_display', 
@@ -309,7 +310,13 @@ const InvoiceIndex = () => {
 
   // Handle view invoice
   const handleViewInvoice = (invoice) => {
-    navigate(`/dashboard/invoices/${invoice.id}`);
+    navigate(`/dashboard/invoices/${invoice.id}/print`);
+  };
+
+  // Handle print invoice directly
+  const handlePrintInvoice = (e, invoice) => {
+    e.stopPropagation(); // Prevent row click
+    navigate(`/dashboard/invoices/${invoice.id}/print`);
   };
 
   // Handle edit invoice
@@ -443,6 +450,17 @@ const InvoiceIndex = () => {
                 onRowClick={handleViewInvoice}
                 onEditClick={handleEditInvoice}
                 onDeleteClick={handleDeleteInvoice}
+                extraActions={(row) => (
+                  <Tooltip title="View/Print Invoice" key="print">
+                    <IconButton
+                      color="primary"
+                      size="small"
+                      onClick={(e) => handlePrintInvoice(e, row)}
+                    >
+                      <PrintIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                )}
                 pagination={true}
                 rowsPerPage={10}
                 defaultSortField="created_at"
