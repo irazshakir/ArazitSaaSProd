@@ -51,15 +51,50 @@ class BaseAnalyticsView(APIView):
         department_id = request.query_params.get('department_id')
         user_id = request.query_params.get('user_id')
         
+        print(f"User filter params - branch_id: {branch_id}, department_id: {department_id}, user_id: {user_id}")
+        
+        # Debug query params
+        print(f"All query params: {request.query_params}")
+        
         # Add filters based on request parameters
         if branch_id:
             queryset = queryset.filter(branch_id=branch_id)
+            print(f"Applied branch filter: {branch_id}, remaining records: {queryset.count()}")
             
         if department_id:
             queryset = queryset.filter(department_id=department_id)
+            print(f"Applied department filter: {department_id}, remaining records: {queryset.count()}")
             
         if user_id:
-            queryset = queryset.filter(created_by_id=user_id)
+            # Debug check what field to use for filtering by user
+            print(f"Checking which field to use for user filtering - user_id: {user_id}")
+            
+            # Try to get a lead to check available fields
+            sample_lead = queryset.first()
+            if sample_lead:
+                print(f"Sample lead fields: {dir(sample_lead)}")
+                print(f"Sample lead created_by: {getattr(sample_lead, 'created_by', None)}")
+                print(f"Sample lead created_by_id: {getattr(sample_lead, 'created_by_id', None)}")
+                print(f"Sample lead assigned_to: {getattr(sample_lead, 'assigned_to', None)}")
+                print(f"Sample lead assigned_to_id: {getattr(sample_lead, 'assigned_to_id', None)}")
+            
+            # Try both fields to see which one works
+            # Check leads assigned to the user
+            if hasattr(Lead, 'assigned_to_id'):
+                assigned_count = queryset.filter(assigned_to_id=user_id).count()
+                print(f"Leads assigned to user {user_id}: {assigned_count}")
+                
+            # Check leads created by the user
+            created_count = queryset.filter(created_by_id=user_id).count()
+            print(f"Leads created by user {user_id}: {created_count}")
+            
+            # Filter by both assigned_to and created_by
+            if hasattr(Lead, 'assigned_to_id'):
+                queryset = queryset.filter(Q(created_by_id=user_id) | Q(assigned_to_id=user_id))
+                print(f"Applied user filter using both created_by_id and assigned_to_id: {user_id}, remaining records: {queryset.count()}")
+            else:
+                queryset = queryset.filter(created_by_id=user_id)
+                print(f"Applied user filter using only created_by_id: {user_id}, remaining records: {queryset.count()}")
         
         # Add additional filters based on user role
         if role == 'admin':

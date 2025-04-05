@@ -571,6 +571,51 @@ const AnalyticalReport = () => {
         console.error("Error checking token:", e);
       }
       
+      // Test user filter specifically by making a direct request
+      if (selectedUser) {
+        console.log("Testing user filter specifically with user_id:", selectedUser);
+        
+        try {
+          const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+          const tenantId = localStorage.getItem('tenant_id');
+          const dateFrom = format(dateFrom || new Date(), 'yyyy-MM-dd');
+          const dateTo = format(dateTo || new Date(), 'yyyy-MM-dd');
+          
+          const userFilterUrl = `${import.meta.env.VITE_API_BASE_URL}/api/analytics/lead-analytics/?tenant_id=${tenantId}&user_id=${selectedUser}&date_from=${dateFrom}&date_to=${dateTo}`;
+          console.log("Making test request for user filtering:", userFilterUrl);
+          
+          const response = await fetch(userFilterUrl, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          console.log("User filter test response status:", response.status);
+          if (response.ok) {
+            const data = await response.json();
+            console.log("User filter test data:", data);
+            
+            // Show the actual data if available
+            if (data && data.statusWiseData) {
+              console.log("Status-wise data with user filter:", data.statusWiseData);
+              // Update the UI directly with this data
+              setStatusWiseData(data.statusWiseData);
+              setLeadTypeData(data.leadTypeData || []);
+              setLeadSourceData(data.leadSourceData || []);
+              setStats(data.stats || {});
+              
+              alert(`Data retrieved for user ${selectedUser}:\n${data.statusWiseData.length} statuses\n${data.leadTypeData ? data.leadTypeData.length : 0} lead types\n${data.leadSourceData ? data.leadSourceData.length : 0} sources`);
+            }
+          } else {
+            console.error("User filter test error:", await response.text());
+          }
+        } catch (e) {
+          console.error("Error testing user filter:", e);
+        }
+      }
+      
       // Test 2: Direct filter options request with fetch to avoid any middleware issues
       try {
         const token = localStorage.getItem('access_token') || localStorage.getItem('token');
