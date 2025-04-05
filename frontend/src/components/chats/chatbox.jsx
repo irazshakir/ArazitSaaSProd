@@ -12,13 +12,22 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
   const [error, setError] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
+  const [currentChatId, setCurrentChatId] = useState(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
-    if (activeChat?.id) {
+    if (activeChat?.id && activeChat.id !== currentChatId) {
+      console.log('Chatbox: Active chat changed to', activeChat.id);
+      setCurrentChatId(activeChat.id);
+      setMessages([]);
+      setError(null);
+      setMessage('');
+      setSelectedImage(null);
+      setImagePreview(null);
+      
       fetchMessages();
     }
   }, [activeChat?.id]);
@@ -28,6 +37,8 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
   }, [messages]);
 
   const fetchMessages = async () => {
+    if (!activeChat?.id) return;
+    
     try {
       setLoading(true);
       

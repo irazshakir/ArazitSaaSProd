@@ -111,6 +111,7 @@ const Chat = () => {
   const [activeChat, setActiveChat] = useState(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
+  const [detailsKey, setDetailsKey] = useState(0); // Add a key to force re-render of ChatDetails
 
   useEffect(() => {
     // Set first chat as active on initial load
@@ -119,16 +120,45 @@ const Chat = () => {
     }
   }, [chats]);
 
+  // When active chat changes, increment details key to force re-render
+  useEffect(() => {
+    if (activeChat) {
+      setDetailsKey(prevKey => prevKey + 1);
+    }
+  }, [activeChat?.id]);
+
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
   };
 
   const toggleDetailsDrawer = () => {
+    // Force re-render of details when opening drawer
+    if (!detailsOpen) {
+      setDetailsKey(prevKey => prevKey + 1);
+    }
     setDetailsOpen(!detailsOpen);
   };
 
   const closeDetailsDrawer = () => {
     setDetailsOpen(false);
+  };
+
+  // Function to handle chat selection from ChatList
+  const handleChatSelect = (chat) => {
+    console.log('Selected chat:', chat);
+    
+    // Only update if it's a different chat
+    if (chat.id !== activeChat?.id) {
+      setActiveChat(chat);
+      
+      // If details panel is open, close and reopen to refresh
+      if (detailsOpen) {
+        setDetailsOpen(false);
+        setTimeout(() => {
+          setDetailsOpen(true);
+        }, 100);
+      }
+    }
   };
 
   const sendMessage = (text) => {
@@ -190,7 +220,7 @@ const Chat = () => {
               <ChatList 
                 chats={chats} 
                 activeChat={activeChat} 
-                setActiveChat={setActiveChat} 
+                setActiveChat={handleChatSelect} 
               />
             </Box>
             <Box sx={{ flex: 1 }}>
@@ -219,8 +249,9 @@ const Chat = () => {
         onClick={closeDetailsDrawer}
       ></div>
       
-      {/* Chat details as a drawer */}
+      {/* Chat details as a drawer - with key to force re-render */}
       <ChatDetails 
+        key={detailsKey}
         activeChat={activeChat} 
         isOpen={detailsOpen} 
         onClose={closeDetailsDrawer} 

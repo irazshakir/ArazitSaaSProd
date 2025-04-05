@@ -12,6 +12,7 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
   const [submitting, setSubmitting] = useState(false);
   const [departmentUsers, setDepartmentUsers] = useState({});
   const [existingLead, setExistingLead] = useState(null);
+  const [activeChatId, setActiveChatId] = useState(null);
 
   // Primary color of the app
   const primaryColor = '#9d277c'; // Your app's primary color
@@ -68,11 +69,32 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
     }
   };
 
+  // Reset form when active chat changes
+  useEffect(() => {
+    if (activeChat?.id && activeChat.id !== activeChatId) {
+      console.log('Active chat changed, resetting form and fetching new lead data');
+      setActiveChatId(activeChat.id);
+      setExistingLead(null);
+      form.resetFields();
+      
+      // Set default values based on the new active chat
+      form.setFieldsValue({
+        name: activeChat.name || '',
+        phone: activeChat.phone || '',
+        email: activeChat.email || '',
+        lead_type: 'new',
+        status: 'new',
+        source: 'whatsapp',
+        lead_activity_status: true
+      });
+    }
+  }, [activeChat?.id, form, activeChatId]);
+
   // Check for existing lead when chat is opened
   useEffect(() => {
     const checkExistingLead = async () => {
-      if (!activeChat?.id) {
-        console.log('No active chat available');
+      if (!activeChat?.id || activeChat.id !== activeChatId) {
+        console.log('No active chat available or chat ID mismatch');
         return;
       }
 
@@ -309,7 +331,7 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
     if (isOpen && activeChat?.id && users.length > 0) {
       checkExistingLead();
     }
-  }, [activeChat?.id, activeChat?.phone, isOpen, form, users]);
+  }, [activeChat?.id, activeChat?.phone, isOpen, form, users, activeChatId]);
 
   // Add a new useEffect to handle existing lead changes
   useEffect(() => {
@@ -435,6 +457,34 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
     fetchUsers();
   }, [form]);
 
+  // Add this new effect to force data refresh when the drawer is opened
+  useEffect(() => {
+    if (isOpen && activeChat?.id) {
+      console.log('ChatDetails: Drawer opened, forcing data refresh for chat ID:', activeChat.id);
+      
+      // Reset state and form
+      setActiveChatId(null);
+      setExistingLead(null);
+      form.resetFields();
+      
+      // Set basic fields from active chat
+      form.setFieldsValue({
+        name: activeChat.name || '',
+        phone: activeChat.phone || '',
+        email: '',
+        lead_type: 'new',
+        status: 'new',
+        source: 'whatsapp',
+        lead_activity_status: true
+      });
+      
+      // Set active chat ID with slight delay to trigger the fetch effect
+      setTimeout(() => {
+        setActiveChatId(activeChat.id);
+      }, 50);
+    }
+  }, [isOpen, activeChat?.id, form]);
+
   // Lead type options based on your Lead model
   const leadTypeOptions = [
     { value: 'hajj_package', label: 'Hajj Package' },
@@ -492,7 +542,8 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
         source: values.source,
         assigned_to: values.assigned_to?.value || values.assigned_to,
         lead_activity_status: values.lead_activity_status ? 'active' : 'inactive',
-        next_follow_up: values.next_follow_up?.format('YYYY-MM-DD')
+        next_follow_up: values.next_follow_up?.format('YYYY-MM-DD'),
+        chat_id: activeChat.id  // Ensure we link to this specific chat
       };
 
       let response;

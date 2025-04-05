@@ -26,7 +26,10 @@ import {
   TableCell,
   TableContainer,
   TableHead,
-  TableRow
+  TableRow,
+  Tabs,
+  Tab,
+  Alert
 } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
@@ -41,11 +44,16 @@ import {
   Schedule as ScheduleIcon,
   CalendarToday as CalendarTodayIcon,
   MoreVert as MoreVertIcon,
-  FilterList as FilterListIcon
+  FilterList as FilterListIcon,
+  Download as DownloadIcon,
+  Close as CloseIcon,
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { branchService, departmentService, userService } from '../../services/api';
-import { format } from 'date-fns';
+import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import analyticsService, { hasFeatureAccess } from '../../services/analyticsService';
+import { getUser, getUserRole } from '../../utils/auth';
 
 // Dummy data
 const dummyBranches = [
@@ -363,6 +371,27 @@ const dateRangeMultipliers = {
   }
 };
 
+// Tab panel component for different analytics sections
+const TabPanel = (props) => {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`analytics-tabpanel-${index}`}
+      aria-labelledby={`analytics-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ py: 3 }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+};
+
 const AnalyticalReport = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
@@ -378,9 +407,9 @@ const AnalyticalReport = () => {
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState('');
-  const [dateFrom, setDateFrom] = useState(new Date(new Date().setMonth(new Date().getMonth() - 1)));
-  const [dateTo, setDateTo] = useState(new Date());
-  const [dateRangeType, setDateRangeType] = useState('lastMonth'); // For applying multipliers
+  const [dateFrom, setDateFrom] = useState(startOfMonth(subMonths(new Date(), 1)));
+  const [dateTo, setDateTo] = useState(endOfMonth(new Date()));
+  const [dateRangeType, setDateRangeType] = useState('custom');
 
   // Stats data
   const [stats, setStats] = useState(dummyStats);
@@ -388,6 +417,21 @@ const AnalyticalReport = () => {
   const [leadTypeData, setLeadTypeData] = useState(dummyLeadTypeData);
   const [leadSourceData, setLeadSourceData] = useState(dummyLeadSourceData);
 
+  // UI states
+  const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
+  const [error, setError] = useState(null);
+  
+  // Get permissions based on role
+  const canExportReports = hasFeatureAccess('analytics.export_reports');
+  const canViewLeadSourceAnalysis = hasFeatureAccess('analytics.lead_source_analysis');
+  const canViewConversionMetrics = hasFeatureAccess('analytics.conversion_metrics');
+  const canViewTeamComparison = hasFeatureAccess('analytics.team_comparison');
+  const canViewAllBranches = hasFeatureAccess('dashboard.all_branch_view');
+  const canViewAllDepartments = hasFeatureAccess('dashboard.all_department_view');
+  
+  // Get user role from utility function
+  const userRole = getUserRole();
+  
   useEffect(() => {
     // Get user from localStorage
     const fetchUser = async () => {
@@ -517,185 +561,198 @@ const AnalyticalReport = () => {
     }
   }, [user]);
 
-  // Determine date range type based on selected dates
+  // Fetch analytics data when filters change
   useEffect(() => {
-    const daysDifference = Math.round((dateTo - dateFrom) / (1000 * 60 * 60 * 24));
-    
-    let newDateRangeType;
-    if (daysDifference <= 7) {
-      newDateRangeType = 'lastWeek';
-    } else if (daysDifference <= 31) {
-      newDateRangeType = 'lastMonth';
-    } else if (daysDifference <= 92) {
-      newDateRangeType = 'lastQuarter';
-    } else {
-      newDateRangeType = 'lastYear';
+    // Only load initial data if user is loaded and not in loading state
+    if (!isLoading && user) {
+      applyFilters();
     }
-    
-    if (newDateRangeType !== dateRangeType) {
-      setDateRangeType(newDateRangeType);
-      // Apply filters when date range type changes
-      if (user) { // Only if user is loaded
-        setTimeout(() => {
-          applyFilters(selectedBranch, selectedDepartment, selectedUser, dateFrom, dateTo, newDateRangeType);
-        }, 100);
-      }
-    }
-  }, [dateFrom, dateTo, dateRangeType, selectedBranch, selectedDepartment, selectedUser, user]);
+  }, [isLoading, user]);
 
   // Handle filter changes
   const handleBranchChange = (event) => {
-    const branchId = event.target.value;
-    setSelectedBranch(branchId);
-    console.log("Selected branch changed to:", branchId);
-    
-    // Apply filters immediately when branch changes
-    setTimeout(() => {
-      applyFilters(branchId, selectedDepartment, selectedUser, dateFrom, dateTo, dateRangeType);
-    }, 100);
+    console.log('Branch changed to:', event.target.value);
+    setSelectedBranch(event.target.value);
+    // Analytics data will be updated when applyFilters is called
   };
   
   const handleDepartmentChange = (event) => {
-    const deptId = event.target.value;
-    setSelectedDepartment(deptId);
-    console.log("Selected department changed to:", deptId);
-    
-    // Apply filters immediately when department changes
-    setTimeout(() => {
-      applyFilters(selectedBranch, deptId, selectedUser, dateFrom, dateTo, dateRangeType);
-    }, 100);
+    console.log('Department changed to:', event.target.value);
+    setSelectedDepartment(event.target.value);
+    // Analytics data will be updated when applyFilters is called
   };
   
   const handleUserChange = (event) => {
-    const userId = event.target.value;
-    setSelectedUser(userId);
-    console.log("Selected user changed to:", userId);
-    
-    // Apply filters immediately when user changes
-    setTimeout(() => {
-      applyFilters(selectedBranch, selectedDepartment, userId, dateFrom, dateTo, dateRangeType);
-    }, 100);
+    console.log('User changed to:', event.target.value);
+    setSelectedUser(event.target.value);
+    // Analytics data will be updated when applyFilters is called
+  };
+  
+  const handleTabChange = (event, newValue) => {
+    setDateRangeType('custom');
   };
   
   const handleDateFromChange = (newDate) => {
     setDateFrom(newDate);
-    // Don't apply filters immediately for dates to avoid multiple updates
+    setDateRangeType('custom');
   };
   
   const handleDateToChange = (newDate) => {
     setDateTo(newDate);
-    // Don't apply filters immediately for dates to avoid multiple updates
+    setDateRangeType('custom');
   };
 
-  const applyFilters = (branch = selectedBranch, department = selectedDepartment, user = selectedUser, from = dateFrom, to = dateTo, rangeType = dateRangeType) => {
-    // In a real app, this would make an API call with the selected filters
-    console.log("Applying filters:", {
-      branch,
-      department,
-      user,
-      dateFrom: format(from, 'yyyy-MM-dd'),
-      dateTo: format(to, 'yyyy-MM-dd'),
-      rangeType
+  // Apply filters and fetch data
+  const applyFilters = async (branch = selectedBranch, department = selectedDepartment, user = selectedUser, from = dateFrom, to = dateTo, rangeType = dateRangeType) => {
+    setIsLoadingAnalytics(true);
+    setError(null);
+    
+    try {
+      // Build filters object
+      const filters = {
+        date_from: format(from, 'yyyy-MM-dd'),
+        date_to: format(to, 'yyyy-MM-dd'),
+        date_range_type: rangeType
+      };
+      
+      // Only add these filters if they're selected and the user has permission
+      if (branch && canViewAllBranches) {
+        filters.branch_id = branch;
+      }
+      
+      if (department && canViewAllDepartments) {
+        filters.department_id = department;
+      }
+      
+      if (user) {
+        filters.user_id = user;
+      }
+      
+      console.log('Applying analytics filters:', filters);
+      
+      // Fetch analytics data based on active tab
+      let data;
+      
+      switch (dateRangeType) {
+        case 'last7days':
+          data = await analyticsService.getLeadAnalytics(filters);
+          break;
+        case 'last30days':
+          data = await analyticsService.getUserPerformance(filters);
+          break;
+        case 'last90days':
+          data = await analyticsService.getSalesAnalytics(filters);
+          break;
+        case 'thisMonth':
+          data = await analyticsService.getConversionFunnel(filters);
+          break;
+        case 'lastMonth':
+          const lastMonth = subMonths(new Date(), 1);
+          const newFrom = startOfMonth(lastMonth);
+          const newTo = endOfMonth(lastMonth);
+          data = await analyticsService.getLeadAnalytics({
+            date_from: format(newFrom, 'yyyy-MM-dd'),
+            date_to: format(newTo, 'yyyy-MM-dd'),
+            date_range_type: 'custom'
+          });
+          break;
+        default:
+          data = await analyticsService.getLeadAnalytics(filters);
+      }
+      
+      console.log('Analytics data received:', data);
+      
+      if (data) {
+        setStats(data.stats);
+        setStatusWiseData(data.statusWiseData);
+        setLeadTypeData(data.leadTypeData);
+        setLeadSourceData(data.leadSourceData);
+      } else {
+        setError('No data returned for the selected filters');
+      }
+    } catch (error) {
+      console.error('Error fetching analytics data:', error);
+      setError(error.message || 'Failed to load analytics data');
+    } finally {
+      setIsLoadingAnalytics(false);
+    }
+  };
+
+  // Handle predefined date ranges
+  const handleDateRangeChange = (event) => {
+    const range = event.target.value;
+    setDateRangeType(range);
+    
+    let newFrom, newTo;
+    const today = new Date();
+    
+    switch (range) {
+      case 'last7days':
+        newFrom = subMonths(today, 0.25);
+        newTo = today;
+        break;
+      case 'last30days':
+        newFrom = subMonths(today, 1);
+        newTo = today;
+        break;
+      case 'last90days':
+        newFrom = subMonths(today, 3);
+        newTo = today;
+        break;
+      case 'thisMonth':
+        newFrom = startOfMonth(today);
+        newTo = today;
+        break;
+      case 'lastMonth':
+        const lastMonth = subMonths(today, 1);
+        newFrom = startOfMonth(lastMonth);
+        newTo = endOfMonth(lastMonth);
+        break;
+      default:
+        return; // Keep existing dates for 'custom'
+    }
+    
+    setDateFrom(newFrom);
+    setDateTo(newTo);
+    
+    // Apply the new date range
+    applyFilters(selectedBranch, selectedDepartment, selectedUser, newFrom, newTo, range);
+  };
+  
+  const handleExport = () => {
+    // Implement export functionality - this will depend on your backend API
+    console.log('Exporting report with filters:', {
+      branch: selectedBranch,
+      department: selectedDepartment,
+      user: selectedUser,
+      dateFrom: format(dateFrom, 'yyyy-MM-dd'),
+      dateTo: format(dateTo, 'yyyy-MM-dd')
     });
     
-    setIsLoading(true);
-    
-    // Apply dynamic data based on filters
-    setTimeout(() => {
-      let newStats = { ...dummyStats };
-      let newStatusWiseData = [...dummyStatusWiseData];
-      let newLeadTypeData = [...dummyLeadTypeData];
-      let newLeadSourceData = [...dummyLeadSourceData];
-      
-      // Apply branch filter if selected
-      if (branch && branchSpecificData[branch]) {
-        console.log("Applying branch filter:", branch);
-        newStats = { ...branchSpecificData[branch].stats };
-        newStatusWiseData = [...branchSpecificData[branch].statusWiseData];
-        newLeadTypeData = [...branchSpecificData[branch].leadTypeData];
-        newLeadSourceData = [...branchSpecificData[branch].leadSourceData];
-      }
-      
-      // Apply user filter if selected (overrides branch filter)
-      if (user && userSpecificData[user]) {
-        console.log("Applying user filter:", user);
-        newStats = { ...userSpecificData[user].stats };
-        newStatusWiseData = [...userSpecificData[user].statusWiseData];
-        newLeadTypeData = [...userSpecificData[user].leadTypeData];
-        newLeadSourceData = [...userSpecificData[user].leadSourceData];
-      }
-      
-      // Apply date range multiplier
-      const multiplier = dateRangeMultipliers[rangeType];
-      console.log("Applying date range multiplier:", rangeType, multiplier);
-      
-      // Apply multiplier to stats
-      Object.keys(newStats).forEach(key => {
-        newStats[key] = Math.round(newStats[key] * multiplier.stats);
-      });
-      
-      // Apply multiplier to statusWiseData and recalculate percentages
-      let totalStatusCount = 0;
-      newStatusWiseData = newStatusWiseData.map(item => {
-        const updatedCount = Math.round(item.count * multiplier.statusWise);
-        totalStatusCount += updatedCount;
-        return {
-          ...item,
-          count: updatedCount
-        };
-      });
-      
-      newStatusWiseData = newStatusWiseData.map(item => ({
-        ...item,
-        percentage: Math.round((item.count / totalStatusCount) * 100)
-      }));
-      
-      // Apply multiplier to leadTypeData and recalculate percentages
-      let totalLeadTypeCount = 0;
-      newLeadTypeData = newLeadTypeData.map(item => {
-        const updatedCount = Math.round(item.count * multiplier.leadType);
-        totalLeadTypeCount += updatedCount;
-        return {
-          ...item,
-          count: updatedCount
-        };
-      });
-      
-      newLeadTypeData = newLeadTypeData.map(item => ({
-        ...item,
-        percentage: Math.round((item.count / totalLeadTypeCount) * 100)
-      }));
-      
-      // Apply multiplier to leadSourceData and recalculate percentages
-      let totalLeadSourceCount = 0;
-      newLeadSourceData = newLeadSourceData.map(item => {
-        const updatedCount = Math.round(item.count * multiplier.leadSource);
-        totalLeadSourceCount += updatedCount;
-        return {
-          ...item,
-          count: updatedCount
-        };
-      });
-      
-      newLeadSourceData = newLeadSourceData.map(item => ({
-        ...item,
-        percentage: Math.round((item.count / totalLeadSourceCount) * 100)
-      }));
-      
-      // Update state with new data
-      setStats(newStats);
-      setStatusWiseData(newStatusWiseData);
-      setLeadTypeData(newLeadTypeData);
-      setLeadSourceData(newLeadSourceData);
-      
-      setIsLoading(false);
-    }, 500);
+    // Implement your export logic here
+    // Example: window.open(`/api/analytics/export?branch=${selectedBranch}&department=${selectedDepartment}...`);
   };
 
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <LinearProgress sx={{ width: '80%' }} />
+        <LinearProgress color="secondary" sx={{ width: '50%' }} />
+      </Box>
+    );
+  }
+  
+  if (error && !stats) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error">{error}</Alert>
+        <Button 
+          variant="outlined" 
+          startIcon={<RefreshIcon />} 
+          sx={{ mt: 2 }}
+          onClick={() => window.location.reload()}
+        >
+          Reload Page
+        </Button>
       </Box>
     );
   }
@@ -933,511 +990,118 @@ const AnalyticalReport = () => {
         </CardContent>
       </Card>
       
-      {/* Stats Cards */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid item xs={12} sm={6} md={2}>
-          <Card 
-            elevation={0} 
-            sx={{ 
-              borderRadius: 2,
-              height: '100%',
-              transition: 'transform 0.3s, box-shadow 0.3s',
-              '&:hover': {
-                transform: 'translateY(-5px)',
-                boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)'
-              }
-            }}
-          >
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                <Avatar sx={{ bgcolor: 'rgba(157, 39, 124, 0.1)', color: '#9d277c' }}>
-                  <PeopleIcon />
-                </Avatar>
-                <IconButton size="small">
-                  <MoreVertIcon fontSize="small" />
-                </IconButton>
-              </Box>
-              <Typography variant="h5" component="div" sx={{ fontWeight: 600 }}>
-                {stats.newInquiries}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                New Inquiries
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                <TrendingUpIcon sx={{ color: 'success.main', fontSize: '1rem', mr: 0.5 }} />
-                <Typography variant="caption" color="success.main">
-                  +12% from last period
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={2}>
-          <Card 
-            elevation={0} 
-            sx={{ 
-              borderRadius: 2,
-              height: '100%',
-              transition: 'transform 0.3s, box-shadow 0.3s',
-              '&:hover': {
-                transform: 'translateY(-5px)',
-                boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)'
-              }
-            }}
-          >
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                <Avatar sx={{ bgcolor: 'rgba(195, 67, 135, 0.1)', color: '#c34387' }}>
-                  <BusinessIcon />
-                </Avatar>
-                <IconButton size="small">
-                  <MoreVertIcon fontSize="small" />
-                </IconButton>
-              </Box>
-              <Typography variant="h5" component="div" sx={{ fontWeight: 600 }}>
-                {stats.activeInquiries}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Active Inquiries
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                <TrendingUpIcon sx={{ color: 'success.main', fontSize: '1rem', mr: 0.5 }} />
-                <Typography variant="caption" color="success.main">
-                  +8% from last period
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={2}>
-          <Card 
-            elevation={0} 
-            sx={{ 
-              borderRadius: 2,
-              height: '100%',
-              transition: 'transform 0.3s, box-shadow 0.3s',
-              '&:hover': {
-                transform: 'translateY(-5px)',
-                boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)'
-              }
-            }}
-          >
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                <Avatar sx={{ bgcolor: 'rgba(130, 76, 150, 0.1)', color: '#824c96' }}>
-                  <CheckCircleIcon />
-                </Avatar>
-                <IconButton size="small">
-                  <MoreVertIcon fontSize="small" />
-                </IconButton>
-              </Box>
-              <Typography variant="h5" component="div" sx={{ fontWeight: 600 }}>
-                {stats.closedInquiries}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Closed Inquiries
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                <TrendingUpIcon sx={{ color: 'success.main', fontSize: '1rem', mr: 0.5 }} />
-                <Typography variant="caption" color="success.main">
-                  +10% from last period
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} sm={6} md={2}>
-          <Card 
-            elevation={0} 
-            sx={{ 
-              borderRadius: 2,
-              height: '100%',
-              transition: 'transform 0.3s, box-shadow 0.3s',
-              '&:hover': {
-                transform: 'translateY(-5px)',
-                boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)'
-              }
-            }}
-          >
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                <Avatar sx={{ bgcolor: 'rgba(247, 166, 247, 0.1)', color: '#f7a6f7' }}>
-                  <AttachMoneyIcon />
-                </Avatar>
-                <IconButton size="small">
-                  <MoreVertIcon fontSize="small" />
-                </IconButton>
-              </Box>
-              <Typography variant="h5" component="div" sx={{ fontWeight: 600 }}>
-                {stats.closeToSales}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Close to Sales
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                <TrendingUpIcon sx={{ color: 'success.main', fontSize: '1rem', mr: 0.5 }} />
-                <Typography variant="caption" color="success.main">
-                  +15% from last period
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-        
-        <Grid item xs={12} sm={6} md={2}>
-          <Card 
-            elevation={0} 
-            sx={{ 
-              borderRadius: 2,
-              height: '100%',
-              transition: 'transform 0.3s, box-shadow 0.3s',
-              '&:hover': {
-                transform: 'translateY(-5px)',
-                boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)'
-              }
-            }}
-          >
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                <Avatar sx={{ bgcolor: 'rgba(157, 39, 124, 0.1)', color: '#9d277c' }}>
-                  <AssignmentIcon />
-                </Avatar>
-                <IconButton size="small">
-                  <MoreVertIcon fontSize="small" />
-                </IconButton>
-              </Box>
-              <Typography variant="h5" component="div" sx={{ fontWeight: 600 }}>
-                {stats.sales}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Sales
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                <TrendingUpIcon sx={{ color: 'success.main', fontSize: '1rem', mr: 0.5 }} />
-                <Typography variant="caption" color="success.main">
-                  +25% from last period
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-        
-        <Grid item xs={12} sm={6} md={2}>
-          <Card 
-            elevation={0} 
-            sx={{ 
-              borderRadius: 2,
-              height: '100%',
-              transition: 'transform 0.3s, box-shadow 0.3s',
-              '&:hover': {
-                transform: 'translateY(-5px)',
-                boxShadow: '0 10px 20px rgba(0, 0, 0, 0.1)'
-              }
-            }}
-          >
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
-                <Avatar sx={{ bgcolor: 'rgba(255, 82, 82, 0.1)', color: '#ff5252' }}>
-                  <ScheduleIcon />
-                </Avatar>
-                <IconButton size="small">
-                  <MoreVertIcon fontSize="small" />
-                </IconButton>
-              </Box>
-              <Typography variant="h5" component="div" sx={{ fontWeight: 600 }}>
-                {stats.overdue}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Overdue
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                <TrendingDownIcon sx={{ color: 'error.main', fontSize: '1rem', mr: 0.5 }} />
-                <Typography variant="caption" color="error.main">
-                  +5% from last period
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      {/* Loading indicator */}
+      {isLoadingAnalytics && (
+        <Box sx={{ width: '100%', mb: 4 }}>
+          <LinearProgress color="secondary" />
+        </Box>
+      )}
       
-      {/* Status Wise and Lead Type Tables */}
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        {/* Status Wise Inquiries Table */}
-        <Grid item xs={12} md={6}>
-          <Card elevation={0} sx={{ borderRadius: 2, height: '100%' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  Status Wise Inquiries
-                </Typography>
-                <IconButton size="small">
-                  <MoreVertIcon fontSize="small" />
-                </IconButton>
-              </Box>
-              <Divider sx={{ mb: 2 }} />
-              
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 600 }}>Status</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600 }}>Count</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600 }}>Percentage</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600 }}>Visual</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {statusWiseData.map((row) => (
-                      <TableRow key={row.status}>
-                        <TableCell component="th" scope="row">
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Box
-                              sx={{
-                                width: 12,
-                                height: 12,
-                                borderRadius: '50%',
-                                bgcolor: 
-                                  row.status === 'New' ? '#9d277c' :
-                                  row.status === 'Qualified' ? '#c34387' :
-                                  row.status === 'Non-Potential' ? '#f7a6f7' :
-                                  row.status === 'Proposal' ? '#824c96' :
-                                  row.status === 'Negotiation' ? '#ad5cac' :
-                                  row.status === 'Won' ? '#4caf50' :
-                                  '#f44336',
-                                mr: 1
-                              }}
-                            />
-                            {row.status}
-                          </Box>
-                        </TableCell>
-                        <TableCell align="right">{row.count}</TableCell>
-                        <TableCell align="right">{row.percentage}%</TableCell>
-                        <TableCell align="right">
-                          <Box sx={{ width: '100%', mr: 1 }}>
-                            <LinearProgress
-                              variant="determinate"
-                              value={row.percentage}
-                              sx={{
-                                height: 8,
-                                borderRadius: 5,
-                                bgcolor: 'rgba(0, 0, 0, 0.1)',
-                                '& .MuiLinearProgress-bar': {
-                                  bgcolor: 
-                                    row.status === 'New' ? '#9d277c' :
-                                    row.status === 'Qualified' ? '#c34387' :
-                                    row.status === 'Non-Potential' ? '#f7a6f7' :
-                                    row.status === 'Proposal' ? '#824c96' :
-                                    row.status === 'Negotiation' ? '#ad5cac' :
-                                    row.status === 'Won' ? '#4caf50' :
-                                    '#f44336'
-                                }
-                              }}
-                            />
-                          </Box>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 600 }}>Total</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600 }}>
-                        {statusWiseData.reduce((sum, item) => sum + item.count, 0)}
-                      </TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600 }}>100%</TableCell>
-                      <TableCell align="right"></TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-        
-        {/* Lead Type Table */}
-        <Grid item xs={12} md={6}>
-          <Card elevation={0} sx={{ borderRadius: 2, height: '100%' }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  Lead Type Statistics
-                </Typography>
-                <IconButton size="small">
-                  <MoreVertIcon fontSize="small" />
-                </IconButton>
-              </Box>
-              <Divider sx={{ mb: 2 }} />
-              
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 600 }}>Lead Type</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600 }}>Count</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600 }}>Percentage</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600 }}>Visual</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {leadTypeData.map((row, index) => (
-                      <TableRow key={row.type}>
-                        <TableCell component="th" scope="row">
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Box
-                              sx={{
-                                width: 12,
-                                height: 12,
-                                borderRadius: '50%',
-                                bgcolor: 
-                                  index === 0 ? '#9d277c' :
-                                  index === 1 ? '#c34387' :
-                                  index === 2 ? '#f7a6f7' :
-                                  index === 3 ? '#824c96' :
-                                  index === 4 ? '#ad5cac' :
-                                  index === 5 ? '#4caf50' :
-                                  '#f44336',
-                                mr: 1
-                              }}
-                            />
-                            {row.type}
-                          </Box>
-                        </TableCell>
-                        <TableCell align="right">{row.count}</TableCell>
-                        <TableCell align="right">{row.percentage}%</TableCell>
-                        <TableCell align="right">
-                          <Box sx={{ width: '100%', mr: 1 }}>
-                            <LinearProgress
-                              variant="determinate"
-                              value={row.percentage}
-                              sx={{
-                                height: 8,
-                                borderRadius: 5,
-                                bgcolor: 'rgba(0, 0, 0, 0.1)',
-                                '& .MuiLinearProgress-bar': {
-                                  bgcolor: 
-                                    index === 0 ? '#9d277c' :
-                                    index === 1 ? '#c34387' :
-                                    index === 2 ? '#f7a6f7' :
-                                    index === 3 ? '#824c96' :
-                                    index === 4 ? '#ad5cac' :
-                                    index === 5 ? '#4caf50' :
-                                    '#f44336'
-                                }
-                              }}
-                            />
-                          </Box>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 600 }}>Total</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600 }}>
-                        {leadTypeData.reduce((sum, item) => sum + item.count, 0)}
-                      </TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600 }}>100%</TableCell>
-                      <TableCell align="right"></TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      {/* Error display */}
+      {error && (
+        <Alert 
+          severity="error" 
+          sx={{ mb: 4 }}
+          action={
+            <IconButton
+              aria-label="close"
+              color="inherit"
+              size="small"
+              onClick={() => setError(null)}
+            >
+              <CloseIcon fontSize="inherit" />
+            </IconButton>
+          }
+        >
+          {error}
+        </Alert>
+      )}
       
-      {/* Lead Source Table */}
-      <Grid container spacing={3}>
-        <Grid item xs={12}>
-          <Card elevation={0} sx={{ borderRadius: 2 }}>
-            <CardContent>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                  Lead Source Statistics
-                </Typography>
-                <IconButton size="small">
-                  <MoreVertIcon fontSize="small" />
-                </IconButton>
-              </Box>
-              <Divider sx={{ mb: 2 }} />
-              
-              <TableContainer>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 600 }}>Lead Source</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600 }}>Count</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600 }}>Percentage</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600 }}>Visual</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {leadSourceData.map((row, index) => (
-                      <TableRow key={row.source}>
-                        <TableCell component="th" scope="row">
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            <Box
-                              sx={{
-                                width: 12,
-                                height: 12,
-                                borderRadius: '50%',
-                                bgcolor: 
-                                  index === 0 ? '#9d277c' :
-                                  index === 1 ? '#c34387' :
-                                  index === 2 ? '#f7a6f7' :
-                                  index === 3 ? '#824c96' :
-                                  index === 4 ? '#ad5cac' :
-                                  index === 5 ? '#4caf50' :
-                                  '#f44336',
-                                mr: 1
-                              }}
-                            />
-                            {row.source}
-                          </Box>
-                        </TableCell>
-                        <TableCell align="right">{row.count}</TableCell>
-                        <TableCell align="right">{row.percentage}%</TableCell>
-                        <TableCell align="right">
-                          <Box sx={{ width: '100%', mr: 1 }}>
-                            <LinearProgress
-                              variant="determinate"
-                              value={row.percentage}
-                              sx={{
-                                height: 8,
-                                borderRadius: 5,
-                                bgcolor: 'rgba(0, 0, 0, 0.1)',
-                                '& .MuiLinearProgress-bar': {
-                                  bgcolor: 
-                                    index === 0 ? '#9d277c' :
-                                    index === 1 ? '#c34387' :
-                                    index === 2 ? '#f7a6f7' :
-                                    index === 3 ? '#824c96' :
-                                    index === 4 ? '#ad5cac' :
-                                    index === 5 ? '#4caf50' :
-                                    '#f44336'
-                                }
-                              }}
-                            />
-                          </Box>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    <TableRow>
-                      <TableCell sx={{ fontWeight: 600 }}>Total</TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600 }}>
-                        {leadSourceData.reduce((sum, item) => sum + item.count, 0)}
-                      </TableCell>
-                      <TableCell align="right" sx={{ fontWeight: 600 }}>100%</TableCell>
-                      <TableCell align="right"></TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+      {/* Analytics Tabs */}
+      <Box sx={{ width: '100%', mb: 3 }}>
+        <Tabs 
+          value={dateRangeType} 
+          onChange={handleTabChange}
+          variant="scrollable"
+          scrollButtons="auto"
+          sx={{
+            '& .MuiTabs-indicator': {
+              backgroundColor: '#9d277c',
+            },
+            '& .Mui-selected': {
+              color: '#9d277c !important',
+            }
+          }}
+        >
+          <Tab label="Lead Analytics" />
+          <Tab label="User Performance" />
+          <Tab label="Sales Analytics" />
+          {canViewConversionMetrics && <Tab label="Conversion Funnel" />}
+        </Tabs>
+      </Box>
+      
+      {/* Tab Panels - These would display charts and metrics based on the data */}
+      <TabPanel value={dateRangeType} index="leadAnalytics">
+        <Typography variant="h6" gutterBottom>
+          Lead Analytics
+        </Typography>
+        {stats ? (
+          <Typography>
+            Lead analytics data would be displayed here with charts and metrics.
+          </Typography>
+        ) : !isLoadingAnalytics && (
+          <Typography color="text.secondary">
+            No lead analytics data available. Try adjusting your filters.
+          </Typography>
+        )}
+      </TabPanel>
+      
+      <TabPanel value={dateRangeType} index="userPerformance">
+        <Typography variant="h6" gutterBottom>
+          User Performance
+        </Typography>
+        {stats ? (
+          <Typography>
+            User performance data would be displayed here with charts and metrics.
+          </Typography>
+        ) : !isLoadingAnalytics && (
+          <Typography color="text.secondary">
+            No user performance data available. Try adjusting your filters.
+          </Typography>
+        )}
+      </TabPanel>
+      
+      <TabPanel value={dateRangeType} index="salesAnalytics">
+        <Typography variant="h6" gutterBottom>
+          Sales Analytics
+        </Typography>
+        {stats ? (
+          <Typography>
+            Sales analytics data would be displayed here with charts and metrics.
+          </Typography>
+        ) : !isLoadingAnalytics && (
+          <Typography color="text.secondary">
+            No sales analytics data available. Try adjusting your filters.
+          </Typography>
+        )}
+      </TabPanel>
+      
+      {canViewConversionMetrics && (
+        <TabPanel value={dateRangeType} index="conversionFunnel">
+          <Typography variant="h6" gutterBottom>
+            Conversion Funnel
+          </Typography>
+          {stats ? (
+            <Typography>
+              Conversion funnel data would be displayed here with charts and metrics.
+            </Typography>
+          ) : !isLoadingAnalytics && (
+            <Typography color="text.secondary">
+              No conversion funnel data available. Try adjusting your filters.
+            </Typography>
+          )}
+        </TabPanel>
+      )}
     </Box>
   );
 };

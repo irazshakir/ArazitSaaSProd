@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'waba_int', # Waba Integration app
     'company_settings', # Company Settings app
     'invoices', # Invoices app
+    'analytics', # Analytics app for business intelligence and reporting
 ]
 
 MIDDLEWARE = [

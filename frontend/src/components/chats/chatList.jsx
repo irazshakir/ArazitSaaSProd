@@ -7,10 +7,19 @@ const ChatList = ({ activeChat, setActiveChat }) => {
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedChatId, setSelectedChatId] = useState(null);
 
   useEffect(() => {
     fetchConversations();
   }, []);
+
+  // Update selectedChatId when activeChat changes from parent
+  useEffect(() => {
+    if (activeChat?.id && activeChat.id !== selectedChatId) {
+      setSelectedChatId(activeChat.id);
+      console.log('ChatList: Active chat updated to', activeChat.id);
+    }
+  }, [activeChat?.id, selectedChatId]);
 
   const fetchConversations = async () => {
     try {
@@ -57,12 +66,32 @@ const ChatList = ({ activeChat, setActiveChat }) => {
       }));
 
       setChats(transformedChats);
+      
+      // Set the first chat as active if none is selected
+      if (transformedChats.length > 0 && !selectedChatId) {
+        const firstChat = transformedChats[0];
+        setSelectedChatId(firstChat.id);
+        setActiveChat(firstChat);
+        console.log('ChatList: Setting first chat as active:', firstChat.id);
+      }
+      
       setError(null);
     } catch (err) {
       console.error('Error fetching conversations:', err);
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle chat selection
+  const handleChatSelect = (chat) => {
+    console.log('ChatList: Selected chat:', chat.id);
+    
+    // Only update if different chat is selected
+    if (chat.id !== selectedChatId) {
+      setSelectedChatId(chat.id);
+      setActiveChat(chat);
     }
   };
 
@@ -102,8 +131,8 @@ const ChatList = ({ activeChat, setActiveChat }) => {
         {chats.map((chat) => (
           <div 
             key={chat.id} 
-            className={`chat-item ${activeChat?.id === chat.id ? 'active' : ''}`}
-            onClick={() => setActiveChat(chat)}
+            className={`chat-item ${selectedChatId === chat.id ? 'active' : ''}`}
+            onClick={() => handleChatSelect(chat)}
           >
             <div className="avatar">
               <img 
