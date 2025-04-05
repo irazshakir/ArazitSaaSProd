@@ -311,11 +311,14 @@ const analyticsService = {
    */
   getUserPerformance: async (filters = {}) => {
     try {
+      console.log('Fetching user performance data with filters:', filters);
       const secureParams = buildSecureQuery(filters);
       const response = await api.get('/analytics/user-performance', { params: secureParams });
+      console.log('User performance response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching user performance:', error);
+      console.error('Error details:', error.response?.data || error.message || error);
       throw error;
     }
   },

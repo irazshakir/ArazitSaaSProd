@@ -16,7 +16,7 @@ from .serializers import (
     FilterOptionsSerializer
 )
 from .permissions import AnalyticsPermission
-from leads.models import Lead
+from leads.models import Lead, LeadEvent
 from users.models import User, Department, Branch
 from teams.models import Team
 
@@ -551,14 +551,14 @@ class UserPerformanceView(BaseAnalyticsView):
     """
     def get(self, request):
         try:
-            # Get filtered leads
-            leads_queryset = self.get_filtered_queryset(request, Lead.objects.all())
+            # Print debug info
+            print(f"User Performance request with params: {request.query_params}")
             
-            # Get performance metrics by user
-            user_performance = []
+            # Get tenant_id
+            tenant_id = self.get_tenant_id(request)
             
             # Get users based on filters and role permissions
-            users_queryset = User.objects.filter(tenant_id=self.get_tenant_id(request))
+            users_queryset = User.objects.filter(tenant_id=tenant_id)
             
             # Apply role-based filtering to users
             role = request.user.role
@@ -586,40 +586,138 @@ class UserPerformanceView(BaseAnalyticsView):
             if branch_id:
                 users_queryset = users_queryset.filter(branch_id=branch_id)
             
-            # Calculate performance for each user
-            for user in users_queryset:
-                user_leads = leads_queryset.filter(created_by=user)
-                
-                total_leads = user_leads.count()
-                converted_leads = user_leads.filter(status='won').count()
-                conversion_rate = (converted_leads / total_leads) * 100 if total_leads > 0 else 0
-                
-                # Calculate total sales value if leads have a value field
-                total_sales_value = 0
-                sales_leads = user_leads.filter(status='won')
-                if hasattr(Lead, 'value'):
-                    total_sales_value = sales_leads.aggregate(Sum('value'))['value__sum'] or 0
-                
-                user_performance.append({
-                    'user_id': user.id,
-                    'name': f"{user.first_name} {user.last_name}",
-                    'email': user.email,
-                    'role': user.role,
-                    'total_leads': total_leads,
-                    'converted_leads': converted_leads,
-                    'conversion_rate': conversion_rate,
-                    'total_sales': sales_leads.count(),
-                    'total_sales_value': total_sales_value
-                })
+            # Filter users by role to only include sales and support agents
+            users_queryset = users_queryset.filter(
+                Q(role='sales_agent') | Q(role='support_agent')
+            )
             
-            # Sort by sales value (can be changed based on requirements)
-            user_performance.sort(key=lambda x: x['total_sales_value'], reverse=True)
+            # Get date range filters
+            date_from = request.query_params.get('date_from')
+            date_to = request.query_params.get('date_to')
+            
+            print(f"Filtering data from {date_from} to {date_to}")
+            
+            if date_from:
+                try:
+                    date_from = datetime.datetime.strptime(date_from, '%Y-%m-%d')
+                except ValueError:
+                    date_from = None
+            
+            if date_to:
+                try:
+                    date_to = datetime.datetime.strptime(date_to, '%Y-%m-%d')
+                    # Add one day to include the entire end date
+                    date_to = date_to + datetime.timedelta(days=1)
+                except ValueError:
+                    date_to = None
+            
+            # Create a leads queryset for filtering by date if needed
+            leads_queryset = Lead.objects.filter(tenant_id=tenant_id)
+            
+            if date_from:
+                leads_queryset = leads_queryset.filter(created_at__gte=date_from)
+            
+            if date_to:
+                leads_queryset = leads_queryset.filter(created_at__lt=date_to)
+            
+            # Get LeadEvent for won leads during the date range
+            event_queryset = None
+            
+            try:
+                # Check if LeadEvent is available and has EVENT_WON constant
+                if hasattr(LeadEvent, 'EVENT_WON'):
+                    event_queryset = LeadEvent.objects.filter(
+                        tenant_id=tenant_id,
+                        event_type=LeadEvent.EVENT_WON
+                    )
+                    
+                    if date_from:
+                        event_queryset = event_queryset.filter(timestamp__gte=date_from)
+                    
+                    if date_to:
+                        event_queryset = event_queryset.filter(timestamp__lt=date_to)
+                    
+                    print(f"Found {event_queryset.count()} won events for tenant {tenant_id}")
+            except Exception as e:
+                print(f"Error accessing LeadEvent model: {e}")
+                event_queryset = None
+            
+            print(f"Processing performance data for {users_queryset.count()} users")
+            
+            # Calculate performance for each user
+            user_performance = []
+            
+            for user in users_queryset:
+                try:
+                    # 1. Count assigned leads for this user within date range
+                    try:
+                        assigned_leads = leads_queryset.filter(assigned_to=user).count()
+                    except Exception as e:
+                        print(f"Error counting assigned leads for user {user.id}: {e}")
+                        assigned_leads = 0
+                    
+                    # 2. Count won leads (sales) for this user
+                    # First, count leads that are assigned to the user and have status 'won'
+                    try:
+                        won_leads_count = leads_queryset.filter(
+                            assigned_to=user,
+                            status=Lead.STATUS_WON
+                        ).count()
+                    except Exception as e:
+                        print(f"Error counting won leads for user {user.id}: {e}")
+                        won_leads_count = 0
+                    
+                    # If we have access to LeadEvent, use it to get more accurate data
+                    won_leads_events = 0
+                    if event_queryset is not None:
+                        try:
+                            # Get leads assigned to this user
+                            user_lead_ids = leads_queryset.filter(assigned_to=user).values_list('id', flat=True)
+                            
+                            # Count events where those leads were marked as won
+                            won_leads_events = event_queryset.filter(
+                                lead_id__in=user_lead_ids
+                            ).count()
+                            
+                            print(f"User {user.id}: Found {won_leads_events} won events from {len(user_lead_ids)} assigned leads")
+                        except Exception as e:
+                            print(f"Error processing lead events for user {user.id}: {e}")
+                            won_leads_events = 0
+                    
+                    # Use the higher count between status-based and event-based counts
+                    sales_count = max(won_leads_count, won_leads_events)
+                    
+                    # 3. Calculate conversion ratio
+                    conversion_ratio = 0
+                    if assigned_leads > 0:
+                        conversion_ratio = (sales_count / assigned_leads) * 100
+                    
+                    # Build user performance data
+                    user_data = {
+                        'user_id': user.id,
+                        'name': f"{user.first_name} {user.last_name}".strip() or user.email,
+                        'email': user.email,
+                        'role': user.role,
+                        'assigned_leads': assigned_leads,
+                        'sales': sales_count,
+                        'conversion_ratio': round(conversion_ratio, 1)
+                    }
+                    
+                    user_performance.append(user_data)
+                except Exception as e:
+                    print(f"Error processing performance data for user {user.id}: {e}")
+            
+            # Sort by sales count in descending order
+            user_performance.sort(key=lambda x: x['sales'], reverse=True)
+            
+            print(f"Returning performance data for {len(user_performance)} users")
             
             return Response({
                 'userPerformance': user_performance
             })
             
         except Exception as e:
+            print(f"Error in UserPerformanceView: {str(e)}")
             return Response(
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR

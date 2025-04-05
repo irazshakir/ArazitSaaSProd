@@ -114,6 +114,7 @@ const AnalyticalReport = () => {
   const [statusWiseData, setStatusWiseData] = useState([]);
   const [leadTypeData, setLeadTypeData] = useState([]);
   const [leadSourceData, setLeadSourceData] = useState([]);
+  const [userPerformanceData, setUserPerformanceData] = useState([]);
 
   // UI states
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
@@ -293,6 +294,11 @@ const AnalyticalReport = () => {
     if (newValue === 'leadAnalytics' && leadsData.length === 0) {
       fetchLeadsData({ page: 1 });
     }
+    
+    // If switching to user performance tab, fetch user performance data
+    if (newValue === 'userPerformance') {
+      fetchUserPerformanceData();
+    }
   };
   
   const handleDateFromChange = (newDate) => {
@@ -303,6 +309,56 @@ const AnalyticalReport = () => {
   const handleDateToChange = (newDate) => {
     setDateTo(newDate);
     setDateRangeType('custom');
+  };
+
+  // Fetch user performance data
+  const fetchUserPerformanceData = async () => {
+    setIsLoadingAnalytics(true);
+    setError(null);
+    try {
+      // Build filters object
+      const filters = {
+        date_from: format(dateFrom, 'yyyy-MM-dd'),
+        date_to: format(dateTo, 'yyyy-MM-dd')
+      };
+      
+      // Add filters if selected
+      if (selectedBranch) filters.branch_id = selectedBranch;
+      if (selectedDepartment) filters.department_id = selectedDepartment;
+      if (selectedUser) filters.user_id = selectedUser;
+      
+      console.log('Fetching user performance with filters:', filters);
+      
+      const data = await analyticsService.getUserPerformance(filters);
+      
+      if (data && data.userPerformance) {
+        console.log('User performance data received:', data.userPerformance);
+        setUserPerformanceData(data.userPerformance);
+      } else {
+        console.log('No user performance data returned');
+        setUserPerformanceData([]);
+      }
+    } catch (error) {
+      console.error('Error fetching user performance data:', error);
+      
+      // Extract the specific error message
+      let errorMessage = 'Failed to load user performance data.';
+      if (error.response?.data?.error) {
+        errorMessage += ' ' + error.response.data.error;
+      } else if (error.message) {
+        errorMessage += ' ' + error.message;
+      }
+      
+      setError(errorMessage);
+      setUserPerformanceData([]);
+      
+      // Try to provide more helpful debug info
+      if (error.toString().includes('LeadEvent is not defined')) {
+        console.error('The LeadEvent model is not properly imported in the backend views.py file.');
+      }
+    } finally {
+      setIsLoadingAnalytics(false);
+    }
   };
 
   // Apply filters and fetch data
@@ -334,23 +390,40 @@ const AnalyticalReport = () => {
       console.log('Applying analytics filters:', filters);
       
       // Fetch analytics data based on active tab
-      let data;
-      
       try {
-        data = await analyticsService.getLeadAnalytics(filters);
-        console.log('Analytics data received:', data);
-        
-        if (data) {
-          setStats(data.stats);
-          setStatusWiseData(data.statusWiseData);
-          setLeadTypeData(data.leadTypeData);
-          setLeadSourceData(data.leadSourceData);
+        if (rangeType === 'leadAnalytics') {
+          // Fetch lead analytics data
+          const data = await analyticsService.getLeadAnalytics(filters);
+          console.log('Lead analytics data received:', data);
+          
+          if (data) {
+            setStats(data.stats);
+            setStatusWiseData(data.statusWiseData);
+            setLeadTypeData(data.leadTypeData);
+            setLeadSourceData(data.leadSourceData);
+          } else {
+            setError('No data returned for the selected filters');
+          }
+        } else if (rangeType === 'userPerformance') {
+          // Fetch user performance data
+          await fetchUserPerformanceData();
         } else {
-          setError('No data returned for the selected filters');
+          // Fetch lead analytics data for other tabs (fallback)
+          const data = await analyticsService.getLeadAnalytics(filters);
+          console.log('Analytics data received:', data);
+          
+          if (data) {
+            setStats(data.stats);
+            setStatusWiseData(data.statusWiseData);
+            setLeadTypeData(data.leadTypeData);
+            setLeadSourceData(data.leadSourceData);
+          } else {
+            setError('No data returned for the selected filters');
+          }
         }
       } catch (error) {
-        console.error('Error fetching analytics data, using dummy data:', error);
-        // Fallback to dummy data
+        console.error('Error fetching analytics data:', error);
+        // Clear the data
         setStats({
           newInquiries: 0,
           activeInquiries: 0,
@@ -362,6 +435,7 @@ const AnalyticalReport = () => {
         setStatusWiseData([]);
         setLeadTypeData([]);
         setLeadSourceData([]);
+        setUserPerformanceData([]);
       }
     } catch (error) {
       console.error('Error applying filters:', error);
@@ -1188,18 +1262,118 @@ const AnalyticalReport = () => {
       </TabPanel>
       
       <TabPanel value={dateRangeType} index="userPerformance">
-        <Typography variant="h6" gutterBottom>
-          User Performance
-        </Typography>
-        {stats ? (
-          <Typography>
-            User performance data would be displayed here with charts and metrics.
-          </Typography>
-        ) : !isLoadingAnalytics && (
-          <Typography color="text.secondary">
-            No user performance data available. Try adjusting your filters.
-          </Typography>
-        )}
+        <Box>
+          {/* User Performance Table */}
+          <Paper elevation={0} sx={{ borderRadius: 2, mb: 4, overflow: 'hidden' }}>
+            <TableContainer>
+              <Table>
+                <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
+                  <TableRow>
+                    <TableCell>User Name</TableCell>
+                    <TableCell align="right">Assigned Leads</TableCell>
+                    <TableCell align="right">Sales</TableCell>
+                    <TableCell align="right">Conversion Ratio</TableCell>
+                    <TableCell>Distribution</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {isLoadingAnalytics ? (
+                    <TableRow>
+                      <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
+                        <CircularProgress size={24} sx={{ color: '#9d277c' }} />
+                      </TableCell>
+                    </TableRow>
+                  ) : userPerformanceData.length > 0 ? (
+                    userPerformanceData.map((user) => (
+                      <TableRow key={user.user_id}>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Avatar 
+                              sx={{ 
+                                width: 32, 
+                                height: 32,
+                                bgcolor: user.role === 'sales_agent' ? '#2196f3' : '#9c27b0',
+                                mr: 1.5,
+                                fontSize: '0.875rem'
+                              }}
+                            >
+                              {user.name.charAt(0)}
+                            </Avatar>
+                            <Box>
+                              <Typography fontWeight={500}>{user.name}</Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {user.role === 'sales_agent' ? 'Sales Agent' : 'Support Agent'}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography fontWeight={600}>{user.assigned_leads}</Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography fontWeight={600} sx={{ color: '#4caf50' }}>
+                            {user.sales}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography fontWeight={500}>
+                            {user.conversion_ratio}%
+                          </Typography>
+                        </TableCell>
+                        <TableCell width="30%">
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Box 
+                              sx={{ 
+                                flexGrow: 1,
+                                mr: 1,
+                                height: 8,
+                                borderRadius: 4,
+                                bgcolor: '#f0f0f0',
+                                overflow: 'hidden'
+                              }}
+                            >
+                              <Box 
+                                sx={{ 
+                                  height: '100%',
+                                  width: `${user.conversion_ratio}%`,
+                                  bgcolor: user.conversion_ratio > 50 ? '#4caf50' : 
+                                           user.conversion_ratio > 30 ? '#ff9800' : '#f44336',
+                                }}
+                              />
+                            </Box>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
+                        No user performance data available for the selected filters.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {userPerformanceData.length > 0 && (
+                    <TableRow sx={{ backgroundColor: '#f9f9f9' }}>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Total</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                        {userPerformanceData.reduce((sum, user) => sum + user.assigned_leads, 0)}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                        {userPerformanceData.reduce((sum, user) => sum + user.sales, 0)}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                        {userPerformanceData.length > 0 
+                          ? Math.round(userPerformanceData.reduce((sum, user) => sum + user.conversion_ratio, 0) / userPerformanceData.length) 
+                          : 0}%
+                      </TableCell>
+                      <TableCell></TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        </Box>
       </TabPanel>
       
       <TabPanel value={dateRangeType} index="salesAnalytics">

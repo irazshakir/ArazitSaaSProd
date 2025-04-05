@@ -5,6 +5,7 @@ from .models import (
     Lead, LeadActivity, LeadNote, LeadDocument, 
     LeadEvent, LeadProfile, LeadOverdue
 )
+from django.utils import timezone
 
 class LeadActivitySerializer(serializers.ModelSerializer):
     """Serializer for the LeadActivity model."""
@@ -187,6 +188,90 @@ class LeadSerializer(serializers.ModelSerializer):
             updated_by=self.context['request'].user
         )
         
+        return lead
+        
+    def update(self, instance, validated_data):
+        """
+        Override update method to ensure we properly track user for lead events
+        """
+        request = self.context.get('request')
+        user = request.user if request else None
+        
+        # Store the current status and activity status before updating
+        original_status = instance.status
+        original_activity_status = instance.lead_activity_status
+        
+        # Update the instance with all validated data
+        lead = super().update(instance, validated_data)
+        
+        # Check for status changes that require events to be created manually
+        # This will be a fallback in case the model's save method didn't capture it
+        # or we need to use the request's user instead of assigned_to/created_by
+        
+        # Status change to won
+        if original_status != lead.status and lead.status == lead.STATUS_WON and user:
+            existing_event = LeadEvent.objects.filter(
+                lead=lead,
+                event_type=LeadEvent.EVENT_WON,
+                timestamp__gte=timezone.now() - timezone.timedelta(minutes=1)
+            ).exists()
+            
+            if not existing_event:
+                LeadEvent.objects.create(
+                    lead=lead,
+                    tenant=lead.tenant,
+                    event_type=LeadEvent.EVENT_WON,
+                    updated_by=user
+                )
+                
+        # Status change to lost
+        elif original_status != lead.status and lead.status == lead.STATUS_LOST and user:
+            existing_event = LeadEvent.objects.filter(
+                lead=lead,
+                event_type=LeadEvent.EVENT_LOST,
+                timestamp__gte=timezone.now() - timezone.timedelta(minutes=1)
+            ).exists()
+            
+            if not existing_event:
+                LeadEvent.objects.create(
+                    lead=lead,
+                    tenant=lead.tenant,
+                    event_type=LeadEvent.EVENT_LOST,
+                    updated_by=user
+                )
+                
+        # Activity status change to inactive
+        if original_activity_status != lead.lead_activity_status and lead.lead_activity_status == lead.ACTIVITY_STATUS_INACTIVE and user:
+            existing_event = LeadEvent.objects.filter(
+                lead=lead,
+                event_type=LeadEvent.EVENT_CLOSED,
+                timestamp__gte=timezone.now() - timezone.timedelta(minutes=1)
+            ).exists()
+            
+            if not existing_event:
+                LeadEvent.objects.create(
+                    lead=lead,
+                    tenant=lead.tenant,
+                    event_type=LeadEvent.EVENT_CLOSED,
+                    updated_by=user
+                )
+                
+        # Activity status change from inactive to active
+        elif original_activity_status != lead.lead_activity_status and lead.lead_activity_status == lead.ACTIVITY_STATUS_ACTIVE and user:
+            existing_event = LeadEvent.objects.filter(
+                lead=lead,
+                event_type=LeadEvent.EVENT_REOPENED,
+                timestamp__gte=timezone.now() - timezone.timedelta(minutes=1)
+            ).exists()
+            
+            if not existing_event:
+                LeadEvent.objects.create(
+                    lead=lead,
+                    tenant=lead.tenant,
+                    event_type=LeadEvent.EVENT_REOPENED,
+                    updated_by=user
+                )
+                
         return lead
 
     def get_department_details(self, obj):
