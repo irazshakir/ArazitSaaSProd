@@ -41,6 +41,7 @@ const LeadCreate = () => {
       <LeadForm 
         isEditMode={false}
         onSuccess={handleSuccess}
+        initialData={{ branch: null }}
       />
     </Container>
   );

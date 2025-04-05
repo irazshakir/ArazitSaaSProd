@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from users.serializers import UserSerializer
+from users.serializers import UserSerializer, BranchSerializer
 from hajjPackages.serializers import HajjPackageSerializer
 from .models import (
     Lead, LeadActivity, LeadNote, LeadDocument, 
@@ -155,6 +155,7 @@ class LeadSerializer(serializers.ModelSerializer):
     activity_status_display = serializers.CharField(source='get_lead_activity_status_display', read_only=True)
     
     department_details = serializers.SerializerMethodField()
+    branch_details = serializers.SerializerMethodField()
     
     class Meta:
         model = Lead
@@ -167,7 +168,7 @@ class LeadSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at', 'last_contacted', 'next_follow_up',
             'tags', 'custom_fields',
             'activities', 'notes', 'documents', 'events',
-            'department', 'department_details'
+            'department', 'department_details', 'branch', 'branch_details'
         )
         read_only_fields = ('id', 'created_at', 'updated_at', 'created_by')
     
@@ -195,6 +196,14 @@ class LeadSerializer(serializers.ModelSerializer):
                 'name': obj.department.name
             }
         return None
+        
+    def get_branch_details(self, obj):
+        if obj.branch:
+            return {
+                'id': obj.branch.id,
+                'name': obj.branch.name
+            }
+        return None
 
 
 class LeadListSerializer(serializers.ModelSerializer):
@@ -204,6 +213,7 @@ class LeadListSerializer(serializers.ModelSerializer):
     lead_type_display = serializers.CharField(source='get_lead_type_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     source_display = serializers.CharField(source='get_source_display', read_only=True)
+    branch_details = serializers.SerializerMethodField()
     
     class Meta:
         model = Lead
@@ -211,8 +221,17 @@ class LeadListSerializer(serializers.ModelSerializer):
             'id', 'name', 'email', 'phone', 'whatsapp',
             'lead_type', 'lead_type_display', 'status', 'status_display',
             'source', 'source_display', 'lead_activity_status',
-            'assigned_to_details', 'created_at', 'next_follow_up'
+            'assigned_to_details', 'created_at', 'next_follow_up',
+            'branch', 'branch_details'
         ) 
 
     def get_full_name(self, obj):
-        return obj.name  # Use name directly instead of combining first_name and last_name 
+        return obj.name  # Use name directly instead of combining first_name and last_name
+        
+    def get_branch_details(self, obj):
+        if obj.branch:
+            return {
+                'id': obj.branch.id,
+                'name': obj.branch.name
+            }
+        return None 

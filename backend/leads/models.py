@@ -1,7 +1,7 @@
 import uuid
 from django.db import models
 from django.utils import timezone
-from users.models import User, Tenant, Department
+from users.models import User, Tenant, Department, Branch
 from hajjPackages.models import HajjPackage
 
 class Lead(models.Model):
@@ -81,6 +81,15 @@ class Lead(models.Model):
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='created_leads')
     assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_leads')
     
+    # Add branch field
+    branch = models.ForeignKey(
+        Branch, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='branch_leads'
+    )
+    
     # Add department field
     department = models.ForeignKey(
         Department, 
@@ -129,6 +138,7 @@ class Lead(models.Model):
             models.Index(fields=['created_at']),
             models.Index(fields=['lead_activity_status']),
             models.Index(fields=['chat_id']),  # Add index for chat_id
+            models.Index(fields=['branch']),   # Add index for branch
         ]
     
     def __str__(self):

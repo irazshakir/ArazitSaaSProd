@@ -21,6 +21,7 @@ urlpatterns = [
     path('leads/by-role/', LeadViewSet.as_view({'get': 'by_role'}), name='leads-by-role'),
     path('leads/by-type/', LeadViewSet.as_view({'get': 'by_type'}), name='leads-by-type'),
     path('leads/by-status/', LeadViewSet.as_view({'get': 'by_status'}), name='leads-by-status'),
+    path('leads/by-branch/', LeadViewSet.as_view({'get': 'by_branch'}), name='leads-by-branch'),
     path('leads/overdue/', LeadViewSet.as_view({'get': 'overdue'}), name='leads-overdue'),
     
     # Lead-specific actions

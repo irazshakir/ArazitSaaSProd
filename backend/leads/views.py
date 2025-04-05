@@ -97,6 +97,11 @@ class LeadViewSet(viewsets.ModelViewSet):
         if department_id:
             queryset = queryset.filter(department_id=department_id)
         
+        # Handle branch filtering
+        branch_id = self.request.query_params.get('branch')
+        if branch_id:
+            queryset = queryset.filter(branch_id=branch_id)
+        
         # Handle multiple assigned_to filtering
         assigned_to_in = self.request.query_params.get('assigned_to__in')
         if assigned_to_in:
@@ -145,22 +150,26 @@ class LeadViewSet(viewsets.ModelViewSet):
         # Get the assigned_to user from request data
         assigned_to_id = self.request.data.get('assigned_to')
         department = None
+        branch = None
         
-        # If assigned_to is provided, use that user's department
+        # If assigned_to is provided, use that user's department and branch
         if assigned_to_id:
             try:
                 assigned_user = User.objects.get(id=assigned_to_id)
                 department = assigned_user.department
+                branch = assigned_user.branch
             except User.DoesNotExist:
-                # If assigned user doesn't exist, don't set department
+                # If assigned user doesn't exist, don't set department or branch
                 pass
         else:
-            # If no assigned_to, use the current user's department
+            # If no assigned_to, use the current user's department and branch
             department = user.department
+            branch = user.branch
         
         serializer.save(
             tenant=tenant_user.tenant,
-            department=department
+            department=department,
+            branch=branch
         )
     
     @action(detail=True, methods=['post'])
@@ -185,6 +194,7 @@ class LeadViewSet(viewsets.ModelViewSet):
             # Store previous values for logging
             previous_assigned_to = lead.assigned_to
             previous_department = lead.department
+            previous_branch = lead.branch
             
             # Update assigned to user
             lead.assigned_to = user
@@ -198,13 +208,25 @@ class LeadViewSet(viewsets.ModelViewSet):
             else:
                 print(f"WARNING: User {user.id} has no department_id, lead department not updated")
             
+            # IMPORTANT: Always update branch when assigning to a new user
+            if user.branch_id:
+                lead.branch = user.branch
+                
+                # Debug logging
+                print(f"Updating lead {lead.id} branch from {previous_branch.id if previous_branch else None} to {user.branch.id}")
+            else:
+                print(f"WARNING: User {user.id} has no branch_id, lead branch not updated")
+            
             lead.save()
             
-            # Create a note for the assignment and department change
+            # Create a note for the assignment and department/branch change
             note_text = f"Lead assigned to {user.get_full_name() or user.email}"
             if previous_department != lead.department:
                 dept_name = lead.department.name if lead.department else "None"
                 note_text += f" and moved to {dept_name} department"
+            if previous_branch != lead.branch:
+                branch_name = lead.branch.name if lead.branch else "None"
+                note_text += f" and assigned to {branch_name} branch"
             
             LeadNote.objects.create(
                 lead=lead,
@@ -447,6 +469,27 @@ class LeadViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
     
     @action(detail=False, methods=['get'])
+    def by_branch(self, request):
+        """Get leads filtered by branch."""
+        branch_id = request.query_params.get('branch')
+        
+        if not branch_id:
+            return Response(
+                {"error": "Branch parameter is required"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        leads = self.get_queryset().filter(branch_id=branch_id)
+        page = self.paginate_queryset(leads)
+        
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+        
+        serializer = self.get_serializer(leads, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
     def overdue(self, request):
         """Get all overdue leads."""
         user = request.user
@@ -519,12 +562,24 @@ class LeadViewSet(viewsets.ModelViewSet):
                     print(f"Updating department from {old_department.id if old_department else None} to {new_user.department_id}")
                     
                     # Add a note about the reassignment and department change
+                    note_text = f"Lead reassigned to {new_user.get_full_name() or new_user.email} and moved to {new_user.department.name} department"
+                    
+                    # Check if we need to update the branch
+                    if new_user.branch_id:
+                        old_branch = instance.branch
+                        
+                        # Update the lead's branch to match the new user's branch
+                        request.data['branch'] = str(new_user.branch_id)
+                        print(f"Updating branch from {old_branch.id if old_branch else None} to {new_user.branch_id}")
+                        
+                        # Add branch information to the note
+                        note_text += f" and assigned to {new_user.branch.name} branch"
+                    
                     LeadNote.objects.create(
                         lead=instance,
                         tenant=instance.tenant,
                         added_by=request.user,
-                        note=f"Lead reassigned to {new_user.get_full_name() or new_user.email} "
-                             f"and moved to {new_user.department.name} department"
+                        note=note_text
                     )
             except User.DoesNotExist:
                 print(f"Warning: Couldn't find user with ID {assigned_to_id}")
@@ -542,10 +597,15 @@ class LeadViewSet(viewsets.ModelViewSet):
         assigned_to = serializer.validated_data.get('assigned_to')
         
         # If assigned_to is being updated, make sure department matches
-        if assigned_to and not serializer.validated_data.get('department'):
-            if hasattr(assigned_to, 'department') and assigned_to.department:
+        if assigned_to:
+            if hasattr(assigned_to, 'department') and assigned_to.department and not serializer.validated_data.get('department'):
                 serializer.validated_data['department'] = assigned_to.department
                 print(f"Setting department to match assigned user in perform_update: {assigned_to.department.id}")
+            
+            # Also make sure branch matches
+            if hasattr(assigned_to, 'branch') and assigned_to.branch and not serializer.validated_data.get('branch'):
+                serializer.validated_data['branch'] = assigned_to.branch
+                print(f"Setting branch to match assigned user in perform_update: {assigned_to.branch.id}")
         
         serializer.save()
 

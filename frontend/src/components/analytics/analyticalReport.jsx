@@ -29,7 +29,10 @@ import {
   TableRow,
   Tabs,
   Tab,
-  Alert
+  Alert,
+  TablePagination,
+  InputAdornment,
+  CircularProgress
 } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider, DatePicker } from '@mui/x-date-pickers';
@@ -47,329 +50,16 @@ import {
   FilterList as FilterListIcon,
   Download as DownloadIcon,
   Close as CloseIcon,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
+  Search as SearchIcon,
+  ArrowUpward as ArrowUpwardIcon,
+  ArrowDownward as ArrowDownwardIcon
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { branchService, departmentService, userService } from '../../services/api';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import analyticsService, { hasFeatureAccess } from '../../services/analyticsService';
 import { getUser, getUserRole } from '../../utils/auth';
-
-// Dummy data
-const dummyBranches = [
-  { id: "branch1", name: "Headquarters" },
-  { id: "branch2", name: "North Branch" },
-  { id: "branch3", name: "South Branch" }
-];
-
-const dummyDepartments = [
-  { id: "dept1", name: "Sales Department" },
-  { id: "dept2", name: "Marketing Department" },
-  { id: "dept3", name: "Support Department" }
-];
-
-const dummyUsers = [
-  { id: "user1", name: "John Doe" },
-  { id: "user2", name: "Jane Smith" },
-  { id: "user3", name: "Mike Johnson" }
-];
-
-const dummyStats = {
-  newInquiries: 47,
-  activeInquiries: 124,
-  closedInquiries: 85,
-  closeToSales: 18,
-  sales: 32,
-  overdue: 15
-};
-
-const dummyStatusWiseData = [
-  { status: 'New', count: 35, percentage: 15 },
-  { status: 'Qualified', count: 25, percentage: 11 },
-  { status: 'Non-Potential', count: 12, percentage: 5 },
-  { status: 'Proposal', count: 18, percentage: 8 },
-  { status: 'Negotiation', count: 15, percentage: 7 },
-  { status: 'Won', count: 32, percentage: 14 },
-  { status: 'Lost', count: 22, percentage: 10 }
-];
-
-const dummyLeadTypeData = [
-  { type: 'Hajj Packages', count: 45, percentage: 20 },
-  { type: 'Custom Umrah', count: 38, percentage: 17 },
-  { type: 'Readymade Umrah', count: 32, percentage: 14 },
-  { type: 'Flights', count: 28, percentage: 12 },
-  { type: 'Transfers', count: 20, percentage: 9 },
-  { type: 'Visas', count: 35, percentage: 15 },
-  { type: 'Hotel Booking', count: 30, percentage: 13 }
-];
-
-const dummyLeadSourceData = [
-  { source: 'WhatsApp', count: 55, percentage: 24 },
-  { source: 'FB Form', count: 30, percentage: 13 },
-  { source: 'Messenger', count: 25, percentage: 11 },
-  { source: 'Website Form', count: 40, percentage: 17 },
-  { source: 'Website Chat', count: 22, percentage: 10 },
-  { source: 'SEO', count: 30, percentage: 13 },
-  { source: 'Google Ads', count: 28, percentage: 12 }
-];
-
-// Branch specific dummy data
-const branchSpecificData = {
-  "branch1": {
-    stats: {
-      newInquiries: 47,
-      activeInquiries: 124,
-      closedInquiries: 85,
-      closeToSales: 18,
-      sales: 32,
-      overdue: 15
-    },
-    statusWiseData: [
-      { status: 'New', count: 35, percentage: 15 },
-      { status: 'Qualified', count: 25, percentage: 11 },
-      { status: 'Non-Potential', count: 12, percentage: 5 },
-      { status: 'Proposal', count: 18, percentage: 8 },
-      { status: 'Negotiation', count: 15, percentage: 7 },
-      { status: 'Won', count: 32, percentage: 14 },
-      { status: 'Lost', count: 22, percentage: 10 }
-    ],
-    leadTypeData: [
-      { type: 'Hajj Packages', count: 45, percentage: 20 },
-      { type: 'Custom Umrah', count: 38, percentage: 17 },
-      { type: 'Readymade Umrah', count: 32, percentage: 14 },
-      { type: 'Flights', count: 28, percentage: 12 },
-      { type: 'Transfers', count: 20, percentage: 9 },
-      { type: 'Visas', count: 35, percentage: 15 },
-      { type: 'Hotel Booking', count: 30, percentage: 13 }
-    ],
-    leadSourceData: [
-      { source: 'WhatsApp', count: 55, percentage: 24 },
-      { source: 'FB Form', count: 30, percentage: 13 },
-      { source: 'Messenger', count: 25, percentage: 11 },
-      { source: 'Website Form', count: 40, percentage: 17 },
-      { source: 'Website Chat', count: 22, percentage: 10 },
-      { source: 'SEO', count: 30, percentage: 13 },
-      { source: 'Google Ads', count: 28, percentage: 12 }
-    ]
-  },
-  "branch2": {
-    stats: {
-      newInquiries: 32,
-      activeInquiries: 76,
-      closedInquiries: 62,
-      closeToSales: 14,
-      sales: 18,
-      overdue: 9
-    },
-    statusWiseData: [
-      { status: 'New', count: 25, percentage: 18 },
-      { status: 'Qualified', count: 18, percentage: 13 },
-      { status: 'Non-Potential', count: 8, percentage: 6 },
-      { status: 'Proposal', count: 15, percentage: 11 },
-      { status: 'Negotiation', count: 10, percentage: 7 },
-      { status: 'Won', count: 18, percentage: 13 },
-      { status: 'Lost', count: 14, percentage: 10 }
-    ],
-    leadTypeData: [
-      { type: 'Hajj Packages', count: 28, percentage: 22 },
-      { type: 'Custom Umrah', count: 24, percentage: 19 },
-      { type: 'Readymade Umrah', count: 20, percentage: 16 },
-      { type: 'Flights', count: 15, percentage: 12 },
-      { type: 'Transfers', count: 12, percentage: 9 },
-      { type: 'Visas', count: 18, percentage: 14 },
-      { type: 'Hotel Booking', count: 10, percentage: 8 }
-    ],
-    leadSourceData: [
-      { source: 'WhatsApp', count: 32, percentage: 29 },
-      { source: 'FB Form', count: 18, percentage: 16 },
-      { source: 'Messenger', count: 14, percentage: 13 },
-      { source: 'Website Form', count: 20, percentage: 18 },
-      { source: 'Website Chat', count: 10, percentage: 9 },
-      { source: 'SEO', count: 8, percentage: 7 },
-      { source: 'Google Ads', count: 9, percentage: 8 }
-    ]
-  },
-  "branch3": {
-    stats: {
-      newInquiries: 18,
-      activeInquiries: 42,
-      closedInquiries: 38,
-      closeToSales: 8,
-      sales: 12,
-      overdue: 6
-    },
-    statusWiseData: [
-      { status: 'New', count: 15, percentage: 17 },
-      { status: 'Qualified', count: 12, percentage: 14 },
-      { status: 'Non-Potential', count: 6, percentage: 7 },
-      { status: 'Proposal', count: 9, percentage: 10 },
-      { status: 'Negotiation', count: 7, percentage: 8 },
-      { status: 'Won', count: 12, percentage: 14 },
-      { status: 'Lost', count: 10, percentage: 11 }
-    ],
-    leadTypeData: [
-      { type: 'Hajj Packages', count: 16, percentage: 19 },
-      { type: 'Custom Umrah', count: 14, percentage: 16 },
-      { type: 'Readymade Umrah', count: 12, percentage: 14 },
-      { type: 'Flights', count: 10, percentage: 12 },
-      { type: 'Transfers', count: 8, percentage: 9 },
-      { type: 'Visas', count: 15, percentage: 17 },
-      { type: 'Hotel Booking', count: 11, percentage: 13 }
-    ],
-    leadSourceData: [
-      { source: 'WhatsApp', count: 20, percentage: 26 },
-      { source: 'FB Form', count: 12, percentage: 16 },
-      { source: 'Messenger', count: 8, percentage: 10 },
-      { source: 'Website Form', count: 15, percentage: 19 },
-      { source: 'Website Chat', count: 6, percentage: 8 },
-      { source: 'SEO', count: 9, percentage: 12 },
-      { source: 'Google Ads', count: 7, percentage: 9 }
-    ]
-  }
-};
-
-// User specific dummy data
-const userSpecificData = {
-  "user1": {
-    stats: {
-      newInquiries: 28,
-      activeInquiries: 65,
-      closedInquiries: 48,
-      closeToSales: 12,
-      sales: 18,
-      overdue: 8
-    },
-    statusWiseData: [
-      { status: 'New', count: 20, percentage: 18 },
-      { status: 'Qualified', count: 15, percentage: 14 },
-      { status: 'Non-Potential', count: 8, percentage: 7 },
-      { status: 'Proposal', count: 12, percentage: 11 },
-      { status: 'Negotiation', count: 10, percentage: 9 },
-      { status: 'Won', count: 18, percentage: 16 },
-      { status: 'Lost', count: 12, percentage: 11 }
-    ],
-    leadTypeData: [
-      { type: 'Hajj Packages', count: 25, percentage: 23 },
-      { type: 'Custom Umrah', count: 20, percentage: 18 },
-      { type: 'Readymade Umrah', count: 18, percentage: 16 },
-      { type: 'Flights', count: 14, percentage: 13 },
-      { type: 'Transfers', count: 10, percentage: 9 },
-      { type: 'Visas', count: 12, percentage: 11 },
-      { type: 'Hotel Booking', count: 11, percentage: 10 }
-    ],
-    leadSourceData: [
-      { source: 'WhatsApp', count: 30, percentage: 28 },
-      { source: 'FB Form', count: 15, percentage: 14 },
-      { source: 'Messenger', count: 12, percentage: 11 },
-      { source: 'Website Form', count: 18, percentage: 17 },
-      { source: 'Website Chat', count: 10, percentage: 9 },
-      { source: 'SEO', count: 12, percentage: 11 },
-      { source: 'Google Ads', count: 10, percentage: 9 }
-    ]
-  },
-  "user2": {
-    stats: {
-      newInquiries: 20,
-      activeInquiries: 48,
-      closedInquiries: 35,
-      closeToSales: 9,
-      sales: 14,
-      overdue: 7
-    },
-    statusWiseData: [
-      { status: 'New', count: 18, percentage: 19 },
-      { status: 'Qualified', count: 12, percentage: 12 },
-      { status: 'Non-Potential', count: 6, percentage: 6 },
-      { status: 'Proposal', count: 10, percentage: 10 },
-      { status: 'Negotiation', count: 8, percentage: 8 },
-      { status: 'Won', count: 14, percentage: 14 },
-      { status: 'Lost', count: 9, percentage: 9 }
-    ],
-    leadTypeData: [
-      { type: 'Hajj Packages', count: 22, percentage: 22 },
-      { type: 'Custom Umrah', count: 18, percentage: 18 },
-      { type: 'Readymade Umrah', count: 14, percentage: 14 },
-      { type: 'Flights', count: 12, percentage: 12 },
-      { type: 'Transfers', count: 8, percentage: 8 },
-      { type: 'Visas', count: 14, percentage: 14 },
-      { type: 'Hotel Booking', count: 12, percentage: 12 }
-    ],
-    leadSourceData: [
-      { source: 'WhatsApp', count: 25, percentage: 25 },
-      { source: 'FB Form', count: 14, percentage: 14 },
-      { source: 'Messenger', count: 10, percentage: 10 },
-      { source: 'Website Form', count: 16, percentage: 16 },
-      { source: 'Website Chat', count: 8, percentage: 8 },
-      { source: 'SEO', count: 10, percentage: 10 },
-      { source: 'Google Ads', count: 8, percentage: 8 }
-    ]
-  },
-  "user3": {
-    stats: {
-      newInquiries: 15,
-      activeInquiries: 32,
-      closedInquiries: 28,
-      closeToSales: 6,
-      sales: 9,
-      overdue: 4
-    },
-    statusWiseData: [
-      { status: 'New', count: 12, percentage: 16 },
-      { status: 'Qualified', count: 9, percentage: 12 },
-      { status: 'Non-Potential', count: 4, percentage: 5 },
-      { status: 'Proposal', count: 7, percentage: 9 },
-      { status: 'Negotiation', count: 5, percentage: 7 },
-      { status: 'Won', count: 9, percentage: 12 },
-      { status: 'Lost', count: 7, percentage: 9 }
-    ],
-    leadTypeData: [
-      { type: 'Hajj Packages', count: 14, percentage: 18 },
-      { type: 'Custom Umrah', count: 12, percentage: 16 },
-      { type: 'Readymade Umrah', count: 10, percentage: 13 },
-      { type: 'Flights', count: 8, percentage: 11 },
-      { type: 'Transfers', count: 6, percentage: 8 },
-      { type: 'Visas', count: 12, percentage: 16 },
-      { type: 'Hotel Booking', count: 9, percentage: 12 }
-    ],
-    leadSourceData: [
-      { source: 'WhatsApp', count: 16, percentage: 22 },
-      { source: 'FB Form', count: 10, percentage: 14 },
-      { source: 'Messenger', count: 7, percentage: 10 },
-      { source: 'Website Form', count: 12, percentage: 17 },
-      { source: 'Website Chat', count: 5, percentage: 7 },
-      { source: 'SEO', count: 8, percentage: 11 },
-      { source: 'Google Ads', count: 6, percentage: 8 }
-    ]
-  }
-};
-
-// Date range specific variations - multipliers to apply to data
-const dateRangeMultipliers = {
-  lastWeek: {
-    stats: 0.3,
-    statusWise: 0.3,
-    leadType: 0.3,
-    leadSource: 0.3
-  },
-  lastMonth: {
-    stats: 1,
-    statusWise: 1,
-    leadType: 1,
-    leadSource: 1
-  },
-  lastQuarter: {
-    stats: 3,
-    statusWise: 3,
-    leadType: 3,
-    leadSource: 3
-  },
-  lastYear: {
-    stats: 12,
-    statusWise: 12,
-    leadType: 12,
-    leadSource: 12
-  }
-};
 
 // Tab panel component for different analytics sections
 const TabPanel = (props) => {
@@ -410,12 +100,20 @@ const AnalyticalReport = () => {
   const [dateFrom, setDateFrom] = useState(startOfMonth(subMonths(new Date(), 1)));
   const [dateTo, setDateTo] = useState(endOfMonth(new Date()));
   const [dateRangeType, setDateRangeType] = useState('custom');
+  const [isLoadingFilters, setIsLoadingFilters] = useState(false);
 
-  // Stats data
-  const [stats, setStats] = useState(dummyStats);
-  const [statusWiseData, setStatusWiseData] = useState(dummyStatusWiseData);
-  const [leadTypeData, setLeadTypeData] = useState(dummyLeadTypeData);
-  const [leadSourceData, setLeadSourceData] = useState(dummyLeadSourceData);
+  // Stats data - initialize with empty data instead of dummy data
+  const [stats, setStats] = useState({
+    newInquiries: 0,
+    activeInquiries: 0,
+    closedInquiries: 0,
+    closeToSales: 0,
+    sales: 0,
+    overdue: 0
+  });
+  const [statusWiseData, setStatusWiseData] = useState([]);
+  const [leadTypeData, setLeadTypeData] = useState([]);
+  const [leadSourceData, setLeadSourceData] = useState([]);
 
   // UI states
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
@@ -432,8 +130,8 @@ const AnalyticalReport = () => {
   // Get user role from utility function
   const userRole = getUserRole();
   
+  // Get user from localStorage
   useEffect(() => {
-    // Get user from localStorage
     const fetchUser = async () => {
       try {
         const token = localStorage.getItem('access_token');
@@ -446,29 +144,6 @@ const AnalyticalReport = () => {
         if (storedUser) {
           const userData = JSON.parse(storedUser);
           setUser(userData);
-          
-          // Make sure branchSpecificData has the right keys
-          if (userData.branch_id) {
-            const branchId = userData.branch_id.toString();
-            // Check if we have data for this branch
-            if (branchSpecificData["branch" + branchId]) {
-              setSelectedBranch("branch" + branchId);
-            } else if (branchSpecificData["branch1"]) {
-              // Default to first branch
-              setSelectedBranch("branch1");
-            }
-          } else {
-            // Default to first branch if no branch assigned
-            setSelectedBranch("branch1");
-          }
-          
-          // Set initial selected department if user has one
-          if (userData.department_id) {
-            setSelectedDepartment("dept" + userData.department_id);
-          } else {
-            // Default to first department
-            setSelectedDepartment("dept1");
-          }
         } else {
           navigate('/login');
         }
@@ -483,81 +158,90 @@ const AnalyticalReport = () => {
     fetchUser();
   }, [navigate]);
 
-  // Fetch branches, departments, and users
+  // Fetch branches, departments, and users from the API
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchFilterOptions = async () => {
+      if (!user) {
+        console.log("No user found, skipping filter options fetch");
+        return;
+      }
+      
+      setIsLoadingFilters(true);
+      console.log("Starting to fetch filter options, user:", user);
+      
       try {
+        // Log tenant_id from localStorage
         const tenantId = localStorage.getItem('tenant_id');
-        if (!tenantId) {
-          console.error('No tenant ID found');
-          return;
-        }
+        console.log("Tenant ID from localStorage:", tenantId);
         
-        // Fetch branches
-        let branchesData = [];
-        try {
-          branchesData = await branchService.getBranches(tenantId);
-          if (!branchesData || branchesData.length === 0) {
-            branchesData = dummyBranches;
-          }
-        } catch (error) {
-          console.error('Error fetching branches:', error);
-          branchesData = dummyBranches;
-        }
-        setBranches(branchesData);
+        // Fetch filter options from API
+        console.log("Calling analyticsService.getFilterOptions()");
+        const filterOptions = await analyticsService.getFilterOptions();
+        console.log('Filter options from API (RAW):', filterOptions);
         
-        // Fetch departments
-        let departmentsData = [];
-        try {
-          departmentsData = await departmentService.getDepartments(tenantId);
-          if (!departmentsData || departmentsData.length === 0) {
-            departmentsData = dummyDepartments;
-          }
-        } catch (error) {
-          console.error('Error fetching departments:', error);
-          departmentsData = dummyDepartments;
-        }
-        setDepartments(departmentsData);
+        // CRITICAL: Remove dummy data - ensure we're using API data
         
-        // Fetch users (using real userService)
-        let usersData = [];
-        try {
-          // Try to fetch real users from API
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/users/all/`, {
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-              'Content-Type': 'application/json'
+        // Set branches
+        if (filterOptions.branches && filterOptions.branches.length > 0) {
+          console.log("Setting branches from API:", filterOptions.branches);
+          setBranches(filterOptions.branches);
+          // If user has a branch, select it by default
+          if (user.branch_id) {
+            const userBranch = filterOptions.branches.find(b => b.id.toString() === user.branch_id.toString());
+            if (userBranch) {
+              setSelectedBranch(userBranch.id);
             }
-          });
-          
-          if (response.ok) {
-            const data = await response.json();
-            usersData = data.map(user => ({
-              id: user.id,
-              name: `${user.first_name} ${user.last_name || ''}`
-            }));
-            console.log('Fetched users from API:', usersData);
-          } else {
-            throw new Error('Failed to fetch users');
           }
-        } catch (error) {
-          console.error('Error fetching users, using dummy data:', error);
-          // Fallback to dummy data
-          usersData = dummyUsers;
+        } else {
+          console.log("No branches returned from API");
+          setBranches([]);
         }
         
-        setUsers(usersData);
+        // Set departments
+        if (filterOptions.departments && filterOptions.departments.length > 0) {
+          console.log("Setting departments from API:", filterOptions.departments);
+          setDepartments(filterOptions.departments);
+          // If user has a department, select it by default
+          if (user.department_id) {
+            const userDept = filterOptions.departments.find(d => d.id.toString() === user.department_id.toString());
+            if (userDept) {
+              setSelectedDepartment(userDept.id);
+            }
+          }
+        } else {
+          console.log("No departments returned from API");
+          setDepartments([]);
+        }
         
+        // Set users
+        if (filterOptions.users && filterOptions.users.length > 0) {
+          console.log("Setting users from API:", filterOptions.users);
+          setUsers(filterOptions.users);
+          // Select the current user by default
+          const currentUser = filterOptions.users.find(u => u.id.toString() === user.id.toString());
+          if (currentUser) {
+            setSelectedUser(currentUser.id);
+          }
+        } else {
+          console.log("No users returned from API");
+          setUsers([]);
+        }
       } catch (error) {
-        console.error('Error fetching data:', error);
-        setBranches(dummyBranches);
-        setDepartments(dummyDepartments);
-        setUsers(dummyUsers);
+        console.error('Error fetching filter options:', error);
+        console.error('Error details:', error.response?.data || error.message || error);
+        
+        // DO NOT use dummy data anymore - just use empty arrays
+        console.log("Using empty arrays instead of dummy data");
+        setBranches([]);
+        setDepartments([]);
+        setUsers([]);
+      } finally {
+        setIsLoadingFilters(false);
       }
     };
 
     if (user) {
-      fetchData();
+      fetchFilterOptions();
     }
   }, [user]);
 
@@ -589,7 +273,12 @@ const AnalyticalReport = () => {
   };
   
   const handleTabChange = (event, newValue) => {
-    setDateRangeType('custom');
+    setDateRangeType(newValue);
+    
+    // If switching to lead analytics tab, fetch leads data
+    if (newValue === 'leadAnalytics' && leadsData.length === 0) {
+      fetchLeadsData({ page: 1 });
+    }
   };
   
   const handleDateFromChange = (newDate) => {
@@ -616,11 +305,11 @@ const AnalyticalReport = () => {
       };
       
       // Only add these filters if they're selected and the user has permission
-      if (branch && canViewAllBranches) {
+      if (branch) {
         filters.branch_id = branch;
       }
       
-      if (department && canViewAllDepartments) {
+      if (department) {
         filters.department_id = department;
       }
       
@@ -633,46 +322,36 @@ const AnalyticalReport = () => {
       // Fetch analytics data based on active tab
       let data;
       
-      switch (dateRangeType) {
-        case 'last7days':
-          data = await analyticsService.getLeadAnalytics(filters);
-          break;
-        case 'last30days':
-          data = await analyticsService.getUserPerformance(filters);
-          break;
-        case 'last90days':
-          data = await analyticsService.getSalesAnalytics(filters);
-          break;
-        case 'thisMonth':
-          data = await analyticsService.getConversionFunnel(filters);
-          break;
-        case 'lastMonth':
-          const lastMonth = subMonths(new Date(), 1);
-          const newFrom = startOfMonth(lastMonth);
-          const newTo = endOfMonth(lastMonth);
-          data = await analyticsService.getLeadAnalytics({
-            date_from: format(newFrom, 'yyyy-MM-dd'),
-            date_to: format(newTo, 'yyyy-MM-dd'),
-            date_range_type: 'custom'
-          });
-          break;
-        default:
-          data = await analyticsService.getLeadAnalytics(filters);
-      }
-      
-      console.log('Analytics data received:', data);
-      
-      if (data) {
-        setStats(data.stats);
-        setStatusWiseData(data.statusWiseData);
-        setLeadTypeData(data.leadTypeData);
-        setLeadSourceData(data.leadSourceData);
-      } else {
-        setError('No data returned for the selected filters');
+      try {
+        data = await analyticsService.getLeadAnalytics(filters);
+        console.log('Analytics data received:', data);
+        
+        if (data) {
+          setStats(data.stats);
+          setStatusWiseData(data.statusWiseData);
+          setLeadTypeData(data.leadTypeData);
+          setLeadSourceData(data.leadSourceData);
+        } else {
+          setError('No data returned for the selected filters');
+        }
+      } catch (error) {
+        console.error('Error fetching analytics data, using dummy data:', error);
+        // Fallback to dummy data
+        setStats({
+          newInquiries: 0,
+          activeInquiries: 0,
+          closedInquiries: 0,
+          closeToSales: 0,
+          sales: 0,
+          overdue: 0
+        });
+        setStatusWiseData([]);
+        setLeadTypeData([]);
+        setLeadSourceData([]);
       }
     } catch (error) {
-      console.error('Error fetching analytics data:', error);
-      setError(error.message || 'Failed to load analytics data');
+      console.error('Error applying filters:', error);
+      setError(error.message || 'Failed to apply filters');
     } finally {
       setIsLoadingAnalytics(false);
     }
@@ -733,6 +412,277 @@ const AnalyticalReport = () => {
     // Example: window.open(`/api/analytics/export?branch=${selectedBranch}&department=${selectedDepartment}...`);
   };
 
+  // Lead Analytics table state
+  const [leadsData, setLeadsData] = useState([]);
+  const [leadsTableLoading, setLeadsTableLoading] = useState(false);
+  const [pagination, setPagination] = useState({
+    page: 0, // MUI Tables use 0-based pagination
+    pageSize: 10,
+    totalCount: 0,
+    totalPages: 0
+  });
+  const [statusFilter, setStatusFilter] = useState('');
+  const [activityStatusFilter, setActivityStatusFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusOptions, setStatusOptions] = useState([]);
+  const [activityStatusOptions, setActivityStatusOptions] = useState([]);
+  
+  // Fetch leads data for the table
+  const fetchLeadsData = async (options = {}) => {
+    setLeadsTableLoading(true);
+    try {
+      // Combine filters
+      const combinedOptions = {
+        page: pagination.page + 1, // API uses 1-based pagination
+        pageSize: pagination.pageSize,
+        status: statusFilter,
+        activityStatus: activityStatusFilter,
+        search: searchQuery,
+        date_from: format(dateFrom, 'yyyy-MM-dd'),
+        date_to: format(dateTo, 'yyyy-MM-dd'),
+        ...options
+      };
+      
+      // Add branch/department/user filters
+      if (selectedBranch) combinedOptions.branch_id = selectedBranch;
+      if (selectedDepartment) combinedOptions.department_id = selectedDepartment;
+      if (selectedUser) combinedOptions.user_id = selectedUser;
+      
+      console.log('Fetching lead analytics with options:', combinedOptions);
+      
+      // Fetch data
+      const data = await analyticsService.getLeadsTableData(combinedOptions);
+      console.log('Lead analytics response:', data);
+      
+      // Update table data
+      if (data && data.leadsTable) {
+        setLeadsData(data.leadsTable.leads || []);
+        
+        // Update pagination info (convert from 1-based to 0-based for MUI)
+        const apiPagination = data.leadsTable.pagination;
+        setPagination({
+          page: apiPagination.page - 1,
+          pageSize: apiPagination.pageSize,
+          totalCount: apiPagination.totalCount,
+          totalPages: apiPagination.totalPages
+        });
+        
+        // Update filter options
+        if (data.leadsTable.filters) {
+          setStatusOptions(data.leadsTable.filters.statuses || []);
+          setActivityStatusOptions(data.leadsTable.filters.activityStatuses || []);
+        }
+        
+        // Update charts and stats
+        if (data.stats) setStats(data.stats);
+        if (data.statusWiseData) setStatusWiseData(data.statusWiseData);
+        if (data.leadTypeData) setLeadTypeData(data.leadTypeData);
+        if (data.leadSourceData) setLeadSourceData(data.leadSourceData);
+      }
+    } catch (error) {
+      console.error('Error fetching leads data:', error.response?.data || error.message || error);
+      setError('Failed to load leads data. ' + (error.response?.data?.error || error.message || 'Unknown error'));
+    } finally {
+      setLeadsTableLoading(false);
+    }
+  };
+  
+  // Handle pagination change
+  const handlePageChange = (event, newPage) => {
+    setPagination(prev => ({ ...prev, page: newPage }));
+    fetchLeadsData({ page: newPage + 1 }); // API uses 1-based pagination
+  };
+  
+  // Handle rows per page change
+  const handleChangeRowsPerPage = (event) => {
+    const newPageSize = parseInt(event.target.value, 10);
+    setPagination(prev => ({ ...prev, pageSize: newPageSize, page: 0 }));
+    fetchLeadsData({ pageSize: newPageSize, page: 1 });
+  };
+  
+  // Handle status filter change
+  const handleStatusFilterChange = (event) => {
+    const newStatus = event.target.value;
+    setStatusFilter(newStatus);
+    fetchLeadsData({ status: newStatus, page: 1 });
+  };
+  
+  // Handle activity status filter change
+  const handleActivityStatusFilterChange = (event) => {
+    const newActivityStatus = event.target.value;
+    setActivityStatusFilter(newActivityStatus);
+    fetchLeadsData({ activityStatus: newActivityStatus, page: 1 });
+  };
+  
+  // Handle search
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+  };
+  
+  const handleSearchSubmit = (event) => {
+    if (event.key === 'Enter') {
+      fetchLeadsData({ search: searchQuery, page: 1 });
+    }
+  };
+
+  // Function to display current state for debugging
+  const showCurrentState = () => {
+    console.log("Current state values:");
+    console.log("Branches:", branches);
+    console.log("Departments:", departments);
+    console.log("Users:", users);
+    console.log("Selected branch:", selectedBranch);
+    console.log("Selected department:", selectedDepartment);
+    console.log("Selected user:", selectedUser);
+
+    // Show an alert with the count of items
+    alert(`Current data:\nBranches: ${branches.length}\nDepartments: ${departments.length}\nUsers: ${users.length}`);
+  };
+
+  // Debug API connections
+  const testApiConnection = async () => {
+    console.log("Testing API connections...");
+    setError(null);
+    setIsLoadingFilters(true);
+    
+    try {
+      // Test 1: Get current user
+      try {
+        const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+        console.log("Current token:", token);
+        
+        const tenant_id = localStorage.getItem('tenant_id');
+        console.log("Current tenant_id:", tenant_id);
+      } catch (e) {
+        console.error("Error checking token:", e);
+      }
+      
+      // Test 2: Direct filter options request with fetch to avoid any middleware issues
+      try {
+        const token = localStorage.getItem('access_token') || localStorage.getItem('token');
+        const tenantId = user?.tenant_id || localStorage.getItem('tenant_id') || "1";
+        
+        console.log(`Making direct fetch to ${import.meta.env.VITE_API_BASE_URL}/api/analytics/filter-options/?tenant_id=${tenantId}`);
+        
+        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/analytics/filter-options/?tenant_id=${tenantId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        console.log("Direct filter options response:", response.status);
+        console.log("Response headers:", Object.fromEntries([...response.headers.entries()]));
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Filter options data from direct fetch:", data);
+          
+          // IMPORTANT: Use the data directly from this fetch
+          if (data.branches && data.branches.length > 0) {
+            console.log("Setting branches from direct fetch:", data.branches);
+            setBranches(data.branches);
+          }
+          
+          if (data.departments && data.departments.length > 0) {
+            console.log("Setting departments from direct fetch:", data.departments);
+            setDepartments(data.departments);
+          }
+          
+          if (data.users && data.users.length > 0) {
+            console.log("Setting users from direct fetch:", data.users);
+            setUsers(data.users);
+          }
+          
+          return; // Exit early if direct fetch worked
+        } else {
+          console.error("Filter options error:", await response.text());
+        }
+      } catch (e) {
+        console.error("Error with direct fetch for filter options:", e);
+      }
+      
+      // Test 3: Try analyticsService as fallback
+      try {
+        console.log("Trying analyticsService.getFilterOptions() as fallback");
+        const filterOptions = await analyticsService.getFilterOptions();
+        console.log("Filter options from analyticsService:", filterOptions);
+        
+        if (filterOptions.branches && filterOptions.branches.length > 0) {
+          console.log("Setting branches from analyticsService:", filterOptions.branches);
+          setBranches(filterOptions.branches);
+        }
+        
+        if (filterOptions.departments && filterOptions.departments.length > 0) {
+          console.log("Setting departments from analyticsService:", filterOptions.departments);
+          setDepartments(filterOptions.departments);
+        }
+        
+        if (filterOptions.users && filterOptions.users.length > 0) {
+          console.log("Setting users from analyticsService:", filterOptions.users);
+          setUsers(filterOptions.users);
+        }
+        
+        return; // Exit if this worked
+      } catch (e) {
+        console.error("Error with analyticsService.getFilterOptions():", e);
+      }
+      
+      // Final fallback - try individual services directly
+      console.log("Trying individual services as final fallback");
+      
+      // Try branches directly
+      try {
+        const tenantId = user?.tenant_id || localStorage.getItem('tenant_id') || "1";
+        const branches = await branchService.getBranches(tenantId);
+        console.log("Direct branches response:", branches);
+        
+        if (branches && branches.length > 0) {
+          setBranches(branches);
+        }
+      } catch (e) {
+        console.error("Error testing branches:", e);
+      }
+      
+      // Try departments directly
+      try {
+        const tenantId = user?.tenant_id || localStorage.getItem('tenant_id') || "1";
+        const departments = await departmentService.getDepartments(tenantId);
+        console.log("Direct departments response:", departments);
+        
+        if (departments && departments.length > 0) {
+          setDepartments(departments);
+        }
+      } catch (e) {
+        console.error("Error testing departments:", e);
+      }
+      
+      // Try users directly through auth/users endpoint
+      try {
+        const tenantId = user?.tenant_id || localStorage.getItem('tenant_id') || "1";
+        const response = await api.get('/auth/users/', { params: { tenant_id: tenantId } });
+        console.log("Direct users response:", response.data);
+        
+        if (response.data && response.data.results) {
+          const userData = response.data.results.map(user => ({
+            id: user.id,
+            name: `${user.first_name} ${user.last_name}`.trim() || user.email
+          }));
+          setUsers(userData);
+        }
+      } catch (e) {
+        console.error("Error testing users:", e);
+      }
+      
+    } catch (error) {
+      console.error("API test error:", error);
+      setError("Error testing API connections. Check console for details.");
+    } finally {
+      setIsLoadingFilters(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -777,178 +727,211 @@ const AnalyticalReport = () => {
               <FilterListIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
               Filters
             </Typography>
+            
+            {/* Debug buttons */}
+            {import.meta.env.MODE !== 'production' && (
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button 
+                  variant="outlined" 
+                  size="small" 
+                  color="info" 
+                  onClick={testApiConnection}
+                  startIcon={<RefreshIcon />}
+                  disabled={isLoadingFilters}
+                >
+                  {isLoadingFilters ? 'Testing...' : 'Test API'}
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="small"
+                  color="secondary"
+                  onClick={showCurrentState}
+                >
+                  Show Data
+                </Button>
+              </Box>
+            )}
           </Box>
           <Divider sx={{ mb: 2 }} />
           
-          <Grid container spacing={2} alignItems="center">
-            <Grid item xs={12} sm={6} md={2}>
-              <FormControl fullWidth size="small">
-                <InputLabel id="branch-select-label">Branch</InputLabel>
-                <Select
-                  labelId="branch-select-label"
-                  id="branch-select"
-                  value={selectedBranch}
-                  label="Branch"
-                  onChange={handleBranchChange}
-                  sx={{ 
-                    backgroundColor: 'white',
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#9d277c',
-                    },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#c34387',
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#9d277c',
-                    }
-                  }}
-                >
-                  <MenuItem value="">All Branches</MenuItem>
-                  {branches.map((branch) => (
-                    <MenuItem key={branch.id} value={branch.id}>
-                      {branch.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            
-            <Grid item xs={12} sm={6} md={2}>
-              <FormControl fullWidth size="small">
-                <InputLabel id="department-select-label">Department</InputLabel>
-                <Select
-                  labelId="department-select-label"
-                  id="department-select"
-                  value={selectedDepartment}
-                  label="Department"
-                  onChange={handleDepartmentChange}
-                  sx={{ 
-                    backgroundColor: 'white',
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#9d277c',
-                    },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#c34387',
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#9d277c',
-                    }
-                  }}
-                >
-                  <MenuItem value="">All Departments</MenuItem>
-                  {departments.map((department) => (
-                    <MenuItem key={department.id} value={department.id}>
-                      {department.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            
-            <Grid item xs={12} sm={6} md={2}>
-              <FormControl fullWidth size="small">
-                <InputLabel id="user-select-label">User</InputLabel>
-                <Select
-                  labelId="user-select-label"
-                  id="user-select"
-                  value={selectedUser}
-                  label="User"
-                  onChange={handleUserChange}
-                  sx={{ 
-                    backgroundColor: 'white',
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#9d277c',
-                    },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#c34387',
-                    },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#9d277c',
-                    }
-                  }}
-                >
-                  <MenuItem value="">All Users</MenuItem>
-                  {users.map((user) => (
-                    <MenuItem key={user.id} value={user.id}>
-                      {user.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            
-            <Grid item xs={12} sm={6} md={2}>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <DatePicker
-                  label="From"
-                  value={dateFrom}
-                  onChange={handleDateFromChange}
-                  slotProps={{
-                    textField: {
-                      size: "small",
-                      fullWidth: true,
-                      sx: {
-                        backgroundColor: 'white',
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#9d277c',
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#c34387',
-                        },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#9d277c',
+          {isLoadingFilters ? (
+            <Box sx={{ width: '100%', py: 2 }}>
+              <LinearProgress color="secondary" />
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1, textAlign: 'center' }}>
+                Loading filter options...
+              </Typography>
+            </Box>
+          ) : (
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={12} sm={6} md={2}>
+                <FormControl fullWidth size="small">
+                  <InputLabel id="branch-select-label">Branch</InputLabel>
+                  <Select
+                    labelId="branch-select-label"
+                    id="branch-select"
+                    value={selectedBranch}
+                    label="Branch"
+                    onChange={handleBranchChange}
+                    sx={{ 
+                      backgroundColor: 'white',
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#9d277c',
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#c34387',
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#9d277c',
+                      }
+                    }}
+                  >
+                    <MenuItem value="">All Branches</MenuItem>
+                    {branches.map((branch) => (
+                      <MenuItem key={branch.id} value={branch.id}>
+                        {branch.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              
+              <Grid item xs={12} sm={6} md={2}>
+                <FormControl fullWidth size="small">
+                  <InputLabel id="department-select-label">Department</InputLabel>
+                  <Select
+                    labelId="department-select-label"
+                    id="department-select"
+                    value={selectedDepartment}
+                    label="Department"
+                    onChange={handleDepartmentChange}
+                    sx={{ 
+                      backgroundColor: 'white',
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#9d277c',
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#c34387',
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#9d277c',
+                      }
+                    }}
+                  >
+                    <MenuItem value="">All Departments</MenuItem>
+                    {departments.map((department) => (
+                      <MenuItem key={department.id} value={department.id}>
+                        {department.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              
+              <Grid item xs={12} sm={6} md={2}>
+                <FormControl fullWidth size="small">
+                  <InputLabel id="user-select-label">User</InputLabel>
+                  <Select
+                    labelId="user-select-label"
+                    id="user-select"
+                    value={selectedUser}
+                    label="User"
+                    onChange={handleUserChange}
+                    sx={{ 
+                      backgroundColor: 'white',
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#9d277c',
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#c34387',
+                      },
+                      '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                        borderColor: '#9d277c',
+                      }
+                    }}
+                  >
+                    <MenuItem value="">All Users</MenuItem>
+                    {users.map((user) => (
+                      <MenuItem key={user.id} value={user.id}>
+                        {user.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
+              
+              <Grid item xs={12} sm={6} md={2}>
+                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                  <DatePicker
+                    label="From"
+                    value={dateFrom}
+                    onChange={handleDateFromChange}
+                    slotProps={{
+                      textField: {
+                        size: "small",
+                        fullWidth: true,
+                        sx: {
+                          backgroundColor: 'white',
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#9d277c',
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#c34387',
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#9d277c',
+                          }
                         }
                       }
-                    }
-                  }}
-                />
-              </LocalizationProvider>
-            </Grid>
-            
-            <Grid item xs={12} sm={6} md={2}>
-              <LocalizationProvider dateAdapter={AdapterDateFns}>
-                <DatePicker
-                  label="To"
-                  value={dateTo}
-                  onChange={handleDateToChange}
-                  slotProps={{
-                    textField: {
-                      size: "small",
-                      fullWidth: true,
-                      sx: {
-                        backgroundColor: 'white',
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#9d277c',
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#c34387',
-                        },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#9d277c',
+                    }}
+                  />
+                </LocalizationProvider>
+              </Grid>
+              
+              <Grid item xs={12} sm={6} md={2}>
+                <LocalizationProvider dateAdapter={AdapterDateFns}>
+                  <DatePicker
+                    label="To"
+                    value={dateTo}
+                    onChange={handleDateToChange}
+                    slotProps={{
+                      textField: {
+                        size: "small",
+                        fullWidth: true,
+                        sx: {
+                          backgroundColor: 'white',
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#9d277c',
+                          },
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#c34387',
+                          },
+                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                            borderColor: '#9d277c',
+                          }
                         }
                       }
+                    }}
+                  />
+                </LocalizationProvider>
+              </Grid>
+              
+              <Grid item xs={12} sm={6} md={2}>
+                <Button
+                  variant="contained"
+                  fullWidth
+                  onClick={() => applyFilters(selectedBranch, selectedDepartment, selectedUser, dateFrom, dateTo, dateRangeType)}
+                  sx={{
+                    backgroundColor: '#9d277c',
+                    '&:hover': {
+                      backgroundColor: '#c34387',
                     }
                   }}
-                />
-              </LocalizationProvider>
+                >
+                  Apply Filters
+                </Button>
+              </Grid>
             </Grid>
-            
-            <Grid item xs={12} sm={6} md={2}>
-              <Button
-                variant="contained"
-                fullWidth
-                onClick={() => applyFilters(selectedBranch, selectedDepartment, selectedUser, dateFrom, dateTo, dateRangeType)}
-                sx={{
-                  backgroundColor: '#9d277c',
-                  '&:hover': {
-                    backgroundColor: '#c34387',
-                  }
-                }}
-              >
-                Apply Filters
-              </Button>
-            </Grid>
-          </Grid>
+          )}
           
           {/* Active Filters */}
           {(selectedBranch || selectedDepartment || selectedUser) && (
@@ -1033,27 +1016,177 @@ const AnalyticalReport = () => {
             }
           }}
         >
-          <Tab label="Lead Analytics" />
-          <Tab label="User Performance" />
-          <Tab label="Sales Analytics" />
-          {canViewConversionMetrics && <Tab label="Conversion Funnel" />}
+          <Tab label="Lead Analytics" value="leadAnalytics" />
+          <Tab label="User Performance" value="userPerformance" />
+          <Tab label="Sales Analytics" value="salesAnalytics" />
+          {canViewConversionMetrics && <Tab label="Conversion Funnel" value="conversionFunnel" />}
         </Tabs>
       </Box>
       
-      {/* Tab Panels - These would display charts and metrics based on the data */}
+      {/* Tab Panels */}
       <TabPanel value={dateRangeType} index="leadAnalytics">
-        <Typography variant="h6" gutterBottom>
-          Lead Analytics
-        </Typography>
-        {stats ? (
-          <Typography>
-            Lead analytics data would be displayed here with charts and metrics.
+        <Box>
+          <Typography variant="h6" gutterBottom>
+            Lead Analytics
           </Typography>
-        ) : !isLoadingAnalytics && (
-          <Typography color="text.secondary">
-            No lead analytics data available. Try adjusting your filters.
-          </Typography>
-        )}
+          
+          {/* Table Filters */}
+          <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+            {/* Search */}
+            <TextField
+              placeholder="Search leads..."
+              size="small"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              onKeyDown={handleSearchSubmit}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ width: { xs: '100%', sm: '300px' } }}
+            />
+            
+            {/* Status Filter */}
+            <FormControl size="small" sx={{ minWidth: '150px' }}>
+              <InputLabel>Status</InputLabel>
+              <Select
+                value={statusFilter}
+                label="Status"
+                onChange={handleStatusFilterChange}
+              >
+                <MenuItem value="">All Statuses</MenuItem>
+                {statusOptions.map(option => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            
+            {/* Activity Status Filter */}
+            <FormControl size="small" sx={{ minWidth: '150px' }}>
+              <InputLabel>Activity Status</InputLabel>
+              <Select
+                value={activityStatusFilter}
+                label="Activity Status"
+                onChange={handleActivityStatusFilterChange}
+              >
+                <MenuItem value="">All Activity Statuses</MenuItem>
+                {activityStatusOptions.map(option => (
+                  <MenuItem key={option.value} value={option.value}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            
+            {/* Apply Filters Button */}
+            <Button
+              variant="contained"
+              onClick={() => fetchLeadsData({ page: 1 })}
+              sx={{
+                backgroundColor: '#9d277c',
+                '&:hover': {
+                  backgroundColor: '#c34387',
+                }
+              }}
+            >
+              Apply
+            </Button>
+          </Box>
+          
+          {/* Leads Table */}
+          <TableContainer component={Paper} elevation={0} sx={{ borderRadius: 2, mb: 3 }}>
+            <Table>
+              <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
+                <TableRow>
+                  <TableCell>Lead ID</TableCell>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Phone</TableCell>
+                  <TableCell>Source</TableCell>
+                  <TableCell>Status</TableCell>
+                  <TableCell>Activity Status</TableCell>
+                  <TableCell>Created At</TableCell>
+                  <TableCell>Created By</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {leadsTableLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={9} align="center" sx={{ py: 3 }}>
+                      <CircularProgress size={32} sx={{ color: '#9d277c' }} />
+                    </TableCell>
+                  </TableRow>
+                ) : leadsData.length > 0 ? (
+                  leadsData.map((lead) => (
+                    <TableRow key={lead.id}>
+                      <TableCell>{lead.lead_id}</TableCell>
+                      <TableCell>{lead.name}</TableCell>
+                      <TableCell>{lead.email}</TableCell>
+                      <TableCell>{lead.phone}</TableCell>
+                      <TableCell>{lead.source}</TableCell>
+                      <TableCell>
+                        <Chip
+                          label={lead.status}
+                          size="small"
+                          sx={{
+                            backgroundColor: 
+                              lead.status === 'won' ? 'rgba(76, 175, 80, 0.1)' :
+                              lead.status === 'lost' ? 'rgba(244, 67, 54, 0.1)' :
+                              lead.status === 'negotiation' ? 'rgba(255, 152, 0, 0.1)' :
+                              'rgba(33, 150, 243, 0.1)',
+                            color: 
+                              lead.status === 'won' ? 'success.main' :
+                              lead.status === 'lost' ? 'error.main' :
+                              lead.status === 'negotiation' ? 'warning.main' :
+                              'info.main',
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={lead.activity_status}
+                          size="small"
+                          sx={{
+                            backgroundColor: 
+                              lead.activity_status === 'active' ? 'rgba(76, 175, 80, 0.1)' :
+                              lead.activity_status === 'inactive' ? 'rgba(244, 67, 54, 0.1)' :
+                              'rgba(33, 150, 243, 0.1)',
+                            color: 
+                              lead.activity_status === 'active' ? 'success.main' :
+                              lead.activity_status === 'inactive' ? 'error.main' :
+                              'info.main',
+                          }}
+                        />
+                      </TableCell>
+                      <TableCell>{lead.created_at}</TableCell>
+                      <TableCell>{lead.created_by}</TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={9} align="center" sx={{ py: 3 }}>
+                      No leads found. Try adjusting your filters.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 25, 50]}
+              component="div"
+              count={pagination.totalCount}
+              rowsPerPage={pagination.pageSize}
+              page={pagination.page}
+              onPageChange={handlePageChange}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+            />
+          </TableContainer>
+        </Box>
       </TabPanel>
       
       <TabPanel value={dateRangeType} index="userPerformance">

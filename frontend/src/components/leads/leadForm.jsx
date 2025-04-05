@@ -37,6 +37,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   const [loadingActivities, setLoadingActivities] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [submittingDocuments, setSubmittingDocuments] = useState(false);
+  const [branchOptions, setBranchOptions] = useState([]);
   
   // Add this state to track form values directly
   const [formValues, setFormValues] = useState({
@@ -51,6 +52,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     last_contacted: initialData.last_contacted || null,
     next_follow_up: initialData.next_follow_up || null,
     assigned_to: initialData.assigned_to || null,
+    branch: initialData.branch || null,
   });
   
   // Status options
@@ -155,7 +157,9 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         adults: queryFor.adults || 0,
         children: queryFor.children || 0,
         infants: queryFor.infants || 0,
-        query_notes: queryFor.notes || ''
+        query_notes: queryFor.notes || '',
+        // Set branch value
+        branch: initialData.branch || null
       };
       
       form.setFieldsValue(updatedValues);
@@ -392,6 +396,89 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     };
     
     fetchUsers();
+  }, []);
+  
+  // Fetch branches for branch dropdown
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        // Get tenant_id from localStorage
+        const tenantId = localStorage.getItem('tenant_id');
+        
+        if (!tenantId) {
+          console.error('No tenant ID found in localStorage');
+          return;
+        }
+        
+        // Log the API call for debugging
+        console.log(`Fetching branches for tenant: ${tenantId}`);
+        
+        try {
+          // Fetch branches for the current tenant
+          const response = await api.get('auth/branches/', {
+            params: {
+              tenant: tenantId
+            }
+          });
+          
+          console.log('Branches API Response:', response);
+          
+          // Process response data
+          let branchesArray = Array.isArray(response.data) 
+            ? response.data
+            : (response.data?.results && Array.isArray(response.data.results))
+              ? response.data.results
+              : [];
+          
+          console.log(`Fetched ${branchesArray.length} branches`);
+          
+          // Create branch options
+          const options = branchesArray.map(branch => ({
+            value: branch.id,
+            label: branch.name
+          }));
+          
+          setBranchOptions(options);
+        } catch (error) {
+          console.error('Error fetching branches:', error);
+          
+          // Try fallback method
+          try {
+            console.log('Trying to fetch all branches as fallback...');
+            const response = await api.get('auth/branches/');
+            
+            let allBranches = Array.isArray(response.data) 
+              ? response.data
+              : (response.data?.results && Array.isArray(response.data.results))
+                ? response.data.results
+                : [];
+            
+            // Filter branches by tenant_id manually
+            const filteredBranches = allBranches.filter(branch => 
+              branch.tenant === tenantId || branch.tenant_id === tenantId
+            );
+            
+            console.log(`Filtered ${filteredBranches.length} branches from ${allBranches.length} total`);
+            
+            // Convert to options format
+            const options = filteredBranches.map(branch => ({
+              value: branch.id,
+              label: branch.name
+            }));
+            
+            setBranchOptions(options);
+          } catch (fallbackError) {
+            console.error('All branch fetch attempts failed:', fallbackError);
+            message.error('Failed to load branches');
+          }
+        }
+      } catch (error) {
+        console.error('Error in fetchBranches:', error);
+        message.error('Failed to load branches');
+      }
+    };
+    
+    fetchBranches();
   }, []);
   
   // Fetch lead notes if in edit mode
@@ -817,6 +904,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
             new Date(formValues.next_follow_up).toISOString()) : 
           null,
         assigned_to: formValues.assigned_to,
+        branch: formValues.branch,
         tenant: localStorage.getItem('tenant_id'),
         created_by: localStorage.getItem('user_id'),
         hajj_package: formValues.hajj_package || null,
@@ -1041,6 +1129,40 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     // ... rest of your existing useEffect code
   }, []);
   
+  // Function to update branch when a user is assigned
+  const handleUserAssignment = async (userId) => {
+    try {
+      // Only proceed if we have a valid user ID
+      if (!userId) return;
+      
+      console.log(`User assigned. Checking branch for user ID: ${userId}`);
+      
+      // Update the assigned_to field
+      handleInputChange('assigned_to', userId);
+      
+      // Try to fetch user details to get their branch
+      try {
+        const response = await api.get(`auth/users/${userId}/`);
+        const userData = response.data;
+        
+        // If user has a branch assigned, update the branch field
+        if (userData.branch) {
+          console.log(`Setting branch to ${userData.branch} based on assigned user`);
+          form.setFieldValue('branch', userData.branch);
+          setFormValues(prev => ({
+            ...prev,
+            branch: userData.branch
+          }));
+        }
+      } catch (error) {
+        console.error('Error fetching user branch:', error);
+        // Don't show an error message to the user as this is a background operation
+      }
+    } catch (error) {
+      console.error('Error in handleUserAssignment:', error);
+    }
+  };
+  
   return (
     <Box>
       <Paper sx={{ p: 3, mb: 3 }}>
@@ -1056,6 +1178,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
             source: 'website_form',
             status: 'new',
             lead_activity_status: 'active',
+            branch: initialData.branch || null,
             ...initialData
           }}
           onValuesChange={(changedValues, allValues) => {
@@ -1268,7 +1391,21 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
                       placeholder="Select user to assign"
                       options={userOptions}
                       value={formValues.assigned_to}
-                      onChange={(value) => handleInputChange('assigned_to', value)}
+                      onChange={(value) => handleUserAssignment(value)}
+                    />
+                  </Form.Item>
+                </Grid>
+                
+                <Grid item xs={12} md={6}>
+                  <Form.Item
+                    label="Branch"
+                    name="branch"
+                  >
+                    <Select
+                      placeholder="Select branch"
+                      options={branchOptions}
+                      value={formValues.branch}
+                      onChange={(value) => handleInputChange('branch', value)}
                     />
                   </Form.Item>
                 </Grid>

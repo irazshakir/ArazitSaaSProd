@@ -30,6 +30,8 @@ const LeadEdit = () => {
           // Convert date fields to dayjs objects
           last_contacted: response.data.last_contacted ? dayjs(response.data.last_contacted) : null,
           next_follow_up: response.data.next_follow_up ? dayjs(response.data.next_follow_up) : null,
+          // Preserve branch information
+          branch: response.data.branch || null
         };
         
         setLeadData(leadData);

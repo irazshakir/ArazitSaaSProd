@@ -163,4 +163,45 @@ class ConversionFunnelSerializer(serializers.Serializer):
     overallConversion = serializers.FloatField()
     
     class Meta:
-        fields = '__all__' 
+        fields = '__all__'
+
+class BranchSerializer(serializers.Serializer):
+    """
+    Serializer for branch data
+    """
+    id = serializers.CharField()
+    name = serializers.CharField()
+    
+    class Meta:
+        fields = ['id', 'name']
+        
+class DepartmentSerializer(serializers.Serializer):
+    """
+    Serializer for department data
+    """
+    id = serializers.CharField()
+    name = serializers.CharField()
+    
+    class Meta:
+        fields = ['id', 'name']
+        
+class UserOptionSerializer(serializers.Serializer):
+    """
+    Serializer for user option data (simplified)
+    """
+    id = serializers.CharField()
+    name = serializers.CharField()
+    
+    class Meta:
+        fields = ['id', 'name']
+        
+class FilterOptionsSerializer(serializers.Serializer):
+    """
+    Serializer for filter options data
+    """
+    branches = BranchSerializer(many=True)
+    departments = DepartmentSerializer(many=True)
+    users = UserOptionSerializer(many=True)
+    
+    class Meta:
+        fields = ['branches', 'departments', 'users'] 

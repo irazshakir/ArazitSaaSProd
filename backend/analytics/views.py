@@ -12,11 +12,12 @@ from .serializers import (
     LeadAnalyticsSerializer,
     UserPerformanceSerializer,
     SalesAnalyticsSerializer,
-    ConversionFunnelSerializer
+    ConversionFunnelSerializer,
+    FilterOptionsSerializer
 )
 from .permissions import AnalyticsPermission
 from leads.models import Lead
-from users.models import User
+from users.models import User, Department, Branch
 from teams.models import Team
 
 class BaseAnalyticsView(APIView):
@@ -198,8 +199,8 @@ class DashboardStatsView(BaseAnalyticsView):
                 'lost': current_month_leads.filter(status=Lead.STATUS_LOST).count()
             }
             
-            # Return formatted response
-            stats = {
+            # Return formatted response - make sure this matches exactly what Dashboard.jsx expects
+            response_data = {
                 'stats': {
                     'newInquiries': new_inquiries,
                     'activeInquiries': active_inquiries,
@@ -219,10 +220,13 @@ class DashboardStatsView(BaseAnalyticsView):
                     'sales': monthly_sales_data,
                     'inquiries': monthly_inquiries_data
                 },
-                'leadStatuses': lead_statuses
+                'leadStatuses': lead_statuses,
+                # Include empty arrays for recentActivities and upcomingEvents to match expected structure
+                'recentActivities': [],
+                'upcomingEvents': []
             }
             
-            return Response(stats)
+            return Response(response_data)
             
         except Exception as e:
             return Response(
@@ -274,86 +278,220 @@ class LeadAnalyticsView(BaseAnalyticsView):
     """
     def get(self, request):
         try:
+            # Print debug info
+            print(f"Lead Analytics request with params: {request.query_params}")
+            
             # Get leads with proper filtering
-            leads_queryset = self.get_filtered_queryset(request, Lead.objects.all())
+            try:
+                leads_queryset = self.get_filtered_queryset(request, Lead.objects.all())
+                print(f"Retrieved {leads_queryset.count()} leads")
+            except Exception as e:
+                print(f"Error in get_filtered_queryset: {e}")
+                return Response(
+                    {"error": f"Error filtering queryset: {str(e)}"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
             
-            # Analysis by lead source
-            lead_sources = leads_queryset.values('source').annotate(
-                count=Count('id')
-            ).order_by('-count')
+            # Get leads data for table with pagination
+            try:
+                page_size = int(request.query_params.get('page_size', 10))
+                page = int(request.query_params.get('page', 1))
+                
+                # Apply additional filters if provided
+                status_filter = request.query_params.get('status')
+                activity_status_filter = request.query_params.get('activity_status')
+                search_query = request.query_params.get('search')
+                
+                if status_filter:
+                    leads_queryset = leads_queryset.filter(status=status_filter)
+                    
+                if activity_status_filter:
+                    leads_queryset = leads_queryset.filter(lead_activity_status=activity_status_filter)
+                    
+                if search_query:
+                    leads_queryset = leads_queryset.filter(
+                        Q(name__icontains=search_query) | 
+                        Q(email__icontains=search_query) | 
+                        Q(phone__icontains=search_query) |
+                        Q(lead_id__icontains=search_query)
+                    )
+                
+                # Order by created_at desc by default
+                leads_queryset = leads_queryset.order_by('-created_at')
+                
+                # Calculate total count for pagination
+                total_count = leads_queryset.count()
+                total_pages = (total_count + page_size - 1) // page_size  # Ceiling division
+                
+                # Apply pagination
+                start = (page - 1) * page_size
+                end = start + page_size
+                paginated_leads = leads_queryset[start:end]
+                
+                # Serialize leads
+                leads_data = []
+                for lead in paginated_leads:
+                    try:
+                        lead_data = {
+                            'id': str(lead.id),  # Convert UUID to string
+                            'lead_id': getattr(lead, 'lead_id', str(lead.id)),  # Use lead.id if lead_id doesn't exist
+                            'name': getattr(lead, 'name', ''),
+                            'email': getattr(lead, 'email', ''),
+                            'phone': getattr(lead, 'phone', ''),
+                            'source': getattr(lead, 'source', ''),
+                            'lead_type': getattr(lead, 'lead_type', ''),
+                            'status': getattr(lead, 'status', ''),
+                            'activity_status': getattr(lead, 'lead_activity_status', ''),
+                            'created_at': lead.created_at.strftime('%Y-%m-%d %H:%M') if hasattr(lead, 'created_at') and lead.created_at else '',
+                            'created_by': f"{lead.created_by.first_name} {lead.created_by.last_name}".strip() if hasattr(lead, 'created_by') and lead.created_by else "Unknown",
+                            'next_follow_up': lead.next_follow_up.strftime('%Y-%m-%d %H:%M') if hasattr(lead, 'next_follow_up') and lead.next_follow_up else None,
+                        }
+                        leads_data.append(lead_data)
+                    except Exception as e:
+                        print(f"Error serializing lead {lead.id}: {e}")
+                        print(f"Lead attributes: {dir(lead)}")  # Print all attributes of the lead object
+                
+                print(f"Processed {len(leads_data)} leads for the table")
+            except Exception as e:
+                print(f"Error in pagination and lead serialization: {e}")
+                return Response(
+                    {"error": f"Error in pagination: {str(e)}"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
             
-            # Analysis by lead status
-            lead_statuses = leads_queryset.values('status').annotate(
-                count=Count('id')
-            ).order_by('-count')
+            # Process analytics data
+            try:
+                # Analysis by lead source
+                lead_sources = leads_queryset.values('source').annotate(
+                    count=Count('id')
+                ).order_by('-count')
+                
+                # Analysis by lead status
+                lead_statuses = leads_queryset.values('status').annotate(
+                    count=Count('id')
+                ).order_by('-count')
+                
+                # Analysis by lead type
+                lead_types = leads_queryset.values('lead_type').annotate(
+                    count=Count('id')
+                ).order_by('-count')
+                
+                # Analysis by conversion rate
+                total_leads = leads_queryset.count()
+                converted_leads = leads_queryset.filter(status=Lead.STATUS_WON).count()
+                conversion_rate = (converted_leads / total_leads) * 100 if total_leads > 0 else 0
+                
+                # Calculate percentages for lead sources
+                total_leads_count = leads_queryset.count()
+                lead_sources_with_percentage = []
+                for source in lead_sources:
+                    percentage = (source['count'] / total_leads_count) * 100 if total_leads_count > 0 else 0
+                    lead_sources_with_percentage.append({
+                        'source': source['source'] or 'Unknown',
+                        'count': source['count'],
+                        'percentage': round(percentage, 2)
+                    })
+                
+                # Calculate percentages for lead statuses
+                status_with_percentage = []
+                for status_item in lead_statuses:
+                    percentage = (status_item['count'] / total_leads_count) * 100 if total_leads_count > 0 else 0
+                    status_with_percentage.append({
+                        'status': status_item['status'] or 'Unknown',
+                        'count': status_item['count'],
+                        'percentage': round(percentage, 2)
+                    })
+                
+                # Calculate percentages for lead types
+                types_with_percentage = []
+                for type_item in lead_types:
+                    percentage = (type_item['count'] / total_leads_count) * 100 if total_leads_count > 0 else 0
+                    types_with_percentage.append({
+                        'type': type_item['lead_type'] or 'Unknown',
+                        'count': type_item['count'],
+                        'percentage': round(percentage, 2)
+                    })
+                
+                print(f"Processed analytics data with {len(lead_sources_with_percentage)} sources, {len(status_with_percentage)} statuses, and {len(types_with_percentage)} types")
+            except Exception as e:
+                print(f"Error in analytics processing: {e}")
+                return Response(
+                    {"error": f"Error in analytics processing: {str(e)}"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
             
-            # Analysis by lead type
-            lead_types = leads_queryset.values('lead_type').annotate(
-                count=Count('id')
-            ).order_by('-count')
+            # Get basic stats
+            try:
+                # Basic stats for the sidebar/overview
+                stats = {
+                    'newInquiries': leads_queryset.filter(status=Lead.STATUS_NEW).count(),
+                    'activeInquiries': leads_queryset.filter(lead_activity_status=Lead.ACTIVITY_STATUS_ACTIVE).count(),
+                    'closedInquiries': leads_queryset.filter(status__in=[Lead.STATUS_WON, Lead.STATUS_LOST]).count(),
+                    'closeToSales': leads_queryset.filter(status__in=[Lead.STATUS_PROPOSAL, Lead.STATUS_NEGOTIATION]).count(),
+                    'sales': leads_queryset.filter(status=Lead.STATUS_WON).count(),
+                    'overdue': leads_queryset.filter(
+                        Q(status__in=[Lead.STATUS_NEW, Lead.STATUS_QUALIFIED, Lead.STATUS_PROPOSAL, Lead.STATUS_NEGOTIATION]) & 
+                        Q(next_follow_up__lt=timezone.now())
+                    ).count()
+                }
+                
+                print(f"Calculated stats: {stats}")
+            except Exception as e:
+                print(f"Error in stats calculation: {e}")
+                return Response(
+                    {"error": f"Error calculating stats: {str(e)}"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
             
-            # Analysis by conversion rate
-            total_leads = leads_queryset.count()
-            converted_leads = leads_queryset.filter(status='won').count()
-            conversion_rate = (converted_leads / total_leads) * 100 if total_leads > 0 else 0
+            # Get available filters
+            try:
+                statuses = Lead.STATUS_CHOICES
+                activity_statuses = Lead.ACTIVITY_STATUS_CHOICES
+                
+                print(f"Retrieved {len(statuses)} status options and {len(activity_statuses)} activity status options")
+            except Exception as e:
+                print(f"Error getting filter options: {e}")
+                return Response(
+                    {"error": f"Error getting filter options: {str(e)}"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
             
-            # Calculate percentages for lead sources
-            total_leads_count = leads_queryset.count()
-            lead_sources_with_percentage = []
-            for source in lead_sources:
-                percentage = (source['count'] / total_leads_count) * 100 if total_leads_count > 0 else 0
-                lead_sources_with_percentage.append({
-                    'source': source['source'],
-                    'count': source['count'],
-                    'percentage': round(percentage, 2)
-                })
-            
-            # Calculate percentages for lead statuses
-            status_with_percentage = []
-            for status_item in lead_statuses:
-                percentage = (status_item['count'] / total_leads_count) * 100 if total_leads_count > 0 else 0
-                status_with_percentage.append({
-                    'status': status_item['status'],
-                    'count': status_item['count'],
-                    'percentage': round(percentage, 2)
-                })
-            
-            # Calculate percentages for lead types
-            types_with_percentage = []
-            for type_item in lead_types:
-                percentage = (type_item['count'] / total_leads_count) * 100 if total_leads_count > 0 else 0
-                types_with_percentage.append({
-                    'type': type_item['lead_type'],
-                    'count': type_item['count'],
-                    'percentage': round(percentage, 2)
-                })
-            
-            # Basic stats for the sidebar/overview
-            stats = {
-                'newInquiries': leads_queryset.filter(status='new').count(),
-                'activeInquiries': leads_queryset.filter(status__in=['active', 'in_progress']).count(),
-                'closedInquiries': leads_queryset.filter(status__in=['won', 'lost']).count(),
-                'closeToSales': leads_queryset.filter(status__in=['proposal', 'negotiation']).count(),
-                'sales': leads_queryset.filter(status='won').count(),
-                'overdue': leads_queryset.filter(
-                    Q(status__in=['active', 'in_progress']) & 
-                    Q(next_follow_up__lt=timezone.now())
-                ).count()
-            }
-            
-            analytics_data = {
-                'stats': stats,
-                'leadSourceData': lead_sources_with_percentage,
-                'statusWiseData': status_with_percentage,
-                'leadTypeData': types_with_percentage,
-                'conversionRate': conversion_rate,
-                'totalLeads': total_leads,
-                'convertedLeads': converted_leads
-            }
-            
-            return Response(analytics_data)
+            # Prepare response
+            try:
+                analytics_data = {
+                    'stats': stats,
+                    'leadSourceData': lead_sources_with_percentage,
+                    'statusWiseData': status_with_percentage,
+                    'leadTypeData': types_with_percentage,
+                    'conversionRate': conversion_rate,
+                    'totalLeads': total_leads,
+                    'convertedLeads': converted_leads,
+                    'leadsTable': {
+                        'leads': leads_data,
+                        'pagination': {
+                            'page': page,
+                            'pageSize': page_size,
+                            'totalCount': total_count,
+                            'totalPages': total_pages
+                        },
+                        'filters': {
+                            'statuses': [{'value': status[0], 'label': status[1]} for status in statuses],
+                            'activityStatuses': [{'value': status[0], 'label': status[1]} for status in activity_statuses]
+                        }
+                    }
+                }
+                
+                print("Successfully prepared analytics data")
+                return Response(analytics_data)
+            except Exception as e:
+                print(f"Error preparing response: {e}")
+                return Response(
+                    {"error": f"Error preparing response: {str(e)}"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
             
         except Exception as e:
+            print(f"Unhandled exception in LeadAnalyticsView: {e}")
             return Response(
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -579,6 +717,137 @@ class ConversionFunnelView(BaseAnalyticsView):
             return Response(analytics_data)
             
         except Exception as e:
+            return Response(
+                {"error": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+class FilterOptionsView(BaseAnalyticsView):
+    """
+    API endpoint for fetching filter options (branches, departments, users) for a tenant
+    """
+    def options(self, request, *args, **kwargs):
+        """Handle preflight CORS requests"""
+        response = Response()
+        response['Access-Control-Allow-Origin'] = '*'  # Or specific origin
+        response['Access-Control-Allow-Methods'] = 'GET, OPTIONS'
+        response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+        return response
+        
+    def get(self, request):
+        try:
+            print(f"FilterOptionsView called with params: {request.query_params}")
+            
+            tenant_id = self.get_tenant_id(request)
+            if not tenant_id:
+                print("No tenant_id found")
+                return Response(
+                    {"error": "Tenant ID is required"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            print(f"Using tenant_id: {tenant_id}")
+            
+            # Debug User model
+            try:
+                print(f"User model fields: {[f.name for f in User._meta.fields]}")
+                all_users = User.objects.all()
+                print(f"Total users in database: {all_users.count()}")
+                tenant_users = User.objects.filter(tenant_id=tenant_id)
+                print(f"Users for tenant {tenant_id}: {tenant_users.count()}")
+            except Exception as e:
+                print(f"Error accessing User model: {e}")
+            
+            # Debug Branch model
+            try:
+                print(f"Branch model fields: {[f.name for f in Branch._meta.fields]}")
+                all_branches = Branch.objects.all()
+                print(f"Total branches in database: {all_branches.count()}")
+                tenant_branches = Branch.objects.filter(tenant_id=tenant_id)
+                print(f"Branches for tenant {tenant_id}: {tenant_branches.count()}")
+            except Exception as e:
+                print(f"Error accessing Branch model: {e}")
+            
+            # Debug Department model
+            try:
+                print(f"Department model fields: {[f.name for f in Department._meta.fields]}")
+                all_departments = Department.objects.all()
+                print(f"Total departments in database: {all_departments.count()}")
+                tenant_departments = Department.objects.filter(tenant_id=tenant_id)
+                print(f"Departments for tenant {tenant_id}: {tenant_departments.count()}")
+            except Exception as e:
+                print(f"Error accessing Department model: {e}")
+            
+            try:
+                # Get branches for this tenant
+                branches = Branch.objects.filter(tenant_id=tenant_id)
+                print(f"Found {branches.count()} branches")
+                branch_data = [{'id': str(branch.id), 'name': branch.name} for branch in branches]
+                print(f"Branch data: {branch_data}")
+            except Exception as e:
+                print(f"Error fetching branches: {e}")
+                branch_data = []
+            
+            try:
+                # Get departments for this tenant
+                departments = Department.objects.filter(tenant_id=tenant_id)
+                print(f"Found {departments.count()} departments")
+                department_data = [{'id': str(dept.id), 'name': dept.name} for dept in departments]
+                print(f"Department data: {department_data}")
+            except Exception as e:
+                print(f"Error fetching departments: {e}")
+                department_data = []
+            
+            try:
+                # Get users for this tenant
+                users = User.objects.filter(tenant_id=tenant_id)
+                print(f"Found {users.count()} users for tenant {tenant_id}")
+                
+                # Check if any users are found
+                if users.count() == 0:
+                    sample_user = User.objects.first()
+                    if sample_user:
+                        print(f"Sample user tenant_id: {sample_user.tenant_id}, Requested tenant_id: {tenant_id}")
+                    else:
+                        print("No users exist in the database")
+                        
+                # Apply role-based filtering to users
+                user_role = request.user.role
+                print(f"User role: {user_role}")
+                
+                if user_role == 'department_head':
+                    users = users.filter(department_id=request.user.department_id)
+                elif user_role == 'manager':
+                    users = users.filter(
+                        Q(manager_id=request.user.id) | Q(id=request.user.id)
+                    )
+                elif user_role == 'team_lead':
+                    users = users.filter(
+                        Q(team_lead_id=request.user.id) | Q(id=request.user.id)
+                    )
+                elif user_role not in ['admin']:
+                    # Regular users can only see themselves
+                    users = users.filter(id=request.user.id)
+                
+                print(f"After role filtering, found {users.count()} users")
+                user_data = [{'id': str(user.id), 'name': f"{user.first_name} {user.last_name}".strip() or user.email} for user in users]
+                print(f"User data: {user_data}")
+            except Exception as e:
+                print(f"Error fetching users: {e}")
+                user_data = []
+            
+            # Return all filter options
+            data = {
+                'branches': branch_data,
+                'departments': department_data,
+                'users': user_data
+            }
+            
+            print(f"Returning filter options: {len(branch_data)} branches, {len(department_data)} departments, {len(user_data)} users")
+            return Response(data)
+            
+        except Exception as e:
+            print(f"Unhandled error in FilterOptionsView: {e}")
             return Response(
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
