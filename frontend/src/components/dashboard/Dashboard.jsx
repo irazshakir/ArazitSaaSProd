@@ -525,6 +525,7 @@ const Dashboard = () => {
       </Grid>
 
       {/* Recent Activities and Upcoming Events */}
+      {/* 
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
           <Card elevation={0} sx={{ borderRadius: 2 }}>
@@ -687,6 +688,7 @@ const Dashboard = () => {
           </Card>
         </Grid>
       </Grid>
+      */}
     </Box>
   );
 };
