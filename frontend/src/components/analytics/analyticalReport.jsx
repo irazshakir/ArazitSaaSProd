@@ -186,8 +186,12 @@ const AnalyticalReport = () => {
           console.log("Setting branches from API:", filterOptions.branches);
           setBranches(filterOptions.branches);
           // If user has a branch, select it by default
-          if (user.branch_id) {
-            const userBranch = filterOptions.branches.find(b => b.id.toString() === user.branch_id.toString());
+          if (user && user.branch_id) {
+            const userBranch = filterOptions.branches.find(b => {
+              // Add null checks to prevent toString() errors
+              return b && b.id && user.branch_id && 
+                String(b.id) === String(user.branch_id);
+            });
             if (userBranch) {
               setSelectedBranch(userBranch.id);
             }
@@ -202,8 +206,12 @@ const AnalyticalReport = () => {
           console.log("Setting departments from API:", filterOptions.departments);
           setDepartments(filterOptions.departments);
           // If user has a department, select it by default
-          if (user.department_id) {
-            const userDept = filterOptions.departments.find(d => d.id.toString() === user.department_id.toString());
+          if (user && user.department_id) {
+            const userDept = filterOptions.departments.find(d => {
+              // Add null checks to prevent toString() errors
+              return d && d.id && user.department_id && 
+                String(d.id) === String(user.department_id);
+            });
             if (userDept) {
               setSelectedDepartment(userDept.id);
             }
@@ -218,9 +226,15 @@ const AnalyticalReport = () => {
           console.log("Setting users from API:", filterOptions.users);
           setUsers(filterOptions.users);
           // Select the current user by default
-          const currentUser = filterOptions.users.find(u => u.id.toString() === user.id.toString());
-          if (currentUser) {
-            setSelectedUser(currentUser.id);
+          if (user && user.id) {
+            const currentUser = filterOptions.users.find(u => {
+              // Add null checks to prevent toString() errors  
+              return u && u.id && user.id && 
+                String(u.id) === String(user.id);
+            });
+            if (currentUser) {
+              setSelectedUser(currentUser.id);
+            }
           }
         } else {
           console.log("No users returned from API");
@@ -1026,166 +1040,105 @@ const AnalyticalReport = () => {
       {/* Tab Panels */}
       <TabPanel value={dateRangeType} index="leadAnalytics">
         <Box>
-          <Typography variant="h6" gutterBottom>
-            Lead Analytics
-          </Typography>
-          
-          {/* Table Filters */}
-          <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-            {/* Search */}
-            <TextField
-              placeholder="Search leads..."
-              size="small"
-              value={searchQuery}
-              onChange={handleSearchChange}
-              onKeyDown={handleSearchSubmit}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon fontSize="small" />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{ width: { xs: '100%', sm: '300px' } }}
-            />
-            
-            {/* Status Filter */}
-            <FormControl size="small" sx={{ minWidth: '150px' }}>
-              <InputLabel>Status</InputLabel>
-              <Select
-                value={statusFilter}
-                label="Status"
-                onChange={handleStatusFilterChange}
-              >
-                <MenuItem value="">All Statuses</MenuItem>
-                {statusOptions.map(option => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            
-            {/* Activity Status Filter */}
-            <FormControl size="small" sx={{ minWidth: '150px' }}>
-              <InputLabel>Activity Status</InputLabel>
-              <Select
-                value={activityStatusFilter}
-                label="Activity Status"
-                onChange={handleActivityStatusFilterChange}
-              >
-                <MenuItem value="">All Activity Statuses</MenuItem>
-                {activityStatusOptions.map(option => (
-                  <MenuItem key={option.value} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            
-            {/* Apply Filters Button */}
-            <Button
-              variant="contained"
-              onClick={() => fetchLeadsData({ page: 1 })}
-              sx={{
-                backgroundColor: '#9d277c',
-                '&:hover': {
-                  backgroundColor: '#c34387',
-                }
-              }}
-            >
-              Apply
-            </Button>
-          </Box>
-          
-          {/* Leads Table */}
-          <TableContainer component={Paper} elevation={0} sx={{ borderRadius: 2, mb: 3 }}>
-            <Table>
-              <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
-                <TableRow>
-                  <TableCell>Lead ID</TableCell>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Email</TableCell>
-                  <TableCell>Phone</TableCell>
-                  <TableCell>Source</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Activity Status</TableCell>
-                  <TableCell>Created At</TableCell>
-                  <TableCell>Created By</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {leadsTableLoading ? (
+          {/* Status-wise Lead Statistics Table */}
+          <Paper elevation={0} sx={{ borderRadius: 2, mb: 4, overflow: 'hidden' }}>
+            <TableContainer>
+              <Table>
+                <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
                   <TableRow>
-                    <TableCell colSpan={9} align="center" sx={{ py: 3 }}>
-                      <CircularProgress size={32} sx={{ color: '#9d277c' }} />
-                    </TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell align="right">Count</TableCell>
+                    <TableCell align="right">Percentage</TableCell>
+                    <TableCell>Distribution</TableCell>
                   </TableRow>
-                ) : leadsData.length > 0 ? (
-                  leadsData.map((lead) => (
-                    <TableRow key={lead.id}>
-                      <TableCell>{lead.lead_id}</TableCell>
-                      <TableCell>{lead.name}</TableCell>
-                      <TableCell>{lead.email}</TableCell>
-                      <TableCell>{lead.phone}</TableCell>
-                      <TableCell>{lead.source}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={lead.status}
-                          size="small"
-                          sx={{
-                            backgroundColor: 
-                              lead.status === 'won' ? 'rgba(76, 175, 80, 0.1)' :
-                              lead.status === 'lost' ? 'rgba(244, 67, 54, 0.1)' :
-                              lead.status === 'negotiation' ? 'rgba(255, 152, 0, 0.1)' :
-                              'rgba(33, 150, 243, 0.1)',
-                            color: 
-                              lead.status === 'won' ? 'success.main' :
-                              lead.status === 'lost' ? 'error.main' :
-                              lead.status === 'negotiation' ? 'warning.main' :
-                              'info.main',
-                          }}
-                        />
+                </TableHead>
+                <TableBody>
+                  {statusWiseData.length > 0 ? (
+                    statusWiseData.map((row) => (
+                      <TableRow key={row.status}>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Box 
+                              sx={{ 
+                                width: 12, 
+                                height: 12, 
+                                borderRadius: '50%', 
+                                backgroundColor: 
+                                  row.status === 'Won' ? '#4caf50' :
+                                  row.status === 'Lost' ? '#f44336' :
+                                  row.status === 'Negotiation' ? '#ff9800' :
+                                  row.status === 'Proposal' ? '#2196f3' :
+                                  row.status === 'Qualified' ? '#9c27b0' :
+                                  row.status === 'Non-Potential' ? '#795548' :
+                                  '#3f51b5',
+                                mr: 1.5
+                              }} 
+                            />
+                            <Typography fontWeight={500}>{row.status}</Typography>
+                          </Box>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography fontWeight={600}>{row.count}</Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography fontWeight={500}>{row.percentage.toFixed(1)}%</Typography>
+                        </TableCell>
+                        <TableCell width="30%">
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Box 
+                              sx={{ 
+                                flexGrow: 1,
+                                mr: 1,
+                                height: 8,
+                                borderRadius: 4,
+                                bgcolor: '#f0f0f0',
+                                overflow: 'hidden'
+                              }}
+                            >
+                              <Box 
+                                sx={{ 
+                                  height: '100%',
+                                  width: `${row.percentage}%`,
+                                  bgcolor: 
+                                    row.status === 'Won' ? '#4caf50' :
+                                    row.status === 'Lost' ? '#f44336' :
+                                    row.status === 'Negotiation' ? '#ff9800' :
+                                    row.status === 'Proposal' ? '#2196f3' :
+                                    row.status === 'Qualified' ? '#9c27b0' :
+                                    row.status === 'Non-Potential' ? '#795548' :
+                                    '#3f51b5',
+                                }}
+                              />
+                            </Box>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={4} align="center" sx={{ py: 3 }}>
+                        {isLoadingAnalytics ? (
+                          <CircularProgress size={24} sx={{ color: '#9d277c' }} />
+                        ) : (
+                          'No lead data available for the selected filters.'
+                        )}
                       </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={lead.activity_status}
-                          size="small"
-                          sx={{
-                            backgroundColor: 
-                              lead.activity_status === 'active' ? 'rgba(76, 175, 80, 0.1)' :
-                              lead.activity_status === 'inactive' ? 'rgba(244, 67, 54, 0.1)' :
-                              'rgba(33, 150, 243, 0.1)',
-                            color: 
-                              lead.activity_status === 'active' ? 'success.main' :
-                              lead.activity_status === 'inactive' ? 'error.main' :
-                              'info.main',
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell>{lead.created_at}</TableCell>
-                      <TableCell>{lead.created_by}</TableCell>
                     </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={9} align="center" sx={{ py: 3 }}>
-                      No leads found. Try adjusting your filters.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-            <TablePagination
-              rowsPerPageOptions={[5, 10, 25, 50]}
-              component="div"
-              count={pagination.totalCount}
-              rowsPerPage={pagination.pageSize}
-              page={pagination.page}
-              onPageChange={handlePageChange}
-              onRowsPerPageChange={handleChangeRowsPerPage}
-            />
-          </TableContainer>
+                  )}
+                  {statusWiseData.length > 0 && (
+                    <TableRow sx={{ backgroundColor: '#f9f9f9' }}>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Total</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                        {statusWiseData.reduce((sum, item) => sum + item.count, 0)}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>100%</TableCell>
+                      <TableCell></TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
         </Box>
       </TabPanel>
       

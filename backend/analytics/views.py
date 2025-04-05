@@ -367,9 +367,29 @@ class LeadAnalyticsView(BaseAnalyticsView):
                 ).order_by('-count')
                 
                 # Analysis by lead status
-                lead_statuses = leads_queryset.values('status').annotate(
-                    count=Count('id')
-                ).order_by('-count')
+                # Update this to include only active leads and match the exact format needed for the frontend
+                active_leads_queryset = leads_queryset.filter(lead_activity_status=Lead.ACTIVITY_STATUS_ACTIVE)
+                total_active_leads = active_leads_queryset.count()
+                
+                # Get all status options from the Lead model
+                all_statuses = [status[0] for status in Lead.STATUS_CHOICES]
+                status_data = []
+                
+                # Calculate counts and percentages for each status
+                for status_code in all_statuses:
+                    # Get the display name from choices
+                    status_name = dict(Lead.STATUS_CHOICES).get(status_code, status_code)
+                    status_count = active_leads_queryset.filter(status=status_code).count()
+                    percentage = (status_count / total_active_leads * 100) if total_active_leads > 0 else 0
+                    
+                    status_data.append({
+                        'status': status_name,  # Use display name (capitalized)
+                        'count': status_count,
+                        'percentage': round(percentage, 1)  # Round to 1 decimal place
+                    })
+                
+                # Sort by count in descending order
+                status_data.sort(key=lambda x: x['count'], reverse=True)
                 
                 # Analysis by lead type
                 lead_types = leads_queryset.values('lead_type').annotate(
@@ -387,29 +407,22 @@ class LeadAnalyticsView(BaseAnalyticsView):
                 for source in lead_sources:
                     percentage = (source['count'] / total_leads_count) * 100 if total_leads_count > 0 else 0
                     lead_sources_with_percentage.append({
-                        'source': source['source'] or 'Unknown',
+                        'source': dict(Lead.SOURCE_CHOICES).get(source['source'], source['source'] or 'Unknown'),
                         'count': source['count'],
-                        'percentage': round(percentage, 2)
+                        'percentage': round(percentage, 1)
                     })
                 
-                # Calculate percentages for lead statuses
-                status_with_percentage = []
-                for status_item in lead_statuses:
-                    percentage = (status_item['count'] / total_leads_count) * 100 if total_leads_count > 0 else 0
-                    status_with_percentage.append({
-                        'status': status_item['status'] or 'Unknown',
-                        'count': status_item['count'],
-                        'percentage': round(percentage, 2)
-                    })
+                # Use the updated status_data instead of recalculating
+                status_with_percentage = status_data
                 
                 # Calculate percentages for lead types
                 types_with_percentage = []
                 for type_item in lead_types:
                     percentage = (type_item['count'] / total_leads_count) * 100 if total_leads_count > 0 else 0
                     types_with_percentage.append({
-                        'type': type_item['lead_type'] or 'Unknown',
+                        'type': dict(Lead.TYPE_CHOICES).get(type_item['lead_type'], type_item['lead_type'] or 'Unknown'),
                         'count': type_item['count'],
-                        'percentage': round(percentage, 2)
+                        'percentage': round(percentage, 1)
                     })
                 
                 print(f"Processed analytics data with {len(lead_sources_with_percentage)} sources, {len(status_with_percentage)} statuses, and {len(types_with_percentage)} types")
