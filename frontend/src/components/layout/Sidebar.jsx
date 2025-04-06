@@ -133,8 +133,8 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
   // Hajj and Umrah specific menu items
   const hajjUmrahMenuItems = [
     { text: 'Hajj Packages', icon: <MosqueIcon />, path: '/dashboard/hajj-umrah/hajj-packages' },
-    { text: 'Umrah Packages', icon: <MosqueIcon />, path: '/dashboard/hajj-umrah/umrah-packages' },
-    { text: 'Readymade Umrah', icon: <LuggageIcon />, path: '/dashboard/hajj-umrah/readymade-umrah' },
+    { text: 'Umrah Packages', icon: <LuggageIcon />, path: '/dashboard/hajj-umrah/umrah-packages' },
+    { text: 'Readymade Umrah', icon: <MosqueIcon />, path: '/dashboard/hajj-umrah/readymade-umrah' },
     { text: 'Transports', icon: <CarIcon />, path: '/dashboard/hajj-umrah/transports' },
     { text: 'Visas', icon: <VisaIcon />, path: '/dashboard/hajj-umrah/visas' },
     { text: 'Ziyarat', icon: <ZiyaratIcon />, path: '/dashboard/hajj-umrah/ziyarat' },

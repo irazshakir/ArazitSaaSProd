@@ -21,6 +21,9 @@ import CompanySettings from '../components/company_settings/companySettings';
 import HajjPackagesIndex from '../components/hajjPackages/hajjPackagesIndex';
 import HajjPackageCreate from '../components/forms/products/hajjPackages/HajjPackageCreate';
 import HajjPackageEdit from '../components/forms/products/hajjPackages/HajjPackageEdit';
+import UmrahPackageIndex from '../components/umrahPackages/umrahPackageIndex';
+import UmrahPackageCreate from '../components/forms/products/umrahPackages/umrahPackageCreate';
+import UmrahPackageEdit from '../components/forms/products/umrahPackages/umrahPackageEdit';
 
 // Leads Pages
 import LeadsIndex from '../components/leads/leadsIndex';
@@ -111,6 +114,10 @@ const AppRoutes = () => {
             <Route path="hajj-packages" element={<HajjPackagesIndex />} />
             <Route path="hajj-packages/create" element={<HajjPackageCreate />} />
             <Route path="hajj-packages/:id/edit" element={<HajjPackageEdit />} />
+            
+            <Route path="umrah-packages" element={<UmrahPackageIndex />} />
+            <Route path="umrah-packages/create" element={<UmrahPackageCreate />} />
+            <Route path="umrah-packages/:id/edit" element={<UmrahPackageEdit />} />
             {/* Add other hajj-umrah routes here */}
           </Route>
           

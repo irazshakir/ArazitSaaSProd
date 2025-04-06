@@ -27,5 +27,16 @@ export const API_ENDPOINTS = {
     ASSIGN: (id) => `/api/hajj-packages/${id}/assign/`,
   },
   
+  // Umrah Packages endpoints
+  UMRAH_PACKAGES: {
+    LIST: '/api/umrah-packages/',
+    DETAIL: (id) => `/api/umrah-packages/${id}/`,
+    ACTIVE: '/api/umrah-packages/active/',
+    HOTELS: (id) => `/api/umrah-packages/${id}/hotels/`,
+    ADD_HOTEL: (id) => `/api/umrah-packages/${id}/add_hotel/`,
+    VEHICLE_TYPES: '/api/umrah-packages-vehicle-types/',
+    STATS: '/api/umrah-packages-stats/',
+  },
+
   // Add other endpoints as needed for different package types
 }; 

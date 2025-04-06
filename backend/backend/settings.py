@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     # Local apps
     'users',  # We'll create this app for user authentication
     'hajjPackages',  # Hajj Packages app
+    'umrahPackages',  # Umrah Packages app
     'leads',  # Leads app
     'teams',  # Teams app
     'waba_int', # Waba Integration app

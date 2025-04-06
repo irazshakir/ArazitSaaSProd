@@ -68,7 +68,7 @@ api.interceptors.response.use(
       status: response.status,
       statusText: response.statusText,
       headers: response.headers,
-      data: response.data ? 'Data received' : 'No data'
+      data: response.data ? response.data : 'No data'
     });
     return response;
   },
@@ -83,6 +83,18 @@ api.interceptors.response.use(
       headers: error.config?.headers,
       data: error.response?.data
     });
+    
+    // For 400 Bad Request, log validation errors
+    if (error.response && error.response.status === 400) {
+      console.error('Validation Errors:', error.response.data);
+      
+      // If we have detailed field errors, log them
+      if (typeof error.response.data === 'object') {
+        Object.entries(error.response.data).forEach(([field, errors]) => {
+          console.error(`Field '${field}' errors:`, errors);
+        });
+      }
+    }
     
     // Handle 401 Unauthorized errors
     if (error.response && error.response.status === 401) {
