@@ -301,6 +301,66 @@ class LeadViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
     
     @action(detail=True, methods=['post'])
+    def update_activity_status(self, request, pk=None):
+        """Update the activity status of a lead."""
+        lead = self.get_object()
+        activity_status = request.data.get('lead_activity_status')
+        
+        if not activity_status:
+            return Response(
+                {"error": "Activity status is required"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if activity_status not in dict(Lead.ACTIVITY_STATUS_CHOICES):
+            return Response(
+                {"error": "Invalid activity status value"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        old_activity_status = lead.get_lead_activity_status_display()
+        
+        # Check if this is a change
+        if lead.lead_activity_status == activity_status:
+            return Response(
+                {"message": "No change in activity status"}, 
+                status=status.HTTP_200_OK
+            )
+        
+        # Update the lead activity status
+        lead.lead_activity_status = activity_status
+        lead.save()
+        
+        # Create a note for the activity status change
+        LeadNote.objects.create(
+            lead=lead,
+            tenant=lead.tenant,
+            added_by=request.user,
+            note=f"Activity status changed from {old_activity_status} to {lead.get_lead_activity_status_display()}"
+        )
+        
+        # Create appropriate lead event
+        if activity_status == Lead.ACTIVITY_STATUS_INACTIVE:
+            # Create CLOSED event
+            LeadEvent.objects.create(
+                lead=lead,
+                tenant=lead.tenant,
+                event_type=LeadEvent.EVENT_CLOSED,
+                updated_by=request.user
+            )
+        elif activity_status == Lead.ACTIVITY_STATUS_ACTIVE and old_activity_status == Lead.ACTIVITY_STATUS_CHOICES[1][1]:  # Inactive
+            # Create REOPENED event
+            LeadEvent.objects.create(
+                lead=lead,
+                tenant=lead.tenant,
+                event_type=LeadEvent.EVENT_REOPENED,
+                updated_by=request.user
+            )
+        
+        serializer = self.get_serializer(lead)
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['post'])
     def add_note(self, request, pk=None):
         """Add a note to a lead."""
         lead = self.get_object()

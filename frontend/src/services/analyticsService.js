@@ -311,11 +311,14 @@ const analyticsService = {
    */
   getUserPerformance: async (filters = {}) => {
     try {
+      console.log('Fetching user performance data with filters:', filters);
       const secureParams = buildSecureQuery(filters);
       const response = await api.get('/analytics/user-performance', { params: secureParams });
+      console.log('User performance response:', response.data);
       return response.data;
     } catch (error) {
       console.error('Error fetching user performance:', error);
+      console.error('Error details:', error.response?.data || error.message || error);
       throw error;
     }
   },
@@ -348,6 +351,35 @@ const analyticsService = {
       return response.data;
     } catch (error) {
       console.error('Error fetching conversion funnel:', error);
+      throw error;
+    }
+  },
+  
+  /**
+   * Get marketing analytics data (lead sources with conversion metrics)
+   * @param {Object} filters - Optional filters
+   * @returns {Promise} - Promise resolving to marketing analytics data
+   */
+  getMarketingAnalytics: async (filters = {}) => {
+    try {
+      console.log('Fetching marketing analytics with filters:', filters);
+      const secureParams = buildSecureQuery(filters);
+      
+      // Try the new marketing-analytics endpoint first
+      try {
+        const response = await api.get('/analytics/marketing-analytics', { params: secureParams });
+        console.log('Marketing analytics response:', response.data);
+        return response.data;
+      } catch (error) {
+        console.error('Error fetching from marketing-analytics endpoint:', error);
+        console.error('Falling back to sales-analytics endpoint');
+        
+        // Fallback to sales-analytics endpoint for compatibility
+        const response = await api.get('/analytics/sales-analytics', { params: secureParams });
+        return response.data;
+      }
+    } catch (error) {
+      console.error('Error fetching marketing analytics:', error);
       throw error;
     }
   }

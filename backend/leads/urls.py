@@ -27,6 +27,7 @@ urlpatterns = [
     # Lead-specific actions
     path('leads/<uuid:pk>/assign/', LeadViewSet.as_view({'post': 'assign'}), name='lead-assign'),
     path('leads/<uuid:pk>/update-status/', LeadViewSet.as_view({'post': 'update_status'}), name='lead-update-status'),
+    path('leads/<uuid:pk>/update-activity-status/', LeadViewSet.as_view({'post': 'update_activity_status'}), name='lead-update-activity-status'),
     path('leads/<uuid:pk>/add-note/', LeadViewSet.as_view({'post': 'add_note'}), name='lead-add-note'),
     path('leads/<uuid:pk>/add-activity/', LeadViewSet.as_view({'post': 'add_activity'}), name='lead-add-activity'),
     path('leads/<uuid:pk>/activities/', LeadViewSet.as_view({'get': 'get_activities'}), name='lead-activities'),

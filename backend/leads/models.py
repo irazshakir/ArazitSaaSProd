@@ -143,6 +143,8 @@ class Lead(models.Model):
     
     def __str__(self):
         return f"{self.name} - {self.get_lead_type_display()}"
+        
+    # save method will be defined after LeadEvent class to avoid circular imports
 
 
 class LeadEvent(models.Model):
@@ -179,6 +181,83 @@ class LeadEvent(models.Model):
     
     def __str__(self):
         return f"{self.get_event_type_display()} - {self.lead.name} ({self.timestamp.strftime('%Y-%m-%d %H:%M')})"
+
+
+# Define the Lead.save method after LeadEvent is defined to avoid circular imports
+def lead_save(self, *args, **kwargs):
+    """
+    Override save method to track changes in activity_status and status,
+    and create LeadEvent records accordingly.
+    """
+    # Check if this is an existing lead
+    is_new = not self.pk
+    
+    # If not new, get the original instance to compare values
+    if not is_new:
+        try:
+            original = Lead.objects.get(pk=self.pk)
+            original_activity_status = original.lead_activity_status
+            original_status = original.status
+        except Lead.DoesNotExist:
+            # Should not happen, but just in case
+            original_activity_status = None
+            original_status = None
+    else:
+        original_activity_status = None
+        original_status = None
+    
+    # Save the instance first
+    super(Lead, self).save(*args, **kwargs)
+    
+    # Handle LeadEvent creation based on various conditions
+    
+    # 1. For new leads, create an OPEN event - already handled in serializer
+    # This is in the LeadSerializer.create method
+    
+    # 2. For lead_activity_status changing to inactive (CLOSED)
+    if not is_new and original_activity_status == self.ACTIVITY_STATUS_ACTIVE and self.lead_activity_status == self.ACTIVITY_STATUS_INACTIVE:
+        # Create CLOSED event
+        LeadEvent.objects.create(
+            lead=self,
+            tenant=self.tenant,
+            event_type=LeadEvent.EVENT_CLOSED,
+            # We don't have request.user in model, so must be handled in view
+            updated_by=self.assigned_to if self.assigned_to else self.created_by
+        )
+    
+    # 3. For lead_activity_status changing from inactive to active (REOPENED)
+    elif not is_new and original_activity_status == self.ACTIVITY_STATUS_INACTIVE and self.lead_activity_status == self.ACTIVITY_STATUS_ACTIVE:
+        # Create REOPENED event
+        LeadEvent.objects.create(
+            lead=self,
+            tenant=self.tenant,
+            event_type=LeadEvent.EVENT_REOPENED,
+            # We don't have request.user in model, so must be handled in view
+            updated_by=self.assigned_to if self.assigned_to else self.created_by
+        )
+    
+    # 4. For status changing to won (WON)
+    if not is_new and original_status != self.STATUS_WON and self.status == self.STATUS_WON:
+        # Create WON event
+        LeadEvent.objects.create(
+            lead=self,
+            tenant=self.tenant,
+            event_type=LeadEvent.EVENT_WON,
+            updated_by=self.assigned_to if self.assigned_to else self.created_by
+        )
+    
+    # 5. For status changing to lost (LOST)
+    elif not is_new and original_status != self.STATUS_LOST and self.status == self.STATUS_LOST:
+        # Create LOST event
+        LeadEvent.objects.create(
+            lead=self,
+            tenant=self.tenant,
+            event_type=LeadEvent.EVENT_LOST,
+            updated_by=self.assigned_to if self.assigned_to else self.created_by
+        )
+
+# Assign the save method to Lead
+Lead.save = lead_save
 
 
 class LeadNote(models.Model):

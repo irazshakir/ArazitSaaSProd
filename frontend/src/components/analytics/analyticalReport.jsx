@@ -114,6 +114,7 @@ const AnalyticalReport = () => {
   const [statusWiseData, setStatusWiseData] = useState([]);
   const [leadTypeData, setLeadTypeData] = useState([]);
   const [leadSourceData, setLeadSourceData] = useState([]);
+  const [userPerformanceData, setUserPerformanceData] = useState([]);
 
   // UI states
   const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false);
@@ -129,6 +130,18 @@ const AnalyticalReport = () => {
   
   // Get user role from utility function
   const userRole = getUserRole();
+  
+  // Marketing Analytics state
+  const [marketingData, setMarketingData] = useState([]);
+  const [marketingTotals, setMarketingTotals] = useState({
+    source: 'Total',
+    created: 0,
+    qualified: 0,
+    non_potential: 0,
+    sales: 0,
+    conversion_ratio: 0
+  });
+  const [isLoadingMarketingData, setIsLoadingMarketingData] = useState(false);
   
   // Get user from localStorage
   useEffect(() => {
@@ -293,6 +306,16 @@ const AnalyticalReport = () => {
     if (newValue === 'leadAnalytics' && leadsData.length === 0) {
       fetchLeadsData({ page: 1 });
     }
+    
+    // If switching to user performance tab, fetch user performance data
+    if (newValue === 'userPerformance') {
+      fetchUserPerformanceData();
+    }
+    
+    // If switching to marketing analytics tab, fetch marketing data
+    if (newValue === 'marketingAnalytics') {
+      fetchMarketingData();
+    }
   };
   
   const handleDateFromChange = (newDate) => {
@@ -303,6 +326,121 @@ const AnalyticalReport = () => {
   const handleDateToChange = (newDate) => {
     setDateTo(newDate);
     setDateRangeType('custom');
+  };
+
+  // Fetch user performance data
+  const fetchUserPerformanceData = async () => {
+    setIsLoadingAnalytics(true);
+    setError(null);
+    try {
+      // Build filters object
+      const filters = {
+        date_from: format(dateFrom, 'yyyy-MM-dd'),
+        date_to: format(dateTo, 'yyyy-MM-dd')
+      };
+      
+      // Add filters if selected
+      if (selectedBranch) filters.branch_id = selectedBranch;
+      if (selectedDepartment) filters.department_id = selectedDepartment;
+      if (selectedUser) filters.user_id = selectedUser;
+      
+      console.log('Fetching user performance with filters:', filters);
+      
+      const data = await analyticsService.getUserPerformance(filters);
+      
+      if (data && data.userPerformance) {
+        console.log('User performance data received:', data.userPerformance);
+        setUserPerformanceData(data.userPerformance);
+      } else {
+        console.log('No user performance data returned');
+        setUserPerformanceData([]);
+      }
+    } catch (error) {
+      console.error('Error fetching user performance data:', error);
+      
+      // Extract the specific error message
+      let errorMessage = 'Failed to load user performance data.';
+      if (error.response?.data?.error) {
+        errorMessage += ' ' + error.response.data.error;
+      } else if (error.message) {
+        errorMessage += ' ' + error.message;
+      }
+      
+      setError(errorMessage);
+      setUserPerformanceData([]);
+      
+      // Try to provide more helpful debug info
+      if (error.toString().includes('LeadEvent is not defined')) {
+        console.error('The LeadEvent model is not properly imported in the backend views.py file.');
+      }
+    } finally {
+      setIsLoadingAnalytics(false);
+    }
+  };
+
+  // Fetch marketing analytics data
+  const fetchMarketingData = async () => {
+    setIsLoadingMarketingData(true);
+    setError(null);
+    try {
+      // Build filters object
+      const filters = {
+        date_from: format(dateFrom, 'yyyy-MM-dd'),
+        date_to: format(dateTo, 'yyyy-MM-dd')
+      };
+      
+      // Add filters if selected
+      if (selectedBranch) filters.branch_id = selectedBranch;
+      if (selectedDepartment) filters.department_id = selectedDepartment;
+      if (selectedUser) filters.user_id = selectedUser;
+      
+      console.log('Fetching marketing analytics with filters:', filters);
+      
+      const data = await analyticsService.getMarketingAnalytics(filters);
+      
+      if (data && data.marketingData) {
+        console.log('Marketing data received:', data.marketingData);
+        setMarketingData(data.marketingData);
+        
+        if (data.totals) {
+          setMarketingTotals(data.totals);
+        }
+      } else {
+        console.log('No marketing data returned');
+        setMarketingData([]);
+        setMarketingTotals({
+          source: 'Total',
+          created: 0,
+          qualified: 0,
+          non_potential: 0,
+          sales: 0,
+          conversion_ratio: 0
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching marketing data:', error);
+      
+      // Extract the specific error message
+      let errorMessage = 'Failed to load marketing analytics data.';
+      if (error.response?.data?.error) {
+        errorMessage += ' ' + error.response.data.error;
+      } else if (error.message) {
+        errorMessage += ' ' + error.message;
+      }
+      
+      setError(errorMessage);
+      setMarketingData([]);
+      setMarketingTotals({
+        source: 'Total',
+        created: 0,
+        qualified: 0,
+        non_potential: 0,
+        sales: 0,
+        conversion_ratio: 0
+      });
+    } finally {
+      setIsLoadingMarketingData(false);
+    }
   };
 
   // Apply filters and fetch data
@@ -334,23 +472,43 @@ const AnalyticalReport = () => {
       console.log('Applying analytics filters:', filters);
       
       // Fetch analytics data based on active tab
-      let data;
-      
       try {
-        data = await analyticsService.getLeadAnalytics(filters);
-        console.log('Analytics data received:', data);
-        
-        if (data) {
-          setStats(data.stats);
-          setStatusWiseData(data.statusWiseData);
-          setLeadTypeData(data.leadTypeData);
-          setLeadSourceData(data.leadSourceData);
+        if (rangeType === 'leadAnalytics') {
+          // Fetch lead analytics data
+          const data = await analyticsService.getLeadAnalytics(filters);
+          console.log('Lead analytics data received:', data);
+          
+          if (data) {
+            setStats(data.stats);
+            setStatusWiseData(data.statusWiseData);
+            setLeadTypeData(data.leadTypeData);
+            setLeadSourceData(data.leadSourceData);
+          } else {
+            setError('No data returned for the selected filters');
+          }
+        } else if (rangeType === 'userPerformance') {
+          // Fetch user performance data
+          await fetchUserPerformanceData();
+        } else if (rangeType === 'marketingAnalytics') {
+          // Fetch marketing analytics data
+          await fetchMarketingData();
         } else {
-          setError('No data returned for the selected filters');
+          // Fetch lead analytics data for other tabs (fallback)
+          const data = await analyticsService.getLeadAnalytics(filters);
+          console.log('Analytics data received:', data);
+          
+          if (data) {
+            setStats(data.stats);
+            setStatusWiseData(data.statusWiseData);
+            setLeadTypeData(data.leadTypeData);
+            setLeadSourceData(data.leadSourceData);
+          } else {
+            setError('No data returned for the selected filters');
+          }
         }
       } catch (error) {
-        console.error('Error fetching analytics data, using dummy data:', error);
-        // Fallback to dummy data
+        console.error('Error fetching analytics data:', error);
+        // Clear the data
         setStats({
           newInquiries: 0,
           activeInquiries: 0,
@@ -362,6 +520,8 @@ const AnalyticalReport = () => {
         setStatusWiseData([]);
         setLeadTypeData([]);
         setLeadSourceData([]);
+        setUserPerformanceData([]);
+        setMarketingData([]);
       }
     } catch (error) {
       console.error('Error applying filters:', error);
@@ -539,209 +699,6 @@ const AnalyticalReport = () => {
     }
   };
 
-  // Function to display current state for debugging
-  const showCurrentState = () => {
-    console.log("Current state values:");
-    console.log("Branches:", branches);
-    console.log("Departments:", departments);
-    console.log("Users:", users);
-    console.log("Selected branch:", selectedBranch);
-    console.log("Selected department:", selectedDepartment);
-    console.log("Selected user:", selectedUser);
-
-    // Show an alert with the count of items
-    alert(`Current data:\nBranches: ${branches.length}\nDepartments: ${departments.length}\nUsers: ${users.length}`);
-  };
-
-  // Debug API connections
-  const testApiConnection = async () => {
-    console.log("Testing API connections...");
-    setError(null);
-    setIsLoadingFilters(true);
-    
-    try {
-      // Test 1: Get current user
-      try {
-        const token = localStorage.getItem('access_token') || localStorage.getItem('token');
-        console.log("Current token:", token);
-        
-        const tenant_id = localStorage.getItem('tenant_id');
-        console.log("Current tenant_id:", tenant_id);
-      } catch (e) {
-        console.error("Error checking token:", e);
-      }
-      
-      // Test user filter specifically by making a direct request
-      if (selectedUser) {
-        console.log("Testing user filter specifically with user_id:", selectedUser);
-        
-        try {
-          const token = localStorage.getItem('access_token') || localStorage.getItem('token');
-          const tenantId = localStorage.getItem('tenant_id');
-          const dateFrom = format(dateFrom || new Date(), 'yyyy-MM-dd');
-          const dateTo = format(dateTo || new Date(), 'yyyy-MM-dd');
-          
-          const userFilterUrl = `${import.meta.env.VITE_API_BASE_URL}/api/analytics/lead-analytics/?tenant_id=${tenantId}&user_id=${selectedUser}&date_from=${dateFrom}&date_to=${dateTo}`;
-          console.log("Making test request for user filtering:", userFilterUrl);
-          
-          const response = await fetch(userFilterUrl, {
-            method: 'GET',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
-            }
-          });
-          
-          console.log("User filter test response status:", response.status);
-          if (response.ok) {
-            const data = await response.json();
-            console.log("User filter test data:", data);
-            
-            // Show the actual data if available
-            if (data && data.statusWiseData) {
-              console.log("Status-wise data with user filter:", data.statusWiseData);
-              // Update the UI directly with this data
-              setStatusWiseData(data.statusWiseData);
-              setLeadTypeData(data.leadTypeData || []);
-              setLeadSourceData(data.leadSourceData || []);
-              setStats(data.stats || {});
-              
-              alert(`Data retrieved for user ${selectedUser}:\n${data.statusWiseData.length} statuses\n${data.leadTypeData ? data.leadTypeData.length : 0} lead types\n${data.leadSourceData ? data.leadSourceData.length : 0} sources`);
-            }
-          } else {
-            console.error("User filter test error:", await response.text());
-          }
-        } catch (e) {
-          console.error("Error testing user filter:", e);
-        }
-      }
-      
-      // Test 2: Direct filter options request with fetch to avoid any middleware issues
-      try {
-        const token = localStorage.getItem('access_token') || localStorage.getItem('token');
-        const tenantId = user?.tenant_id || localStorage.getItem('tenant_id') || "1";
-        
-        console.log(`Making direct fetch to ${import.meta.env.VITE_API_BASE_URL}/api/analytics/filter-options/?tenant_id=${tenantId}`);
-        
-        const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/analytics/filter-options/?tenant_id=${tenantId}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
-        });
-        
-        console.log("Direct filter options response:", response.status);
-        console.log("Response headers:", Object.fromEntries([...response.headers.entries()]));
-        
-        if (response.ok) {
-          const data = await response.json();
-          console.log("Filter options data from direct fetch:", data);
-          
-          // IMPORTANT: Use the data directly from this fetch
-          if (data.branches && data.branches.length > 0) {
-            console.log("Setting branches from direct fetch:", data.branches);
-            setBranches(data.branches);
-          }
-          
-          if (data.departments && data.departments.length > 0) {
-            console.log("Setting departments from direct fetch:", data.departments);
-            setDepartments(data.departments);
-          }
-          
-          if (data.users && data.users.length > 0) {
-            console.log("Setting users from direct fetch:", data.users);
-            setUsers(data.users);
-          }
-          
-          return; // Exit early if direct fetch worked
-        } else {
-          console.error("Filter options error:", await response.text());
-        }
-      } catch (e) {
-        console.error("Error with direct fetch for filter options:", e);
-      }
-      
-      // Test 3: Try analyticsService as fallback
-      try {
-        console.log("Trying analyticsService.getFilterOptions() as fallback");
-        const filterOptions = await analyticsService.getFilterOptions();
-        console.log("Filter options from analyticsService:", filterOptions);
-        
-        if (filterOptions.branches && filterOptions.branches.length > 0) {
-          console.log("Setting branches from analyticsService:", filterOptions.branches);
-          setBranches(filterOptions.branches);
-        }
-        
-        if (filterOptions.departments && filterOptions.departments.length > 0) {
-          console.log("Setting departments from analyticsService:", filterOptions.departments);
-          setDepartments(filterOptions.departments);
-        }
-        
-        if (filterOptions.users && filterOptions.users.length > 0) {
-          console.log("Setting users from analyticsService:", filterOptions.users);
-          setUsers(filterOptions.users);
-        }
-        
-        return; // Exit if this worked
-      } catch (e) {
-        console.error("Error with analyticsService.getFilterOptions():", e);
-      }
-      
-      // Final fallback - try individual services directly
-      console.log("Trying individual services as final fallback");
-      
-      // Try branches directly
-      try {
-        const tenantId = user?.tenant_id || localStorage.getItem('tenant_id') || "1";
-        const branches = await branchService.getBranches(tenantId);
-        console.log("Direct branches response:", branches);
-        
-        if (branches && branches.length > 0) {
-          setBranches(branches);
-        }
-      } catch (e) {
-        console.error("Error testing branches:", e);
-      }
-      
-      // Try departments directly
-      try {
-        const tenantId = user?.tenant_id || localStorage.getItem('tenant_id') || "1";
-        const departments = await departmentService.getDepartments(tenantId);
-        console.log("Direct departments response:", departments);
-        
-        if (departments && departments.length > 0) {
-          setDepartments(departments);
-        }
-      } catch (e) {
-        console.error("Error testing departments:", e);
-      }
-      
-      // Try users directly through auth/users endpoint
-      try {
-        const tenantId = user?.tenant_id || localStorage.getItem('tenant_id') || "1";
-        const response = await api.get('/auth/users/', { params: { tenant_id: tenantId } });
-        console.log("Direct users response:", response.data);
-        
-        if (response.data && response.data.results) {
-          const userData = response.data.results.map(user => ({
-            id: user.id,
-            name: `${user.first_name} ${user.last_name}`.trim() || user.email
-          }));
-          setUsers(userData);
-        }
-      } catch (e) {
-        console.error("Error testing users:", e);
-      }
-      
-    } catch (error) {
-      console.error("API test error:", error);
-      setError("Error testing API connections. Check console for details.");
-    } finally {
-      setIsLoadingFilters(false);
-    }
-  };
-
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
@@ -786,30 +743,6 @@ const AnalyticalReport = () => {
               <FilterListIcon sx={{ verticalAlign: 'middle', mr: 1 }} />
               Filters
             </Typography>
-            
-            {/* Debug buttons */}
-            {import.meta.env.MODE !== 'production' && (
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Button 
-                  variant="outlined" 
-                  size="small" 
-                  color="info" 
-                  onClick={testApiConnection}
-                  startIcon={<RefreshIcon />}
-                  disabled={isLoadingFilters}
-                >
-                  {isLoadingFilters ? 'Testing...' : 'Test API'}
-                </Button>
-                <Button
-                  variant="outlined"
-                  size="small"
-                  color="secondary"
-                  onClick={showCurrentState}
-                >
-                  Show Data
-                </Button>
-              </Box>
-            )}
           </Box>
           <Divider sx={{ mb: 2 }} />
           
@@ -1077,8 +1010,7 @@ const AnalyticalReport = () => {
         >
           <Tab label="Lead Analytics" value="leadAnalytics" />
           <Tab label="User Performance" value="userPerformance" />
-          <Tab label="Sales Analytics" value="salesAnalytics" />
-          {canViewConversionMetrics && <Tab label="Conversion Funnel" value="conversionFunnel" />}
+          <Tab label="Marketing Analytics" value="marketingAnalytics" />
         </Tabs>
       </Box>
       
@@ -1188,51 +1120,275 @@ const AnalyticalReport = () => {
       </TabPanel>
       
       <TabPanel value={dateRangeType} index="userPerformance">
-        <Typography variant="h6" gutterBottom>
-          User Performance
-        </Typography>
-        {stats ? (
-          <Typography>
-            User performance data would be displayed here with charts and metrics.
-          </Typography>
-        ) : !isLoadingAnalytics && (
-          <Typography color="text.secondary">
-            No user performance data available. Try adjusting your filters.
-          </Typography>
-        )}
+        <Box>
+          {/* User Performance Table */}
+          <Paper elevation={0} sx={{ borderRadius: 2, mb: 4, overflow: 'hidden' }}>
+            <TableContainer>
+              <Table>
+                <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
+                  <TableRow>
+                    <TableCell>User Name</TableCell>
+                    <TableCell align="right">Assigned Leads</TableCell>
+                    <TableCell align="right">Sales</TableCell>
+                    <TableCell align="right">Conversion Ratio</TableCell>
+                    <TableCell>Distribution</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {isLoadingAnalytics ? (
+                    <TableRow>
+                      <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
+                        <CircularProgress size={24} sx={{ color: '#9d277c' }} />
+                      </TableCell>
+                    </TableRow>
+                  ) : userPerformanceData.length > 0 ? (
+                    userPerformanceData.map((user) => (
+                      <TableRow key={user.user_id}>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Avatar 
+                              sx={{ 
+                                width: 32, 
+                                height: 32,
+                                bgcolor: user.role === 'sales_agent' ? '#2196f3' : '#9c27b0',
+                                mr: 1.5,
+                                fontSize: '0.875rem'
+                              }}
+                            >
+                              {user.name.charAt(0)}
+                            </Avatar>
+                            <Box>
+                              <Typography fontWeight={500}>{user.name}</Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {user.role === 'sales_agent' ? 'Sales Agent' : 'Support Agent'}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography fontWeight={600}>{user.assigned_leads}</Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography fontWeight={600} sx={{ color: '#4caf50' }}>
+                            {user.sales}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography fontWeight={500}>
+                            {user.conversion_ratio}%
+                          </Typography>
+                        </TableCell>
+                        <TableCell width="30%">
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Box 
+                              sx={{ 
+                                flexGrow: 1,
+                                mr: 1,
+                                height: 8,
+                                borderRadius: 4,
+                                bgcolor: '#f0f0f0',
+                                overflow: 'hidden'
+                              }}
+                            >
+                              <Box 
+                                sx={{ 
+                                  height: '100%',
+                                  width: `${user.conversion_ratio}%`,
+                                  bgcolor: user.conversion_ratio > 50 ? '#4caf50' : 
+                                           user.conversion_ratio > 30 ? '#ff9800' : '#f44336',
+                                }}
+                              />
+                            </Box>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={5} align="center" sx={{ py: 3 }}>
+                        No user performance data available for the selected filters.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {userPerformanceData.length > 0 && (
+                    <TableRow sx={{ backgroundColor: '#f9f9f9' }}>
+                      <TableCell sx={{ fontWeight: 'bold' }}>Total</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                        {userPerformanceData.reduce((sum, user) => sum + user.assigned_leads, 0)}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                        {userPerformanceData.reduce((sum, user) => sum + user.sales, 0)}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                        {userPerformanceData.length > 0 
+                          ? Math.round(userPerformanceData.reduce((sum, user) => sum + user.conversion_ratio, 0) / userPerformanceData.length) 
+                          : 0}%
+                      </TableCell>
+                      <TableCell></TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Paper>
+        </Box>
       </TabPanel>
       
-      <TabPanel value={dateRangeType} index="salesAnalytics">
-        <Typography variant="h6" gutterBottom>
-          Sales Analytics
-        </Typography>
-        {stats ? (
-          <Typography>
-            Sales analytics data would be displayed here with charts and metrics.
-          </Typography>
-        ) : !isLoadingAnalytics && (
-          <Typography color="text.secondary">
-            No sales analytics data available. Try adjusting your filters.
-          </Typography>
-        )}
+      <TabPanel value={dateRangeType} index="marketingAnalytics">
+        <Box>
+          {/* Marketing Analytics Table */}
+          <Paper elevation={0} sx={{ borderRadius: 2, mb: 4, overflow: 'hidden' }}>
+            <TableContainer>
+              <Table>
+                <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
+                  <TableRow>
+                    <TableCell>Lead Source</TableCell>
+                    <TableCell align="right">Created</TableCell>
+                    <TableCell align="right">Qualified</TableCell>
+                    <TableCell align="right">Non-Potential</TableCell>
+                    <TableCell align="right">Sales</TableCell>
+                    <TableCell align="right">Conversion Ratio</TableCell>
+                    <TableCell>Distribution</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {isLoadingMarketingData || isLoadingAnalytics ? (
+                    <TableRow>
+                      <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
+                        <CircularProgress size={24} sx={{ color: '#9d277c' }} />
+                      </TableCell>
+                    </TableRow>
+                  ) : marketingData.length > 0 ? (
+                    marketingData.map((row) => (
+                      <TableRow key={row.source}>
+                        <TableCell>
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Box 
+                              sx={{ 
+                                width: 12, 
+                                height: 12, 
+                                borderRadius: '50%', 
+                                // Different colors for different sources
+                                backgroundColor: 
+                                  row.source === 'FB Form' ? '#4267B2' :
+                                  row.source === 'Messenger' ? '#00B2FF' :
+                                  row.source === 'WhatsApp' ? '#25D366' :
+                                  row.source === 'Insta Form' ? '#C13584' :
+                                  row.source === 'Website Form' ? '#2196f3' :
+                                  row.source === 'Website Chat' ? '#2979FF' :
+                                  row.source === 'Referral' ? '#FF9800' :
+                                  row.source === 'Walkin' ? '#4CAF50' :
+                                  `hsl(${row.source.charCodeAt(0) * 10 % 360}, 70%, 50%)`,
+                                mr: 1.5
+                              }} 
+                            />
+                            <Typography fontWeight={500}>{row.source}</Typography>
+                          </Box>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography fontWeight={600}>{row.created}</Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography>{row.qualified}</Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography color="text.secondary">{row.non_potential}</Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography fontWeight={600} sx={{ color: '#4caf50' }}>
+                            {row.sales}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography fontWeight={500} sx={{ 
+                            color: row.conversion_ratio > 50 ? '#4caf50' : 
+                                   row.conversion_ratio > 30 ? '#ff9800' : '#f44336',
+                          }}>
+                            {row.conversion_ratio}%
+                          </Typography>
+                        </TableCell>
+                        <TableCell width="20%">
+                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <Box 
+                              sx={{ 
+                                flexGrow: 1,
+                                mr: 1,
+                                height: 8,
+                                borderRadius: 4,
+                                bgcolor: '#f0f0f0',
+                                overflow: 'hidden'
+                              }}
+                            >
+                              <Box 
+                                sx={{ 
+                                  height: '100%',
+                                  width: `${row.conversion_ratio}%`,
+                                  bgcolor: row.conversion_ratio > 50 ? '#4caf50' : 
+                                           row.conversion_ratio > 30 ? '#ff9800' : '#f44336',
+                                }}
+                              />
+                            </Box>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
+                        No marketing data available for the selected filters.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  {marketingData.length > 0 && (
+                    <TableRow sx={{ backgroundColor: '#f9f9f9' }}>
+                      <TableCell sx={{ fontWeight: 'bold' }}>{marketingTotals.source}</TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                        {marketingTotals.created}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                        {marketingTotals.qualified}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                        {marketingTotals.non_potential}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 'bold', color: '#4caf50' }}>
+                        {marketingTotals.sales}
+                      </TableCell>
+                      <TableCell align="right" sx={{ fontWeight: 'bold' }}>
+                        {marketingTotals.conversion_ratio}%
+                      </TableCell>
+                      <TableCell></TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            
+            <Box sx={{ p: 2, borderTop: '1px solid #eee', display: 'flex', justifyContent: 'space-between' }}>
+              <Typography variant="caption" color="text.secondary">
+                * Created: Total leads from the source | Sales: Leads with status 'Won' | Conversion: Sales/Created
+              </Typography>
+              
+              {canExportReports && (
+                <Button
+                  startIcon={<DownloadIcon />}
+                  size="small"
+                  onClick={handleExport}
+                  sx={{ 
+                    backgroundColor: 'rgba(157, 39, 124, 0.1)', 
+                    color: '#9d277c',
+                    '&:hover': {
+                      backgroundColor: 'rgba(157, 39, 124, 0.2)'
+                    }
+                  }}
+                >
+                  Export
+                </Button>
+              )}
+            </Box>
+          </Paper>
+        </Box>
       </TabPanel>
-      
-      {canViewConversionMetrics && (
-        <TabPanel value={dateRangeType} index="conversionFunnel">
-          <Typography variant="h6" gutterBottom>
-            Conversion Funnel
-          </Typography>
-          {stats ? (
-            <Typography>
-              Conversion funnel data would be displayed here with charts and metrics.
-            </Typography>
-          ) : !isLoadingAnalytics && (
-            <Typography color="text.secondary">
-              No conversion funnel data available. Try adjusting your filters.
-            </Typography>
-          )}
-        </TabPanel>
-      )}
     </Box>
   );
 };

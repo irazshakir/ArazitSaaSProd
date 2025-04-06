@@ -13,7 +13,6 @@ import Dashboard from '../components/dashboard/Dashboard';
 
 // Analytics Pages
 import AnalyticalReport from '../components/analytics/analyticalReport';
-import PerformanceReport from '../components/analytics/performanceReport';
 
 // Company Settings Pages
 import CompanySettings from '../components/company_settings/companySettings';
@@ -105,7 +104,6 @@ const AppRoutes = () => {
           <Route path="analytics">
             <Route index element={<Navigate to="analytical-report" replace />} />
             <Route path="analytical-report" element={<AnalyticalReport />} />
-            <Route path="performance-report" element={<PerformanceReport />} />
           </Route>
           
           {/* Hajj & Umrah Routes */}

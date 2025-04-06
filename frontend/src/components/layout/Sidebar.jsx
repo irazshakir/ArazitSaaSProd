@@ -106,7 +106,6 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
   // Analytics submenu - available to all authenticated users
   const analyticsMenuItems = [
     { text: 'Reports', icon: <AnalyticsIcon />, path: '/dashboard/analytics/analytical-report' },
-    { text: 'Performance', icon: <AssignmentIcon />, path: '/dashboard/analytics/performance-report' },
   ];
 
   // Social submenu - only for admin

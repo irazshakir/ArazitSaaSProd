@@ -165,6 +165,30 @@ class ConversionFunnelSerializer(serializers.Serializer):
     class Meta:
         fields = '__all__'
 
+class MarketingAnalyticsItemSerializer(serializers.Serializer):
+    """
+    Serializer for individual marketing analytics data item (by lead source)
+    """
+    source = serializers.CharField()
+    created = serializers.IntegerField()
+    qualified = serializers.IntegerField()
+    non_potential = serializers.IntegerField()
+    sales = serializers.IntegerField()
+    conversion_ratio = serializers.FloatField()
+    
+    class Meta:
+        fields = ['source', 'created', 'qualified', 'non_potential', 'sales', 'conversion_ratio']
+        
+class MarketingAnalyticsSerializer(serializers.Serializer):
+    """
+    Serializer for marketing analytics data
+    """
+    marketingData = MarketingAnalyticsItemSerializer(many=True)
+    totals = MarketingAnalyticsItemSerializer()
+    
+    class Meta:
+        fields = ['marketingData', 'totals']
+
 class BranchSerializer(serializers.Serializer):
     """
     Serializer for branch data
