@@ -45,51 +45,46 @@ const UmrahPackageIndex = () => {
       sortable: true 
     },
     { 
+      field: 'package_star', 
+      headerName: 'PACKAGE STAR', 
+      width: '15%',
+      minWidth: 120,
+      sortable: true,
+      render: (value) => {
+        const starLabel = {
+          '5': '5 Star',
+          '4': '4 Star',
+          '3': '3 Star',
+          '2': '2 Star',
+          'economy': 'Economy',
+          'sharing': 'Sharing'
+        };
+        return starLabel[value] || value;
+      }
+    },
+    { 
       field: 'departure_date', 
       headerName: 'TRAVEL DATE', 
-      width: '20%',
-      minWidth: 130,
+      width: '15%',
+      minWidth: 120,
       sortable: true,
       render: (value) => value ? new Date(value).toLocaleDateString() : 'N/A'
     },
     { 
       field: 'return_date', 
       headerName: 'RETURN DATE', 
-      width: '20%',
-      minWidth: 130,
+      width: '15%',
+      minWidth: 120,
       sortable: true,
       render: (value) => value ? new Date(value).toLocaleDateString() : 'N/A'
     },
     { 
-      field: 'is_active', 
-      headerName: 'STATUS', 
-      width: '20%',
-      minWidth: 100,
+      field: 'umrah_days', 
+      headerName: 'DAYS', 
+      width: '10%',
+      minWidth: 80,
       sortable: true,
-      type: 'status',
-      render: (value) => (
-        value ? 
-        <Chip 
-          label="Active" 
-          size="small" 
-          sx={{ 
-            backgroundColor: 'rgba(46, 204, 113, 0.2)', 
-            color: 'rgb(46, 204, 113)',
-            fontWeight: 500,
-            borderRadius: '4px'
-          }} 
-        /> : 
-        <Chip 
-          label="Inactive" 
-          size="small" 
-          sx={{ 
-            backgroundColor: 'rgba(231, 76, 60, 0.2)', 
-            color: 'rgb(231, 76, 60)',
-            fontWeight: 500,
-            borderRadius: '4px'
-          }} 
-        />
-      )
+      render: (value) => `${value} Days`
     }
   ];
 
@@ -101,6 +96,18 @@ const UmrahPackageIndex = () => {
       options: [
         { value: 'active', label: 'Active' },
         { value: 'inactive', label: 'Inactive' }
+      ]
+    },
+    {
+      name: 'package_star',
+      label: 'Star Rating',
+      options: [
+        { value: '5', label: '5 Star' },
+        { value: '4', label: '4 Star' },
+        { value: '3', label: '3 Star' },
+        { value: '2', label: '2 Star' },
+        { value: 'economy', label: 'Economy' },
+        { value: 'sharing', label: 'Sharing' }
       ]
     }
   ];
@@ -138,6 +145,8 @@ const UmrahPackageIndex = () => {
           id: pkg.id, // Ensure id field for table operations
           // Ensure these fields are present for sorting and filtering
           package_name: pkg.package_name || 'Unnamed Package',
+          package_star: pkg.package_star || '',
+          umrah_days: pkg.umrah_days || 0,
           departure_date: pkg.departure_date || null,
           return_date: pkg.return_date || null,
           is_active: typeof pkg.is_active === 'boolean' ? pkg.is_active : true
@@ -175,7 +184,8 @@ const UmrahPackageIndex = () => {
     if (query) {
       const lowercasedQuery = query.toLowerCase();
       results = results.filter(pkg => 
-        pkg.package_name?.toLowerCase().includes(lowercasedQuery)
+        pkg.package_name?.toLowerCase().includes(lowercasedQuery) ||
+        (typeof pkg.package_star === 'string' && pkg.package_star.toLowerCase().includes(lowercasedQuery))
       );
     }
     
@@ -185,6 +195,13 @@ const UmrahPackageIndex = () => {
         const status = pkg.is_active ? 'active' : 'inactive';
         return filters.status.includes(status);
       });
+    }
+    
+    // Filter by package star
+    if (filters.package_star?.length) {
+      results = results.filter(pkg => 
+        filters.package_star.includes(pkg.package_star)
+      );
     }
     
     setFilteredPackages(results);
@@ -321,7 +338,7 @@ const UmrahPackageIndex = () => {
             <Box sx={{ display: 'flex', mb: 3, gap: 2 }}>
               <Box sx={{ flexGrow: 1 }}>
                 <SearchBar 
-                  placeholder="Search package name..." 
+                  placeholder="Search by package name or star rating..." 
                   onSearch={handleSearch}
                 />
               </Box>
