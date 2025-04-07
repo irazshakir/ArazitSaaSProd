@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'company_settings', # Company Settings app
     'invoices', # Invoices app
     'analytics', # Analytics app for business intelligence and reporting
+    'flights', # Flights app for flight bookings and management
 ]
 
 MIDDLEWARE = [
@@ -213,7 +214,51 @@ CORS_ALLOW_HEADERS = [
     'x-tenant-id',
 ]
 
-
+# Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'debug.log'),
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'leads': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'flights': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
 
 # OnCloud API settings
 ONCLOUD_API_URL = os.environ.get('ONCLOUD_API_URL', 'https://apps.oncloudapi.com')

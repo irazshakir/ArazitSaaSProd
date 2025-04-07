@@ -1,0 +1,314 @@
+INFO 2025-04-08 00:20:26,418 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 00:20:46,364 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\flights\models.py changed, reloading.
+INFO 2025-04-08 00:20:47,497 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 00:23:21,657 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\leads\signals.py changed, reloading.
+INFO 2025-04-08 00:23:22,756 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 00:23:35,397 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\backend\settings.py changed, reloading.
+INFO 2025-04-08 00:23:36,520 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 00:23:46,151 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\flights\models.py changed, reloading.
+INFO 2025-04-08 00:23:47,280 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 00:24:55,482 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 00:25:04,601 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2110
+WARNING 2025-04-08 00:25:05,333 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 00:25:05,334 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+INFO 2025-04-08 00:25:05,476 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2110
+WARNING 2025-04-08 00:25:05,899 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:25:05,901 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 00:25:05,918 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+WARNING 2025-04-08 00:25:05,956 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 00:25:05,957 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+INFO 2025-04-08 00:25:05,970 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+WARNING 2025-04-08 00:25:06,033 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:25:06,034 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 00:25:06,085 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+INFO 2025-04-08 00:25:06,155 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+INFO 2025-04-08 00:25:06,160 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+INFO 2025-04-08 00:25:06,194 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+INFO 2025-04-08 00:25:06,220 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+INFO 2025-04-08 00:25:06,300 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+INFO 2025-04-08 00:25:06,501 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+INFO 2025-04-08 00:25:06,518 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+WARNING 2025-04-08 00:25:06,913 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:25:06,915 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+WARNING 2025-04-08 00:25:07,001 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:25:07,003 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 00:25:08,389 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 00:25:09,071 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
+INFO 2025-04-08 00:25:09,888 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 00:25:12,135 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
+INFO 2025-04-08 00:25:29,388 signals Processing flight data for lead ecfeba5f-9bd1-4757-921a-226330aab3ac
+INFO 2025-04-08 00:25:29,389 signals Flight data: {'travelling_from': 'LHR', 'travelling_to': 'DXB', 'travel_date': '2025-04-09', 'return_date': '2025-04-29', 'pnr': 'UNm78798', 'ticket_status': 'inquiry', 'carrier': 'EK', 'passengers': {'adult': 2}, 'passenger_details': [], 'cost_details': {'adult_price': 2200}}
+INFO 2025-04-08 00:25:29,807 signals Flight record created: 1
+INFO 2025-04-08 00:25:30,241 signals Cost details created: 1
+INFO 2025-04-08 00:25:30,635 basehttp "PUT /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2110
+INFO 2025-04-08 00:25:40,403 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 21013
+INFO 2025-04-08 00:25:40,730 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 00:25:41,008 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 00:25:41,284 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 00:25:42,518 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 00:25:46,203 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2110
+WARNING 2025-04-08 00:25:46,604 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 00:25:46,606 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+INFO 2025-04-08 00:25:46,696 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+INFO 2025-04-08 00:25:46,722 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+WARNING 2025-04-08 00:25:46,755 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 00:25:46,761 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+INFO 2025-04-08 00:25:46,833 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+INFO 2025-04-08 00:25:46,935 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+WARNING 2025-04-08 00:25:46,938 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:25:46,945 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 00:25:46,983 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+INFO 2025-04-08 00:25:47,056 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2110
+INFO 2025-04-08 00:25:47,082 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+INFO 2025-04-08 00:25:47,095 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+WARNING 2025-04-08 00:25:47,133 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:25:47,135 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 00:25:47,158 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+WARNING 2025-04-08 00:25:47,239 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:25:47,248 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+WARNING 2025-04-08 00:25:47,321 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:25:47,322 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 00:25:47,388 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+INFO 2025-04-08 00:25:47,393 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+INFO 2025-04-08 00:25:48,470 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 00:25:49,813 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
+INFO 2025-04-08 00:25:49,977 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 00:25:53,133 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
+INFO 2025-04-08 00:28:56,390 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\flights\models.py changed, reloading.
+INFO 2025-04-08 00:28:57,575 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 00:29:29,932 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\leads\signals.py changed, reloading.
+INFO 2025-04-08 00:29:30,999 autoreload Watching for file changes with StatReloader
+WARNING 2025-04-08 00:29:52,290 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 00:29:52,291 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+INFO 2025-04-08 00:29:52,954 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+WARNING 2025-04-08 00:29:52,979 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 00:29:52,981 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+INFO 2025-04-08 00:29:53,072 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+WARNING 2025-04-08 00:29:53,179 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:29:53,186 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 00:29:53,208 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+INFO 2025-04-08 00:29:53,222 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+INFO 2025-04-08 00:29:53,267 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+INFO 2025-04-08 00:29:53,268 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+WARNING 2025-04-08 00:29:53,286 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:29:53,287 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 00:29:53,408 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+INFO 2025-04-08 00:29:53,416 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+INFO 2025-04-08 00:29:53,576 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+INFO 2025-04-08 00:29:53,856 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+WARNING 2025-04-08 00:29:54,227 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:29:54,228 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+WARNING 2025-04-08 00:29:54,302 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:29:54,304 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 00:29:55,462 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 00:29:56,705 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 00:29:56,797 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
+INFO 2025-04-08 00:29:59,871 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
+INFO 2025-04-08 00:30:37,497 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\flights\models.py changed, reloading.
+INFO 2025-04-08 00:30:38,754 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 00:30:47,346 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\leads\signals.py changed, reloading.
+INFO 2025-04-08 00:30:48,444 autoreload Watching for file changes with StatReloader
+WARNING 2025-04-08 00:30:51,592 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 00:30:51,593 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+WARNING 2025-04-08 00:30:52,391 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:30:52,394 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 00:30:52,560 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+INFO 2025-04-08 00:30:52,704 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+INFO 2025-04-08 00:30:52,827 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+INFO 2025-04-08 00:30:52,837 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+INFO 2025-04-08 00:30:52,891 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+WARNING 2025-04-08 00:30:53,256 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:30:53,257 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 00:30:54,588 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 00:30:55,775 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
+INFO 2025-04-08 00:32:30,782 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 00:32:39,430 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2110
+WARNING 2025-04-08 00:32:40,093 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 00:32:40,094 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+INFO 2025-04-08 00:32:40,370 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2110
+INFO 2025-04-08 00:32:40,439 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+WARNING 2025-04-08 00:32:40,464 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 00:32:40,465 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+WARNING 2025-04-08 00:32:40,752 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:32:40,753 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 00:32:40,795 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+WARNING 2025-04-08 00:32:40,865 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:32:40,867 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 00:32:40,881 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+INFO 2025-04-08 00:32:40,901 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+INFO 2025-04-08 00:32:41,010 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+INFO 2025-04-08 00:32:41,080 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+INFO 2025-04-08 00:32:41,080 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+INFO 2025-04-08 00:32:41,140 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+INFO 2025-04-08 00:32:41,369 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+INFO 2025-04-08 00:32:41,438 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+WARNING 2025-04-08 00:32:41,768 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:32:41,769 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+WARNING 2025-04-08 00:32:41,841 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:32:41,843 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 00:32:42,965 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 00:32:43,650 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
+INFO 2025-04-08 00:32:44,145 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 00:32:46,598 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
+WARNING 2025-04-08 00:51:02,561 log Unauthorized: /api/flights/
+WARNING 2025-04-08 00:51:02,563 log Unauthorized: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:51:02,565 log Unauthorized: /api/auth/branches/
+WARNING 2025-04-08 00:51:02,576 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 401 183
+WARNING 2025-04-08 00:51:02,577 basehttp "GET /api/flights/ HTTP/1.1" 401 183
+WARNING 2025-04-08 00:51:02,581 log Unauthorized: /api/lead-documents/
+WARNING 2025-04-08 00:51:02,581 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 401 183
+WARNING 2025-04-08 00:51:02,586 log Unauthorized: /api/leads/
+WARNING 2025-04-08 00:51:02,591 log Unauthorized: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/
+WARNING 2025-04-08 00:51:02,593 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 401 183
+WARNING 2025-04-08 00:51:02,598 basehttp "GET /api/leads/ HTTP/1.1" 401 183
+WARNING 2025-04-08 00:51:02,599 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 401 183
+WARNING 2025-04-08 00:51:02,662 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 00:51:02,664 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+WARNING 2025-04-08 00:51:02,804 log Unauthorized: /api/lead-notes/
+WARNING 2025-04-08 00:51:02,809 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 401 183
+INFO 2025-04-08 00:51:02,974 basehttp "OPTIONS /api/auth/branches/ HTTP/1.1" 200 0
+INFO 2025-04-08 00:51:35,135 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\leads\signals.py changed, reloading.
+INFO 2025-04-08 00:51:36,976 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 00:53:29,844 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 00:53:33,248 basehttp "POST /api/auth/token/ HTTP/1.1" 200 683
+WARNING 2025-04-08 00:53:33,255 log Unauthorized: /api/auth/me/
+WARNING 2025-04-08 00:53:33,256 basehttp "GET /api/auth/me/ HTTP/1.1" 401 183
+INFO 2025-04-08 00:53:34,340 basehttp "GET /api/auth/me/ HTTP/1.1" 200 299
+INFO 2025-04-08 00:53:37,952 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 507
+INFO 2025-04-08 00:53:38,504 basehttp "OPTIONS /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-08 00:53:48,686 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 21013
+INFO 2025-04-08 00:53:48,693 basehttp "OPTIONS /api/auth/users/23/ HTTP/1.1" 200 0
+INFO 2025-04-08 00:53:48,989 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 00:53:48,996 basehttp "OPTIONS /api/auth/users/24/ HTTP/1.1" 200 0
+INFO 2025-04-08 00:53:49,575 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 00:53:49,580 basehttp "OPTIONS /api/auth/users/25/ HTTP/1.1" 200 0
+INFO 2025-04-08 00:53:50,182 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 00:53:50,189 basehttp "OPTIONS /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 0
+INFO 2025-04-08 00:53:51,562 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 00:53:55,235 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2110
+INFO 2025-04-08 00:53:56,106 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2110
+INFO 2025-04-08 00:53:56,262 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+WARNING 2025-04-08 00:53:56,297 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 00:53:56,298 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+INFO 2025-04-08 00:53:56,718 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+WARNING 2025-04-08 00:53:56,757 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 00:53:56,758 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+WARNING 2025-04-08 00:53:56,799 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:53:56,800 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 00:53:56,860 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+WARNING 2025-04-08 00:53:56,877 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:53:56,881 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+WARNING 2025-04-08 00:53:56,952 log Not Found: /api/auth/users/active-by-tenant/
+INFO 2025-04-08 00:53:56,952 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+WARNING 2025-04-08 00:53:56,953 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 00:53:56,999 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+WARNING 2025-04-08 00:53:57,037 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:53:57,043 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 00:53:57,077 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+INFO 2025-04-08 00:53:57,180 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+INFO 2025-04-08 00:53:57,183 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+INFO 2025-04-08 00:53:57,382 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+INFO 2025-04-08 00:53:57,548 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+INFO 2025-04-08 00:53:58,448 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 00:53:59,622 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 00:53:59,831 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
+INFO 2025-04-08 00:54:02,962 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
+INFO 2025-04-08 00:56:06,894 signals Processing flight data for lead ecfeba5f-9bd1-4757-921a-226330aab3ac
+INFO 2025-04-08 00:56:06,895 signals Flight data: {'travelling_from': 'LHR', 'travelling_to': 'DXB', 'travel_date': '2025-04-09', 'return_date': '2025-04-29', 'pnr': 'UNm78798', 'ticket_status': 'inquiry', 'carrier': 'EK', 'passengers': {'adult': 2, 'child': 1}, 'passenger_details': [{'passenger_fname': 'Muhammad ', 'passenger_lname': 'Aslam', 'passport_no': 'AF897765', 'expiry_date': '2028-06-01'}], 'cost_details': {'adult_price': 2200, 'total_sell': 2500, 'total_profit': 2500}}
+INFO 2025-04-08 00:56:07,169 signals Flight record updated: 1
+INFO 2025-04-08 00:56:07,441 signals Cost details updated: 1
+INFO 2025-04-08 00:56:07,713 signals Passenger detail created: 1
+INFO 2025-04-08 00:56:08,064 basehttp "PUT /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2267
+INFO 2025-04-08 00:56:16,749 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 21170
+INFO 2025-04-08 00:56:17,319 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 00:56:17,623 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 00:56:17,918 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 00:56:19,216 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 00:59:53,014 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2267
+WARNING 2025-04-08 00:59:53,605 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 00:59:53,606 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+INFO 2025-04-08 00:59:53,831 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2267
+INFO 2025-04-08 00:59:54,155 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+WARNING 2025-04-08 00:59:54,182 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 00:59:54,190 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:59:54,191 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+WARNING 2025-04-08 00:59:54,192 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 00:59:54,219 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+WARNING 2025-04-08 00:59:54,297 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:59:54,299 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 00:59:54,318 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+INFO 2025-04-08 00:59:54,336 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+INFO 2025-04-08 00:59:54,416 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+INFO 2025-04-08 00:59:54,445 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+INFO 2025-04-08 00:59:54,538 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+INFO 2025-04-08 00:59:54,753 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+INFO 2025-04-08 00:59:54,762 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+INFO 2025-04-08 00:59:55,047 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+WARNING 2025-04-08 00:59:55,193 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:59:55,194 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+WARNING 2025-04-08 00:59:55,269 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 00:59:55,272 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 00:59:56,637 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 00:59:56,770 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
+INFO 2025-04-08 00:59:57,828 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 01:00:00,259 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
+INFO 2025-04-08 01:00:22,863 signals Processing flight data for lead ecfeba5f-9bd1-4757-921a-226330aab3ac
+INFO 2025-04-08 01:00:22,865 signals Flight data: {'travelling_from': 'LHR', 'travelling_to': 'DXB', 'travel_date': '2025-04-09', 'return_date': '2025-04-29', 'pnr': 'UNm78798', 'ticket_status': 'inquiry', 'carrier': 'EK', 'passengers': {'adult': 2, 'child': 1}, 'passenger_details': [{'expiry_date': '2028-06-01T00:00:00.000Z', 'passport_no': 'AF897765', 'passenger_fname': 'Muhammad ', 'passenger_lname': 'Aslam'}], 'cost_details': {'total_sell': 4500, 'adult_price': 2200, 'total_profit': 4500}}
+INFO 2025-04-08 01:00:23,132 signals Flight record updated: 1
+INFO 2025-04-08 01:00:23,406 signals Cost details updated: 1
+ERROR 2025-04-08 01:00:23,607 signals Error creating passenger detail: ['“2028-06-01T00:00:00.000Z” value has an invalid date format. It must be in YYYY-MM-DD format.']
+ERROR 2025-04-08 01:00:23,608 signals Passenger data: {'expiry_date': '2028-06-01T00:00:00.000Z', 'passport_no': 'AF897765', 'passenger_fname': 'Muhammad ', 'passenger_lname': 'Aslam'}
+INFO 2025-04-08 01:00:24,578 basehttp "PUT /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2281
+INFO 2025-04-08 01:00:34,067 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 21184
+INFO 2025-04-08 01:00:34,368 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 01:00:34,654 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 01:00:34,940 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 01:00:36,208 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 01:00:47,138 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2281
+WARNING 2025-04-08 01:00:47,435 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 01:00:47,436 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+WARNING 2025-04-08 01:00:48,083 log Not Found: /api/auth/users/active-by-tenant/
+INFO 2025-04-08 01:00:48,095 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+WARNING 2025-04-08 01:00:48,096 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+WARNING 2025-04-08 01:00:48,121 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 01:00:48,122 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+INFO 2025-04-08 01:00:48,153 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+INFO 2025-04-08 01:00:48,154 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+WARNING 2025-04-08 01:00:48,229 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 01:00:48,233 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 01:00:48,296 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+INFO 2025-04-08 01:00:48,314 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+WARNING 2025-04-08 01:00:48,321 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 01:00:48,327 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+WARNING 2025-04-08 01:00:48,701 log Not Found: /api/auth/users/active-by-tenant/
+INFO 2025-04-08 01:00:48,704 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+INFO 2025-04-08 01:00:48,704 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+WARNING 2025-04-08 01:00:48,705 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 01:00:48,767 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2281
+INFO 2025-04-08 01:00:48,767 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+INFO 2025-04-08 01:00:49,147 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+INFO 2025-04-08 01:00:49,304 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+INFO 2025-04-08 01:00:50,049 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 01:00:51,306 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 01:00:51,682 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
+INFO 2025-04-08 01:00:54,947 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
+INFO 2025-04-08 01:11:04,297 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2281
+WARNING 2025-04-08 01:11:04,889 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 01:11:04,891 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+INFO 2025-04-08 01:11:05,161 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2281
+INFO 2025-04-08 01:11:05,170 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+WARNING 2025-04-08 01:11:05,192 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 01:11:05,193 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+INFO 2025-04-08 01:11:05,329 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+WARNING 2025-04-08 01:11:05,464 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 01:11:05,474 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 01:11:05,532 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+WARNING 2025-04-08 01:11:05,547 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 01:11:05,548 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 01:11:05,602 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+INFO 2025-04-08 01:11:05,750 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+INFO 2025-04-08 01:11:05,837 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+INFO 2025-04-08 01:11:05,965 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+INFO 2025-04-08 01:11:06,109 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+INFO 2025-04-08 01:11:08,715 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
+INFO 2025-04-08 01:11:13,263 basehttp "GET /api/leads/ HTTP/1.1" 200 10198

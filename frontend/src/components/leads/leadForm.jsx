@@ -18,6 +18,7 @@ import FormDatePicker from '../forms/common/formDatePicker';
 import FormActions from '../forms/common/formActions';
 import LeadDocuments from './components/leadDocuments';
 import LeadActivities from './components/leadActivities';
+import FlightForm from './components/FlightForm';
 
 const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   const navigate = useNavigate();
@@ -939,7 +940,42 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         hajj_package: formValues.lead_type === 'hajj_package' ? formValues.hajj_package : null,
         readymade_umrah: formValues.lead_type === 'readymade_umrah' ? formValues.readymade_umrah : null,
         custom_umrah: formValues.lead_type === 'custom_umrah' ? formValues.custom_umrah : null,
-        flight: formValues.lead_type === 'flight' ? formValues.flight : null,
+        flight: formValues.lead_type === 'flight' ? {
+          travelling_from: formValues.travelling_from,
+          travelling_to: formValues.travelling_to,
+          travel_date: formValues.travel_date ? 
+            (isDayjsObject(formValues.travel_date) ? 
+              formValues.travel_date.format('YYYY-MM-DD') : 
+              // Safely convert date strings
+              (typeof formValues.travel_date === 'string' ? 
+                formValues.travel_date : 
+                null)) : 
+            null,
+          return_date: formValues.return_date ? 
+            (isDayjsObject(formValues.return_date) ? 
+              formValues.return_date.format('YYYY-MM-DD') : 
+              // Safely convert date strings
+              (typeof formValues.return_date === 'string' ? 
+                formValues.return_date : 
+                null)) : 
+            null,
+          pnr: formValues.pnr,
+          ticket_status: formValues.ticket_status,
+          carrier: formValues.carrier,
+          passengers: formValues.passengers,
+          passenger_details: formValues.passenger_details ? formValues.passenger_details.map(passenger => ({
+            ...passenger,
+            expiry_date: passenger.expiry_date ? 
+              (isDayjsObject(passenger.expiry_date) ? 
+                passenger.expiry_date.format('YYYY-MM-DD') : 
+                // Safely convert date strings
+                (typeof passenger.expiry_date === 'string' ? 
+                  passenger.expiry_date : 
+                  null)) : 
+              null
+          })) : [],
+          cost_details: formValues.cost_details || {}
+        } : null,
         visa: formValues.lead_type === 'visa' ? formValues.visa : null,
         transfer: formValues.lead_type === 'transfer' ? formValues.transfer : null,
         ziyarat: formValues.lead_type === 'ziyarat' ? formValues.ziyarat : null,
@@ -1198,6 +1234,142 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     }
   };
   
+  // Add this effect to fetch flight details when editing a flight lead
+  useEffect(() => {
+    const fetchFlightDetails = async () => {
+      if (isEditMode && leadType === 'flight' && initialData.id) {
+        try {
+          console.log('Attempting to fetch flight data for lead:', initialData.id);
+          
+          // First, check if flight data is already in initialData
+          if (initialData.flight) {
+            console.log('Flight data found in initialData:', initialData.flight);
+            // Process flight data
+            const flightData = typeof initialData.flight === 'string' 
+              ? JSON.parse(initialData.flight) 
+              : initialData.flight;
+              
+            // Format cost details if available
+            const costDetails = flightData.cost_details || {};
+            // Format number fields properly
+            if (costDetails) {
+              ['adult_price', 'child_price', 'infant_price', 'total_cost', 'total_sell', 'total_profit'].forEach(field => {
+                if (costDetails[field] !== undefined) {
+                  costDetails[field] = Number(costDetails[field]);
+                }
+              });
+            }
+            
+            // Update formValues with flight data
+            const updatedValues = {
+              ...formValues,
+              travelling_from: flightData.travelling_from || '',
+              travelling_to: flightData.travelling_to || '',
+              travel_date: flightData.travel_date ? 
+                (dayjs(flightData.travel_date).isValid() ? dayjs(flightData.travel_date) : null) : null,
+              return_date: flightData.return_date ? 
+                (dayjs(flightData.return_date).isValid() ? dayjs(flightData.return_date) : null) : null,
+              pnr: flightData.pnr || '',
+              ticket_status: flightData.ticket_status || 'inquiry',
+              carrier: flightData.carrier || '',
+              passengers: flightData.passengers || { adult: 0, child: 0, infant: 0 },
+              passenger_details: flightData.passenger_details ? flightData.passenger_details.map(passenger => ({
+                ...passenger,
+                expiry_date: passenger.expiry_date ? 
+                  (dayjs(passenger.expiry_date).isValid() ? dayjs(passenger.expiry_date) : null) : null
+              })) : [],
+              cost_details: costDetails
+            };
+            
+            // Update state and form values
+            setFormValues(updatedValues);
+            // Set form fields
+            form.setFieldsValue(updatedValues);
+            
+            console.log('Updated form with flight data:', updatedValues);
+          } else {
+            // Fetch flight data from the API
+            console.log('No flight data in initialData, fetching from API');
+            try {
+              const response = await api.get(`/flights/`, {
+                params: { lead_inquiry: initialData.id }
+              });
+              
+              console.log('API flight response:', response.data);
+              
+              if (response.data.results && response.data.results.length > 0) {
+                const flightData = response.data.results[0];
+                console.log('Fetched flight data:', flightData);
+                
+                // Also fetch passenger details and cost details
+                const passengersResponse = await api.get(`/passengers/`, {
+                  params: { flight_inquiry: flightData.id }
+                });
+                const costResponse = await api.get(`/cost-details/`, {
+                  params: { flight_inquiry: flightData.id }
+                });
+                
+                console.log('Passenger details:', passengersResponse.data);
+                console.log('Cost details:', costResponse.data);
+                
+                const passengerDetails = passengersResponse.data.results || [];
+                const costDetails = costResponse.data.results && costResponse.data.results.length > 0 
+                  ? costResponse.data.results[0] 
+                  : {};
+                
+                // Format number fields in cost details
+                if (costDetails) {
+                  ['adult_price', 'child_price', 'infant_price', 'total_cost', 'total_sell', 'total_profit'].forEach(field => {
+                    if (costDetails[field] !== undefined) {
+                      costDetails[field] = Number(costDetails[field]);
+                    }
+                  });
+                }
+                
+                // Update formValues with all flight data
+                const updatedValues = {
+                  ...formValues,
+                  travelling_from: flightData.travelling_from || '',
+                  travelling_to: flightData.travelling_to || '',
+                  travel_date: flightData.travel_date ? 
+                    (dayjs(flightData.travel_date).isValid() ? dayjs(flightData.travel_date) : null) : null,
+                  return_date: flightData.return_date ? 
+                    (dayjs(flightData.return_date).isValid() ? dayjs(flightData.return_date) : null) : null,
+                  pnr: flightData.pnr || '',
+                  ticket_status: flightData.ticket_status || 'inquiry',
+                  carrier: flightData.carrier || '',
+                  passengers: flightData.passengers || { adult: 0, child: 0, infant: 0 },
+                  passenger_details: passengerDetails ? passengerDetails.map(passenger => ({
+                    ...passenger,
+                    expiry_date: passenger.expiry_date ? 
+                      (dayjs(passenger.expiry_date).isValid() ? dayjs(passenger.expiry_date) : null) : null
+                  })) : [],
+                  cost_details: costDetails
+                };
+                
+                // Update state and form values
+                setFormValues(updatedValues);
+                // Set form fields
+                form.setFieldsValue(updatedValues);
+                
+                console.log('Updated form with flight data from API:', updatedValues);
+              } else {
+                console.log('No flight data found in API response');
+              }
+            } catch (apiError) {
+              console.error('Error fetching flight data from API:', apiError);
+            }
+          }
+        } catch (error) {
+          console.error('Error processing flight details:', error);
+          message.error('Failed to load flight details');
+        }
+      }
+    };
+    
+    fetchFlightDetails();
+  }, [isEditMode, leadType, initialData.id]);
+  
   return (
     <Box>
       <Paper sx={{ p: 3, mb: 3 }}>
@@ -1451,600 +1623,117 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
           {/* Product Details Tab */}
           {activeTab === 'product' && (
             <FormSection title="Product Information">
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  <FormSelect
-                    label={getProductFieldLabel()}
-                    name={getProductFieldName()}
-                    value={formValues[getProductFieldName()]}
-                    onChange={(value) => handlePackageSelect(value)}
-                    options={productOptions}
-                  />
-                </Grid>
-                
-                <Grid item xs={12}>
-                  <Typography variant="subtitle1" sx={{ mb: 2, mt: 2 }}>
-                    Query Details
-                  </Typography>
-                  <Row gutter={16}>
-                    <Col span={8}>
-                      <Form.Item 
-                        label="Adults" 
-                        name="adults"
-                        rules={[{ type: 'number', min: 0 }]}
-                      >
-                        <InputNumber 
-                          min={0} 
-                          style={{ width: '100%' }} 
-                          value={formValues.adults}
-                          onChange={(value) => handleInputChange('adults', value)}
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col span={8}>
-                      <Form.Item 
-                        label="Children" 
-                        name="children"
-                        rules={[{ type: 'number', min: 0 }]}
-                      >
-                        <InputNumber 
-                          min={0} 
-                          style={{ width: '100%' }} 
-                          value={formValues.children}
-                          onChange={(value) => handleInputChange('children', value)}
-                        />
-                      </Form.Item>
-                    </Col>
-                    <Col span={8}>
-                      <Form.Item 
-                        label="Infants" 
-                        name="infants"
-                        rules={[{ type: 'number', min: 0 }]}
-                      >
-                        <InputNumber 
-                          min={0} 
-                          style={{ width: '100%' }} 
-                          value={formValues.infants}
-                          onChange={(value) => handleInputChange('infants', value)}
-                        />
-                      </Form.Item>
-                    </Col>
-                  </Row>
-                </Grid>
-                
-                {/* Package Details Section */}
-                {selectedPackageDetails && (
+              {leadType === 'flight' ? (
+                <FlightForm 
+                  form={form} 
+                  formValues={formValues} 
+                  handleInputChange={handleInputChange} 
+                />
+              ) : (
+                <Grid container spacing={3}>
                   <Grid item xs={12}>
-                    <Paper 
-                      elevation={0} 
-                      sx={{ 
-                        p: 3, 
-                        mt: 2, 
-                        backgroundColor: '#f9f9f9', 
-                        border: '1px solid #e0e0e0',
-                        borderRadius: 2
-                      }}
-                    >
-                      <Typography variant="h6" sx={{ mb: 2, color: '#9d277c', fontWeight: 'bold' }}>
-                        {selectedPackageDetails.package_name || 'Package Details'}
-                      </Typography>
-                      
-                      {/* Selling Price Banner */}
-                      <Box sx={{ 
-                        backgroundColor: '#9d277c', 
-                        color: 'white', 
-                        p: 1.5, 
-                        borderRadius: 1, 
-                        mb: 3,
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center'
-                      }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                          Selling Price:
-                        </Typography>
-                        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                          {selectedPackageDetails.selling_price ? 
-                            selectedPackageDetails.selling_price.toLocaleString() : 
-                            (selectedPackageDetails.total_cost ? 
-                              selectedPackageDetails.total_cost.toLocaleString() : 'Contact for pricing')}
-                        </Typography>
-                      </Box>
-                      
-                      <Divider sx={{ mb: 3 }} />
-                      
-                      {/* Package Details Section based on package type */}
-                      {leadType === 'hajj_package' ? (
-                        // Hajj Details Section
-                        <Box sx={{ mb: 3 }}>
-                          <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'bold', color: '#333' }}>
-                            Hajj Details:
-                          </Typography>
-                          
-                          <Grid container spacing={2}>
-                            <Grid item xs={12} md={6}>
-                              <Box sx={{ display: 'flex', mb: 1 }}>
-                                <Typography variant="body2" sx={{ fontWeight: 'bold', width: 120 }}>
-                                  Package Star:
-                                </Typography>
-                                <Typography variant="body2">
-                                  {selectedPackageDetails.package_star || '2'} Star
-                                </Typography>
-                              </Box>
-                              
-                              <Box sx={{ display: 'flex', mb: 1 }}>
-                                <Typography variant="body2" sx={{ fontWeight: 'bold', width: 120 }}>
-                                  Hajj Days:
-                                </Typography>
-                                <Typography variant="body2">
-                                  {selectedPackageDetails.hajj_days || '7'}
-                                </Typography>
-                              </Box>
-                            </Grid>
-                            
-                            <Grid item xs={12} md={6}>
-                              <Box sx={{ display: 'flex', mb: 1 }}>
-                                <Typography variant="body2" sx={{ fontWeight: 'bold', width: 120 }}>
-                                  Departure Date:
-                                </Typography>
-                                <Typography variant="body2">
-                                  {selectedPackageDetails.departure_date ? 
-                                    new Date(selectedPackageDetails.departure_date).toLocaleDateString('en-US', {
-                                      day: 'numeric',
-                                      month: 'short',
-                                      year: 'numeric'
-                                    }) : 'N/A'}
-                                </Typography>
-                              </Box>
-                              
-                              <Box sx={{ display: 'flex', mb: 1 }}>
-                                <Typography variant="body2" sx={{ fontWeight: 'bold', width: 120 }}>
-                                  Return Date:
-                                </Typography>
-                                <Typography variant="body2">
-                                  {selectedPackageDetails.return_date ? 
-                                    new Date(selectedPackageDetails.return_date).toLocaleDateString('en-US', {
-                                      day: 'numeric',
-                                      month: 'short',
-                                      year: 'numeric'
-                                    }) : 'N/A'}
-                                </Typography>
-                              </Box>
-                            </Grid>
-                            
-                            <Grid item xs={12}>
-                              <Box sx={{ display: 'flex', mb: 1 }}>
-                                <Typography variant="body2" sx={{ fontWeight: 'bold', width: 120 }}>
-                                  Makatb #:
-                                </Typography>
-                                <Typography variant="body2">
-                                  {selectedPackageDetails.maktab_no || 'B'}
-                                </Typography>
-                              </Box>
-                            </Grid>
-                          </Grid>
-                        </Box>
-                      ) : leadType === 'readymade_umrah' ? (
-                        // Umrah Details Section
-                        <Box sx={{ mb: 3 }}>
-                          <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'bold', color: '#333' }}>
-                            Umrah Details:
-                          </Typography>
-                          
-                          <Grid container spacing={2}>
-                            <Grid item xs={12} md={6}>
-                              <Box sx={{ display: 'flex', mb: 1 }}>
-                                <Typography variant="body2" sx={{ fontWeight: 'bold', width: 120 }}>
-                                  Package Star:
-                                </Typography>
-                                <Typography variant="body2">
-                                  {selectedPackageDetails.package_star || '3'} Star
-                                </Typography>
-                              </Box>
-                              
-                              <Box sx={{ display: 'flex', mb: 1 }}>
-                                <Typography variant="body2" sx={{ fontWeight: 'bold', width: 120 }}>
-                                  Umrah Days:
-                                </Typography>
-                                <Typography variant="body2">
-                                  {selectedPackageDetails.umrah_days || 'N/A'}
-                                </Typography>
-                              </Box>
-                            </Grid>
-                            
-                            <Grid item xs={12} md={6}>
-                              <Box sx={{ display: 'flex', mb: 1 }}>
-                                <Typography variant="body2" sx={{ fontWeight: 'bold', width: 120 }}>
-                                  Departure Date:
-                                </Typography>
-                                <Typography variant="body2">
-                                  {selectedPackageDetails.departure_date ? 
-                                    new Date(selectedPackageDetails.departure_date).toLocaleDateString('en-US', {
-                                      day: 'numeric',
-                                      month: 'short',
-                                      year: 'numeric'
-                                    }) : 'N/A'}
-                                </Typography>
-                              </Box>
-                              
-                              <Box sx={{ display: 'flex', mb: 1 }}>
-                                <Typography variant="body2" sx={{ fontWeight: 'bold', width: 120 }}>
-                                  Return Date:
-                                </Typography>
-                                <Typography variant="body2">
-                                  {selectedPackageDetails.return_date ? 
-                                    new Date(selectedPackageDetails.return_date).toLocaleDateString('en-US', {
-                                      day: 'numeric',
-                                      month: 'short',
-                                      year: 'numeric'
-                                    }) : 'N/A'}
-                                </Typography>
-                              </Box>
-                            </Grid>
-                            
-                            <Grid item xs={12}>
-                              <Box sx={{ display: 'flex', mb: 1 }}>
-                                <Typography variant="body2" sx={{ fontWeight: 'bold', width: 120 }}>
-                                  Transportation:
-                                </Typography>
-                                <Typography variant="body2">
-                                  {selectedPackageDetails.transportation === 'included' ? 'Included' : 'Not Included'}
-                                  {selectedPackageDetails.vehicle_type && selectedPackageDetails.transportation === 'included' && 
-                                    ` (${selectedPackageDetails.vehicle_type})`}
-                                </Typography>
-                              </Box>
-                            </Grid>
-                          </Grid>
-                        </Box>
-                      ) : (
-                        // Default details if not Hajj or Umrah
-                        <Box sx={{ mb: 3 }}>
-                          <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'bold', color: '#333' }}>
-                            Package Details:
-                          </Typography>
-                          
-                          <Grid container spacing={2}>
-                            <Grid item xs={12} md={6}>
-                              <Box sx={{ display: 'flex', mb: 1 }}>
-                                <Typography variant="body2" sx={{ fontWeight: 'bold', width: 120 }}>
-                                  Departure:
-                                </Typography>
-                                <Typography variant="body2">
-                                  {selectedPackageDetails.departure_date ? 
-                                    new Date(selectedPackageDetails.departure_date).toLocaleDateString('en-US', {
-                                      day: 'numeric',
-                                      month: 'short',
-                                      year: 'numeric'
-                                    }) : 'N/A'}
-                                </Typography>
-                              </Box>
-                            </Grid>
-                            
-                            <Grid item xs={12} md={6}>
-                              <Box sx={{ display: 'flex', mb: 1 }}>
-                                <Typography variant="body2" sx={{ fontWeight: 'bold', width: 120 }}>
-                                  Return:
-                                </Typography>
-                                <Typography variant="body2">
-                                  {selectedPackageDetails.return_date ? 
-                                    new Date(selectedPackageDetails.return_date).toLocaleDateString('en-US', {
-                                      day: 'numeric',
-                                      month: 'short',
-                                      year: 'numeric'
-                                    }) : 'N/A'}
-                                </Typography>
-                              </Box>
-                            </Grid>
-                          </Grid>
-                        </Box>
-                      )}
-                      
-                      <Divider sx={{ mb: 3 }} />
-                      
-                      {/* Accommodation Details Section */}
-                      {(leadType === 'hajj_package' || leadType === 'readymade_umrah') && (
-                        <Box sx={{ mb: 3 }}>
-                          <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold', color: '#333' }}>
-                            Accommodation Details:
-                          </Typography>
-                          
-                          <Grid container spacing={3}>
-                            {/* Makkah Column */}
-                            <Grid item xs={12} md={6}>
-                              <Paper 
-                                elevation={0} 
-                                sx={{ 
-                                  p: 2, 
-                                  backgroundColor: 'white', 
-                                  border: '1px solid #e0e0e0',
-                                  height: '100%'
-                                }}
-                              >
-                                <Typography variant="subtitle2" sx={{ mb: 2, textAlign: 'center', fontWeight: 'bold', color: '#9d277c' }}>
-                                  Makkah
-                                </Typography>
-                                
-                                {/* Hotel Name with emphasis */}
-                                <Box sx={{ 
-                                  mb: 2, 
-                                  p: 1, 
-                                  backgroundColor: '#f5f5f5', 
-                                  borderRadius: 1,
-                                  textAlign: 'center'
-                                }}>
-                                  <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: '#333' }}>
-                                    {leadType === 'readymade_umrah' && selectedPackageDetails.hotels ? 
-                                      selectedPackageDetails.hotels.find(h => h.hotel_city === 'Makkah')?.hotel_name || 'Hotel information not available' :
-                                      selectedPackageDetails.hotel_makkah || 'Hotel information not available'}
-                                  </Typography>
-                                </Box>
-                                
-                                <Box sx={{ display: 'flex', mb: 1 }}>
-                                  <Typography variant="body2" sx={{ fontWeight: 'bold', width: 100 }}>
-                                    Star:
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    {leadType === 'readymade_umrah' && selectedPackageDetails.hotels ?
-                                      selectedPackageDetails.hotels.find(h => h.hotel_city === 'Makkah')?.hotel_star || '3' :
-                                      selectedPackageDetails.makkah_star || '3'} Star
-                                  </Typography>
-                                </Box>
-                                
-                                <Box sx={{ display: 'flex', mb: 1 }}>
-                                  <Typography variant="body2" sx={{ fontWeight: 'bold', width: 100 }}>
-                                    Check In:
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    {leadType === 'readymade_umrah' && selectedPackageDetails.hotels ? 
-                                      (selectedPackageDetails.hotels.find(h => h.hotel_city === 'Makkah')?.checkin_date ? 
-                                        new Date(selectedPackageDetails.hotels.find(h => h.hotel_city === 'Makkah').checkin_date).toLocaleDateString('en-US', {
-                                          day: 'numeric',
-                                          month: 'short',
-                                          year: 'numeric'
-                                        }) : 'N/A') :
-                                      selectedPackageDetails.makkah_check_in ? 
-                                        new Date(selectedPackageDetails.makkah_check_in).toLocaleDateString('en-US', {
-                                          day: 'numeric',
-                                          month: 'short',
-                                          year: 'numeric'
-                                        }) : 
-                                        selectedPackageDetails.departure_date ? 
-                                          new Date(selectedPackageDetails.departure_date).toLocaleDateString('en-US', {
-                                            day: 'numeric',
-                                            month: 'short',
-                                            year: 'numeric'
-                                          }) : 'N/A'}
-                                  </Typography>
-                                </Box>
-                                
-                                <Box sx={{ display: 'flex', mb: 1 }}>
-                                  <Typography variant="body2" sx={{ fontWeight: 'bold', width: 100 }}>
-                                    Check Out:
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    {leadType === 'readymade_umrah' && selectedPackageDetails.hotels ? 
-                                      (selectedPackageDetails.hotels.find(h => h.hotel_city === 'Makkah')?.checkout_date ? 
-                                        new Date(selectedPackageDetails.hotels.find(h => h.hotel_city === 'Makkah').checkout_date).toLocaleDateString('en-US', {
-                                          day: 'numeric',
-                                          month: 'short',
-                                          year: 'numeric'
-                                        }) : 'N/A') :
-                                      selectedPackageDetails.makkah_check_out ? 
-                                        new Date(selectedPackageDetails.makkah_check_out).toLocaleDateString('en-US', {
-                                          day: 'numeric',
-                                          month: 'short',
-                                          year: 'numeric'
-                                        }) : '4 Jun 2025'}
-                                  </Typography>
-                                </Box>
-                                
-                                <Box sx={{ display: 'flex', mb: 1 }}>
-                                  <Typography variant="body2" sx={{ fontWeight: 'bold', width: 100 }}>
-                                    Room Type:
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    {leadType === 'readymade_umrah' && selectedPackageDetails.hotels ?
-                                      selectedPackageDetails.hotels.find(h => h.hotel_city === 'Makkah')?.hotel_room_type || 'Standard' :
-                                      selectedPackageDetails.makkah_room_type || 'Quad'}
-                                  </Typography>
-                                </Box>
-                                
-                                <Box sx={{ display: 'flex', mb: 1 }}>
-                                  <Typography variant="body2" sx={{ fontWeight: 'bold', width: 100 }}>
-                                    Nights:
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    {leadType === 'readymade_umrah' && selectedPackageDetails.hotels ?
-                                      selectedPackageDetails.hotels.find(h => h.hotel_city === 'Makkah')?.no_of_nights || 'N/A' :
-                                      selectedPackageDetails.makkah_nights || '4'}
-                                  </Typography>
-                                </Box>
-                              </Paper>
-                            </Grid>
-                            
-                            {/* Madinah Column */}
-                            <Grid item xs={12} md={6}>
-                              <Paper 
-                                elevation={0} 
-                                sx={{ 
-                                  p: 2, 
-                                  backgroundColor: 'white', 
-                                  border: '1px solid #e0e0e0',
-                                  height: '100%'
-                                }}
-                              >
-                                <Typography variant="subtitle2" sx={{ mb: 2, textAlign: 'center', fontWeight: 'bold', color: '#9d277c' }}>
-                                  Madinah
-                                </Typography>
-                                
-                                {/* Hotel Name with emphasis */}
-                                <Box sx={{ 
-                                  mb: 2, 
-                                  p: 1, 
-                                  backgroundColor: '#f5f5f5', 
-                                  borderRadius: 1,
-                                  textAlign: 'center'
-                                }}>
-                                  <Typography variant="subtitle2" sx={{ fontWeight: 'bold', color: '#333' }}>
-                                    {leadType === 'readymade_umrah' && selectedPackageDetails.hotels ? 
-                                      selectedPackageDetails.hotels.find(h => h.hotel_city === 'Madinah')?.hotel_name || 'Hotel information not available' :
-                                      selectedPackageDetails.hotel_madinah || 'Hotel information not available'}
-                                  </Typography>
-                                </Box>
-                                
-                                <Box sx={{ display: 'flex', mb: 1 }}>
-                                  <Typography variant="body2" sx={{ fontWeight: 'bold', width: 100 }}>
-                                    Star:
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    {leadType === 'readymade_umrah' && selectedPackageDetails.hotels ?
-                                      selectedPackageDetails.hotels.find(h => h.hotel_city === 'Madinah')?.hotel_star || '3' :
-                                      selectedPackageDetails.madinah_star || '2'} Star
-                                  </Typography>
-                                </Box>
-                                
-                                <Box sx={{ display: 'flex', mb: 1 }}>
-                                  <Typography variant="body2" sx={{ fontWeight: 'bold', width: 100 }}>
-                                    Check In:
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    {leadType === 'readymade_umrah' && selectedPackageDetails.hotels ? 
-                                      (selectedPackageDetails.hotels.find(h => h.hotel_city === 'Madinah')?.checkin_date ? 
-                                        new Date(selectedPackageDetails.hotels.find(h => h.hotel_city === 'Madinah').checkin_date).toLocaleDateString('en-US', {
-                                          day: 'numeric',
-                                          month: 'short',
-                                          year: 'numeric'
-                                        }) : 'N/A') :
-                                      selectedPackageDetails.madinah_check_in ? 
-                                        new Date(selectedPackageDetails.madinah_check_in).toLocaleDateString('en-US', {
-                                          day: 'numeric',
-                                          month: 'short',
-                                          year: 'numeric'
-                                        }) : '28 May 2025'}
-                                  </Typography>
-                                </Box>
-                                
-                                <Box sx={{ display: 'flex', mb: 1 }}>
-                                  <Typography variant="body2" sx={{ fontWeight: 'bold', width: 100 }}>
-                                    Check Out:
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    {leadType === 'readymade_umrah' && selectedPackageDetails.hotels ? 
-                                      (selectedPackageDetails.hotels.find(h => h.hotel_city === 'Madinah')?.checkout_date ? 
-                                        new Date(selectedPackageDetails.hotels.find(h => h.hotel_city === 'Madinah').checkout_date).toLocaleDateString('en-US', {
-                                          day: 'numeric',
-                                          month: 'short',
-                                          year: 'numeric'
-                                        }) : 'N/A') :
-                                      selectedPackageDetails.madinah_check_out ? 
-                                        new Date(selectedPackageDetails.madinah_check_out).toLocaleDateString('en-US', {
-                                          day: 'numeric',
-                                          month: 'short',
-                                          year: 'numeric'
-                                        }) : '4 Jun 2025'}
-                                  </Typography>
-                                </Box>
-                                
-                                <Box sx={{ display: 'flex', mb: 1 }}>
-                                  <Typography variant="body2" sx={{ fontWeight: 'bold', width: 100 }}>
-                                    Room Type:
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    {leadType === 'readymade_umrah' && selectedPackageDetails.hotels ?
-                                      selectedPackageDetails.hotels.find(h => h.hotel_city === 'Madinah')?.hotel_room_type || 'Standard' :
-                                      selectedPackageDetails.madinah_room_type || 'Quad'}
-                                  </Typography>
-                                </Box>
-                                
-                                <Box sx={{ display: 'flex', mb: 1 }}>
-                                  <Typography variant="body2" sx={{ fontWeight: 'bold', width: 100 }}>
-                                    Nights:
-                                  </Typography>
-                                  <Typography variant="body2">
-                                    {leadType === 'readymade_umrah' && selectedPackageDetails.hotels ?
-                                      selectedPackageDetails.hotels.find(h => h.hotel_city === 'Madinah')?.no_of_nights || 'N/A' :
-                                      selectedPackageDetails.madinah_nights || '4'}
-                                  </Typography>
-                                </Box>
-                              </Paper>
-                            </Grid>
-                          </Grid>
-                        </Box>
-                      )}
-                      
-                      <Divider sx={{ mb: 3 }} />
-                      
-                      {/* Additional Details Section */}
-                      <Box>
-                        <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 'bold', color: '#333' }}>
-                          Additional Details:
-                        </Typography>
-                        
-                        <Grid container spacing={2}>
-                          <Grid item xs={12} md={4}>
-                            <Box sx={{ display: 'flex', mb: 1 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 'bold', width: 80 }}>
-                                Visa:
-                              </Typography>
-                              <Typography variant="body2">
-                                {selectedPackageDetails.visa === 'included' ? 'Included' : 'Not Included'}
-                              </Typography>
-                            </Box>
-                          </Grid>
-                          
-                          <Grid item xs={12} md={4}>
-                            <Box sx={{ display: 'flex', mb: 1 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 'bold', width: 80 }}>
-                                Ziyarat:
-                              </Typography>
-                              <Typography variant="body2">
-                                {selectedPackageDetails.ziyarat === 'makkah_madinah' || selectedPackageDetails.ziyarat === 'makkah_medinah' ? 
-                                  'Makkah & Madinah' : 
-                                  selectedPackageDetails.ziyarat === 'makkah_only' ? 'Makkah Only' :
-                                  selectedPackageDetails.ziyarat === 'madinah_only' ? 'Madinah Only' : 'Not Included'}
-                              </Typography>
-                            </Box>
-                          </Grid>
-                          
-                          <Grid item xs={12} md={4}>
-                            <Box sx={{ display: 'flex', mb: 1 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 'bold', width: 80 }}>
-                                Flight:
-                              </Typography>
-                              <Typography variant="body2">
-                                {selectedPackageDetails.flight_carrier || 'Not specified'}
-                              </Typography>
-                            </Box>
-                          </Grid>
-                        </Grid>
-                        
-                        {/* Base Price section (if different from selling price) */}
-                        {selectedPackageDetails.total_cost && selectedPackageDetails.selling_price && 
-                         selectedPackageDetails.total_cost !== selectedPackageDetails.selling_price && (
-                          <Box sx={{ mt: 3, textAlign: 'right' }}>
-                            <Typography variant="body2" sx={{ color: '#666' }}>
-                              Base Price: {selectedPackageDetails.total_cost.toLocaleString()}
-                            </Typography>
-                          </Box>
-                        )}
-                      </Box>
-                    </Paper>
-                  </Grid>
-                )}
-                
-                {/* Notes field moved to the query_for JSON */}
-                <Grid item xs={12}>
-                  <Form.Item 
-                    label="Query Notes" 
-                    name="query_notes"
-                  >
-                    <FormTextarea
-                      placeholder="Enter any additional notes about the query"
-                      rows={3}
+                    <FormSelect
+                      label={getProductFieldLabel()}
+                      name={getProductFieldName()}
+                      value={formValues[getProductFieldName()]}
+                      onChange={(value) => handlePackageSelect(value)}
+                      options={productOptions}
                     />
-                  </Form.Item>
+                  </Grid>
+                  
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle1" sx={{ mb: 2, mt: 2 }}>
+                      Query Details
+                    </Typography>
+                    <Row gutter={16}>
+                      <Col span={8}>
+                        <Form.Item 
+                          label="Adults" 
+                          name="adults"
+                          rules={[{ type: 'number', min: 0 }]}
+                        >
+                          <InputNumber 
+                            min={0} 
+                            style={{ width: '100%' }} 
+                            value={formValues.adults}
+                            onChange={(value) => handleInputChange('adults', value)}
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col span={8}>
+                        <Form.Item 
+                          label="Children" 
+                          name="children"
+                          rules={[{ type: 'number', min: 0 }]}
+                        >
+                          <InputNumber 
+                            min={0} 
+                            style={{ width: '100%' }} 
+                            value={formValues.children}
+                            onChange={(value) => handleInputChange('children', value)}
+                          />
+                        </Form.Item>
+                      </Col>
+                      <Col span={8}>
+                        <Form.Item 
+                          label="Infants" 
+                          name="infants"
+                          rules={[{ type: 'number', min: 0 }]}
+                        >
+                          <InputNumber 
+                            min={0} 
+                            style={{ width: '100%' }} 
+                            value={formValues.infants}
+                            onChange={(value) => handleInputChange('infants', value)}
+                          />
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  </Grid>
+                  
+                  {/* Package Details Section */}
+                  {selectedPackageDetails && (
+                    <Grid item xs={12}>
+                      <Paper 
+                        elevation={0} 
+                        sx={{ 
+                          p: 3, 
+                          mt: 2, 
+                          backgroundColor: '#f9f9f9', 
+                          border: '1px solid #e0e0e0',
+                          borderRadius: 2
+                        }}
+                      >
+                        <Typography variant="h6" sx={{ mb: 2, color: '#9d277c', fontWeight: 'bold' }}>
+                          {selectedPackageDetails.package_name || 'Package Details'}
+                        </Typography>
+                        
+                        {/* Selling Price Banner */}
+                        <Box sx={{ 
+                          backgroundColor: '#9d277c', 
+                          color: 'white', 
+                          p: 1.5, 
+                          borderRadius: 1, 
+                          mb: 3,
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center'
+                        }}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                            Selling Price:
+                          </Typography>
+                          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                            {selectedPackageDetails.selling_price ? 
+                              selectedPackageDetails.selling_price.toLocaleString() : 
+                              (selectedPackageDetails.total_cost ? 
+                                selectedPackageDetails.total_cost.toLocaleString() : 'Contact for pricing')}
+                          </Typography>
+                        </Box>
+                      </Paper>
+                    </Grid>
+                  )}
                 </Grid>
-              </Grid>
+              )}
             </FormSection>
           )}
           

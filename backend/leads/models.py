@@ -103,6 +103,9 @@ class Lead(models.Model):
     lead_type = models.CharField(max_length=50, choices=TYPE_CHOICES, default=TYPE_HAJJ_PACKAGE)
     hajj_package = models.ForeignKey(HajjPackage, on_delete=models.SET_NULL, null=True, blank=True, related_name='leads')
     
+    # Add flight data field
+    flight = models.JSONField(null=True, blank=True, help_text="Flight details for flight leads")
+    
     # Basic lead information - updated as requested
     name = models.CharField(max_length=200)
     email = models.EmailField(blank=True, null=True)

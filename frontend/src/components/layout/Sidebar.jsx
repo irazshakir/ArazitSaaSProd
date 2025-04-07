@@ -135,10 +135,11 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
     { text: 'Hajj Packages', icon: <MosqueIcon />, path: '/dashboard/hajj-umrah/hajj-packages' },
     { text: 'Readymade Umrah', icon: <LuggageIcon />, path: '/dashboard/hajj-umrah/umrah-packages' },
     { text: 'Custom Umrah', icon: <MosqueIcon />, path: '/dashboard/hajj-umrah/custom-umrah' },
-    { text: 'Transports', icon: <CarIcon />, path: '/dashboard/hajj-umrah/transports' },
-    { text: 'Visas', icon: <VisaIcon />, path: '/dashboard/hajj-umrah/visas' },
-    { text: 'Ziyarat', icon: <ZiyaratIcon />, path: '/dashboard/hajj-umrah/ziyarat' },
-    { text: 'Hotel Rates', icon: <HotelIcon />, path: '/dashboard/hajj-umrah/hotel-rates' },
+    // { text: 'Transports', icon: <CarIcon />, path: '/dashboard/hajj-umrah/transports' },
+    // { text: 'Visas', icon: <VisaIcon />, path: '/dashboard/hajj-umrah/visas' },
+    // { text: 'Ziyarat', icon: <ZiyaratIcon />, path: '/dashboard/hajj-umrah/ziyarat' },
+    // { text: 'Hotel Rates', icon: <HotelIcon />, path: '/dashboard/hajj-umrah/hotel-rates' },
+    { text: 'Flights', icon: <VisaIcon />, path: '/dashboard/hajj-umrah/flights' },
   ];
 
   // Immigration specific menu items

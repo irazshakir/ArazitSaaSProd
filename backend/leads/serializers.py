@@ -167,7 +167,7 @@ class LeadSerializer(serializers.ModelSerializer):
             'status', 'status_display', 'source', 'source_display', 
             'lead_activity_status', 'activity_status_display',
             'created_at', 'updated_at', 'last_contacted', 'next_follow_up',
-            'tags', 'custom_fields',
+            'tags', 'custom_fields', 'flight',
             'activities', 'notes', 'documents', 'events',
             'department', 'department_details', 'branch', 'branch_details'
         )
