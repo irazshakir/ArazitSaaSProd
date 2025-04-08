@@ -10,6 +10,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [noApiConfigured, setNoApiConfigured] = useState(false);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const [currentChatId, setCurrentChatId] = useState(null);
@@ -24,6 +25,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
       setCurrentChatId(activeChat.id);
       setMessages([]);
       setError(null);
+      setNoApiConfigured(false);
       setMessage('');
       setSelectedImage(null);
       setImagePreview(null);
@@ -41,6 +43,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
     
     try {
       setLoading(true);
+      setNoApiConfigured(false);
       
       // Get tenant ID from localStorage
       const tenantId = localStorage.getItem('tenant_id');
@@ -60,6 +63,12 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
       const data = await response.json();
 
       if (!data.status || data.status === 'error') {
+        // Check if the error is due to no API configuration
+        if (data.error && data.error.includes('No WhatsApp API settings configured')) {
+          setNoApiConfigured(true);
+          setError('No WhatsApp API configured for this tenant');
+          return;
+        }
         throw new Error(data.errMsg || 'Failed to fetch messages');
       }
 
@@ -105,6 +114,13 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
     try {
       let response;
       let newMessage;
+      
+      // Get tenant ID and token from localStorage
+      const tenantId = localStorage.getItem('tenant_id');
+      const token = localStorage.getItem('token');
+      
+      console.log('[DEBUG] Using tenant ID from localStorage:', tenantId);
+      console.log('[DEBUG] Using token from localStorage:', token ? 'Token exists' : 'No token found');
 
       if (selectedImage) {
         // Send image message
@@ -117,12 +133,44 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
 
         response = await fetch('http://localhost:8000/api/messages/send-image/', {
           method: 'POST',
+          headers: {
+            'X-Tenant-ID': tenantId,
+            'Authorization': `Bearer ${token}`
+          },
           body: formData
         });
+
+        if (!response.ok) {
+          // Check if the response is HTML (likely a server error page)
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('text/html')) {
+            throw new Error(`Server error: ${response.status} ${response.statusText}`);
+          }
+          
+          // Try to parse as JSON
+          try {
+            const errorData = await response.json();
+            if (errorData.error && errorData.error.includes('No WhatsApp API settings configured')) {
+              setNoApiConfigured(true);
+              setError('No WhatsApp API configured for this tenant');
+              return;
+            }
+            throw new Error(errorData.error || errorData.errMsg || 'Failed to send image');
+          } catch (jsonError) {
+            // If JSON parsing fails, use the status text
+            throw new Error(`Server error: ${response.status} ${response.statusText}`);
+          }
+        }
 
         const data = await response.json();
         
         if (!data.status || data.status === 'error') {
+          // Check if the error is due to no API configuration
+          if (data.error && data.error.includes('No WhatsApp API settings configured')) {
+            setNoApiConfigured(true);
+            setError('No WhatsApp API configured for this tenant');
+            return;
+          }
           throw new Error(data.message || 'Failed to send image');
         }
 
@@ -147,17 +195,43 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'X-Tenant-ID': tenantId,
+            'Authorization': `Bearer ${token}`
           },
           body: JSON.stringify(messageData)
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+          // Check if the response is HTML (likely a server error page)
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('text/html')) {
+            throw new Error(`Server error: ${response.status} ${response.statusText}`);
+          }
+          
+          // Try to parse as JSON
+          try {
+            const errorData = await response.json();
+            if (errorData.error && errorData.error.includes('No WhatsApp API settings configured')) {
+              setNoApiConfigured(true);
+              setError('No WhatsApp API configured for this tenant');
+              return;
+            }
+            throw new Error(errorData.error || errorData.errMsg || 'Failed to send message');
+          } catch (jsonError) {
+            // If JSON parsing fails, use the status text
+            throw new Error(`Server error: ${response.status} ${response.statusText}`);
+          }
         }
 
         const data = await response.json();
         
         if (!data.status || data.status === 'error') {
+          // Check if the error is due to no API configuration
+          if (data.error && data.error.includes('No WhatsApp API settings configured')) {
+            setNoApiConfigured(true);
+            setError('No WhatsApp API configured for this tenant');
+            return;
+          }
           throw new Error(data.message || 'Failed to send message');
         }
 
@@ -186,6 +260,52 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
 
   if (!activeChat) {
     return <div className="no-chat-selected">Select a chat to start messaging</div>;
+  }
+
+  if (noApiConfigured) {
+    return (
+      <div className="chatbox-container no-api-configured">
+        <div className="chatbox-header">
+          <div className="chat-user-info">
+            <div className="avatar">
+              <img 
+                src={activeChat.avatar || "/avatar-crm.svg"} 
+                alt={activeChat.name} 
+                className="avatar-image" 
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "/avatar-crm.svg";
+                }}
+              />
+            </div>
+            <div>
+              <h3>{activeChat.name}</h3>
+              <p className="last-seen">last seen recently</p>
+            </div>
+          </div>
+          <div className="chat-header-actions">
+            <button 
+              className="info-button" 
+              onClick={toggleDetailsDrawer}
+              title="View Details"
+            >
+              <InfoCircleOutlined />
+            </button>
+            <button className="more-options">
+              <MoreOutlined />
+            </button>
+          </div>
+        </div>
+
+        <div className="no-api-message">
+          <h3>No WhatsApp API Configured</h3>
+          <p>Please configure your WhatsApp API settings to start using the chat feature.</p>
+          <button className="configure-button" onClick={() => window.location.href = '/settings'}>
+            Configure Now
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (

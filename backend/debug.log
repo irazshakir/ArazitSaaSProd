@@ -1328,3 +1328,347 @@ INFO 2025-04-08 21:27:24,615 basehttp "GET /api/settings/ HTTP/1.1" 200 447
 INFO 2025-04-08 21:27:38,653 basehttp "GET /api/settings/ HTTP/1.1" 200 447
 INFO 2025-04-08 21:27:46,953 basehttp "GET /api/settings/ HTTP/1.1" 200 447
 INFO 2025-04-08 21:27:47,395 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+INFO 2025-04-08 21:30:05,406 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+INFO 2025-04-08 21:30:21,367 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+INFO 2025-04-08 21:30:33,878 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+INFO 2025-04-08 21:30:36,416 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+INFO 2025-04-08 21:30:50,841 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+INFO 2025-04-08 21:45:18,524 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\services\waba_int.py changed, reloading.
+INFO 2025-04-08 21:45:19,567 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 21:45:32,376 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 21:45:33,468 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 21:45:50,088 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 21:45:51,121 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 21:45:53,597 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 21:45:54,590 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 21:46:05,130 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 21:46:06,548 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 21:46:24,745 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 21:46:25,729 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 21:46:29,291 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 21:46:30,456 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 21:46:49,425 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 21:46:50,579 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 21:46:52,998 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 21:46:53,989 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 21:57:30,969 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\services\waba_int.py changed, reloading.
+INFO 2025-04-08 21:57:32,022 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 21:57:37,289 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 21:57:38,331 autoreload Watching for file changes with StatReloader
+ERROR 2025-04-08 21:58:24,829 log Internal Server Error: /api/conversations/
+ERROR 2025-04-08 21:58:24,830 basehttp "POST /api/conversations/ HTTP/1.1" 500 123
+ERROR 2025-04-08 21:58:24,857 log Internal Server Error: /api/messages/1/
+ERROR 2025-04-08 21:58:24,860 basehttp "POST /api/messages/1/ HTTP/1.1" 500 105
+ERROR 2025-04-08 21:58:24,862 log Internal Server Error: /api/conversations/
+ERROR 2025-04-08 21:58:24,863 basehttp "POST /api/conversations/ HTTP/1.1" 500 123
+INFO 2025-04-08 21:58:25,186 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 21:58:26,460 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 21:58:27,745 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 21:58:28,967 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+WARNING 2025-04-08 21:58:51,740 log Bad Request: /api/templates/
+WARNING 2025-04-08 21:58:51,741 basehttp "GET /api/templates/ HTTP/1.1" 400 33
+WARNING 2025-04-08 21:58:51,744 log Bad Request: /api/templates/
+WARNING 2025-04-08 21:58:51,745 basehttp "GET /api/templates/ HTTP/1.1" 400 33
+ERROR 2025-04-08 21:58:53,555 log Internal Server Error: /api/messages/1/
+ERROR 2025-04-08 21:58:53,556 basehttp "POST /api/messages/1/ HTTP/1.1" 500 105
+ERROR 2025-04-08 21:58:53,588 log Internal Server Error: /api/conversations/
+ERROR 2025-04-08 21:58:53,590 log Internal Server Error: /api/conversations/
+ERROR 2025-04-08 21:58:53,590 basehttp "POST /api/conversations/ HTTP/1.1" 500 123
+ERROR 2025-04-08 21:58:53,592 basehttp "POST /api/conversations/ HTTP/1.1" 500 123
+ERROR 2025-04-08 21:58:54,373 log Internal Server Error: /api/messages/1/
+ERROR 2025-04-08 21:58:54,375 basehttp "POST /api/messages/1/ HTTP/1.1" 500 105
+INFO 2025-04-08 22:04:10,985 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\services\waba_int.py changed, reloading.
+INFO 2025-04-08 22:04:12,358 autoreload Watching for file changes with StatReloader
+ERROR 2025-04-08 22:04:23,570 log Internal Server Error: /api/conversations/
+ERROR 2025-04-08 22:04:23,571 basehttp "POST /api/conversations/ HTTP/1.1" 500 123
+INFO 2025-04-08 22:04:32,363 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 22:04:33,533 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 22:04:43,030 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\serializers.py changed, reloading.
+INFO 2025-04-08 22:04:44,138 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 22:06:27,154 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\serializers.py changed, reloading.
+INFO 2025-04-08 22:06:28,153 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 22:07:18,252 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\services\waba_int.py changed, reloading.
+INFO 2025-04-08 22:07:19,728 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 22:07:52,166 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\services\waba_int.py changed, reloading.
+INFO 2025-04-08 22:07:53,589 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 22:08:31,305 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\services\waba_int.py changed, reloading.
+INFO 2025-04-08 22:08:32,916 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 22:10:01,412 basehttp "GET /api/settings/ HTTP/1.1" 200 451
+INFO 2025-04-08 22:10:01,852 basehttp "GET /api/settings/ HTTP/1.1" 200 451
+INFO 2025-04-08 22:10:08,560 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:10:09,747 basehttp "POST /api/messages/1/ HTTP/1.1" 200 37
+INFO 2025-04-08 22:10:09,808 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:10:11,345 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:10:13,545 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:10:15,218 basehttp "POST /api/conversations/ HTTP/1.1" 200 8368
+INFO 2025-04-08 22:10:16,067 basehttp "POST /api/messages/2498882/ HTTP/1.1" 200 2043
+INFO 2025-04-08 22:10:16,071 basehttp "POST /api/conversations/ HTTP/1.1" 200 8368
+INFO 2025-04-08 22:10:16,676 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:10:18,832 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+WARNING 2025-04-08 22:10:19,355 log Bad Request: /api/templates/
+WARNING 2025-04-08 22:10:19,356 basehttp "GET /api/templates/ HTTP/1.1" 400 33
+WARNING 2025-04-08 22:10:19,360 log Bad Request: /api/templates/
+WARNING 2025-04-08 22:10:19,362 basehttp "GET /api/templates/ HTTP/1.1" 400 33
+WARNING 2025-04-08 22:10:20,852 log Bad Request: /api/groups/
+WARNING 2025-04-08 22:10:20,853 basehttp "GET /api/groups/?showContacts=no HTTP/1.1" 400 33
+WARNING 2025-04-08 22:10:20,856 log Bad Request: /api/groups/
+WARNING 2025-04-08 22:10:20,857 basehttp "GET /api/groups/?showContacts=no HTTP/1.1" 400 33
+WARNING 2025-04-08 22:10:22,073 log Bad Request: /api/templates/
+WARNING 2025-04-08 22:10:22,075 basehttp "GET /api/templates/ HTTP/1.1" 400 33
+WARNING 2025-04-08 22:10:22,079 log Bad Request: /api/templates/
+WARNING 2025-04-08 22:10:22,080 basehttp "GET /api/templates/ HTTP/1.1" 400 33
+WARNING 2025-04-08 22:10:23,172 log Bad Request: /api/contacts/
+WARNING 2025-04-08 22:10:23,173 basehttp "GET /api/contacts/ HTTP/1.1" 400 33
+WARNING 2025-04-08 22:10:23,178 log Bad Request: /api/contacts/
+WARNING 2025-04-08 22:10:23,179 basehttp "GET /api/contacts/ HTTP/1.1" 400 33
+WARNING 2025-04-08 22:10:24,129 log Bad Request: /api/groups/
+WARNING 2025-04-08 22:10:24,130 basehttp "GET /api/groups/?showContacts=no HTTP/1.1" 400 33
+WARNING 2025-04-08 22:10:24,134 log Bad Request: /api/groups/
+WARNING 2025-04-08 22:10:24,135 basehttp "GET /api/groups/?showContacts=no HTTP/1.1" 400 33
+WARNING 2025-04-08 22:10:24,650 log Bad Request: /api/templates/
+WARNING 2025-04-08 22:10:24,651 basehttp "GET /api/templates/ HTTP/1.1" 400 33
+WARNING 2025-04-08 22:10:24,654 log Bad Request: /api/templates/
+WARNING 2025-04-08 22:10:24,655 basehttp "GET /api/templates/ HTTP/1.1" 400 33
+INFO 2025-04-08 22:10:26,161 basehttp "POST /api/messages/2498882/ HTTP/1.1" 200 2043
+INFO 2025-04-08 22:10:26,833 basehttp "POST /api/messages/2498882/ HTTP/1.1" 200 2043
+INFO 2025-04-08 22:10:31,516 basehttp "POST /api/conversations/ HTTP/1.1" 200 8368
+INFO 2025-04-08 22:10:32,584 basehttp "POST /api/conversations/ HTTP/1.1" 200 8368
+INFO 2025-04-08 22:10:35,023 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\services\waba_int.py changed, reloading.
+INFO 2025-04-08 22:10:36,081 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 22:10:38,362 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\serializers.py changed, reloading.
+INFO 2025-04-08 22:10:39,481 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 22:10:51,998 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:10:53,106 basehttp "POST /api/messages/1/ HTTP/1.1" 200 37
+INFO 2025-04-08 22:10:53,192 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:10:54,407 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:10:55,635 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:10:57,586 basehttp "POST /api/conversations/ HTTP/1.1" 200 8368
+INFO 2025-04-08 22:10:57,805 basehttp "POST /api/conversations/ HTTP/1.1" 200 8368
+INFO 2025-04-08 22:10:58,407 basehttp "POST /api/messages/2498882/ HTTP/1.1" 200 2043
+INFO 2025-04-08 22:10:59,022 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:11:00,290 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:11:37,204 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\backend\settings.py changed, reloading.
+INFO 2025-04-08 22:11:38,167 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 22:11:49,020 basehttp "POST /api/auth/token/ HTTP/1.1" 200 683
+INFO 2025-04-08 22:11:49,107 basehttp "GET /api/auth/me/ HTTP/1.1" 200 299
+WARNING 2025-04-08 22:11:49,144 log Not Found: /api/auth/user-tenants/
+WARNING 2025-04-08 22:11:49,145 basehttp "GET /api/auth/user-tenants/ HTTP/1.1" 404 66629
+INFO 2025-04-08 22:11:53,098 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 507
+INFO 2025-04-08 22:11:58,802 basehttp "GET /api/settings/ HTTP/1.1" 200 451
+INFO 2025-04-08 22:11:59,245 basehttp "GET /api/settings/ HTTP/1.1" 200 451
+INFO 2025-04-08 22:12:04,755 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:12:07,056 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:12:07,152 basehttp "POST /api/messages/1/ HTTP/1.1" 200 37
+INFO 2025-04-08 22:12:08,289 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:12:09,531 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:12:11,368 basehttp "POST /api/conversations/ HTTP/1.1" 200 8368
+INFO 2025-04-08 22:12:11,418 basehttp "POST /api/conversations/ HTTP/1.1" 200 8368
+INFO 2025-04-08 22:12:12,192 basehttp "POST /api/messages/2498882/ HTTP/1.1" 200 2043
+INFO 2025-04-08 22:12:12,922 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:12:14,148 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:19:54,313 basehttp "POST /api/messages/1/ HTTP/1.1" 200 37
+INFO 2025-04-08 22:19:54,534 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:19:55,845 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:19:57,455 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:19:58,700 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:19:59,300 basehttp "POST /api/conversations/ HTTP/1.1" 200 8368
+INFO 2025-04-08 22:19:59,421 basehttp "POST /api/conversations/ HTTP/1.1" 200 8368
+INFO 2025-04-08 22:20:00,107 basehttp "POST /api/messages/2498882/ HTTP/1.1" 200 2043
+INFO 2025-04-08 22:20:00,744 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:20:00,979 basehttp "OPTIONS /api/templates/ HTTP/1.1" 200 0
+INFO 2025-04-08 22:20:00,979 basehttp "OPTIONS /api/templates/ HTTP/1.1" 200 0
+ERROR 2025-04-08 22:20:01,170 log Internal Server Error: /api/templates/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py", line 78, in post
+    client = OnCloudAPIClient()
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\services\waba_int.py", line 36, in __init__
+    raise Exception("Tenant ID is required to access WhatsApp API")
+Exception: Tenant ID is required to access WhatsApp API
+ERROR 2025-04-08 22:20:01,175 log Internal Server Error: /api/templates/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py", line 78, in post
+    client = OnCloudAPIClient()
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\services\waba_int.py", line 36, in __init__
+    raise Exception("Tenant ID is required to access WhatsApp API")
+Exception: Tenant ID is required to access WhatsApp API
+ERROR 2025-04-08 22:20:01,187 basehttp "POST /api/templates/ HTTP/1.1" 500 102971
+ERROR 2025-04-08 22:20:01,190 basehttp "POST /api/templates/ HTTP/1.1" 500 102971
+INFO 2025-04-08 22:20:02,056 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:20:06,727 basehttp "OPTIONS /api/groups/ HTTP/1.1" 200 0
+INFO 2025-04-08 22:20:06,727 basehttp "OPTIONS /api/groups/ HTTP/1.1" 200 0
+WARNING 2025-04-08 22:20:06,800 log Method Not Allowed: /api/groups/
+WARNING 2025-04-08 22:20:06,801 log Method Not Allowed: /api/groups/
+WARNING 2025-04-08 22:20:06,802 basehttp "POST /api/groups/ HTTP/1.1" 405 41
+WARNING 2025-04-08 22:20:06,802 basehttp "POST /api/groups/ HTTP/1.1" 405 41
+INFO 2025-04-08 22:20:07,966 basehttp "OPTIONS /api/contacts/ HTTP/1.1" 200 0
+INFO 2025-04-08 22:20:07,966 basehttp "OPTIONS /api/contacts/ HTTP/1.1" 200 0
+WARNING 2025-04-08 22:20:08,041 log Method Not Allowed: /api/contacts/
+WARNING 2025-04-08 22:20:08,042 basehttp "POST /api/contacts/ HTTP/1.1" 405 41
+WARNING 2025-04-08 22:20:08,045 log Method Not Allowed: /api/contacts/
+WARNING 2025-04-08 22:20:08,046 basehttp "POST /api/contacts/ HTTP/1.1" 405 41
+ERROR 2025-04-08 22:20:13,326 log Internal Server Error: /api/templates/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py", line 78, in post
+    client = OnCloudAPIClient()
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\services\waba_int.py", line 36, in __init__
+    raise Exception("Tenant ID is required to access WhatsApp API")
+Exception: Tenant ID is required to access WhatsApp API
+ERROR 2025-04-08 22:20:13,329 basehttp "POST /api/templates/ HTTP/1.1" 500 102971
+ERROR 2025-04-08 22:20:13,636 log Internal Server Error: /api/templates/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py", line 78, in post
+    client = OnCloudAPIClient()
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\services\waba_int.py", line 36, in __init__
+    raise Exception("Tenant ID is required to access WhatsApp API")
+Exception: Tenant ID is required to access WhatsApp API
+ERROR 2025-04-08 22:20:13,639 basehttp "POST /api/templates/ HTTP/1.1" 500 102971
+INFO 2025-04-08 22:24:02,867 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\urls.py changed, reloading.
+INFO 2025-04-08 22:24:04,191 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 22:26:23,427 basehttp "GET /api/templates/ HTTP/1.1" 200 1143
+INFO 2025-04-08 22:30:13,634 basehttp "GET /api/templates/ HTTP/1.1" 200 1143
+INFO 2025-04-08 22:30:41,600 basehttp "POST /api/messages/1/ HTTP/1.1" 200 37
+INFO 2025-04-08 22:30:42,121 basehttp "GET /api/templates/ HTTP/1.1" 200 1143
+INFO 2025-04-08 22:30:42,253 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:30:43,542 basehttp "GET /api/templates/ HTTP/1.1" 200 1143
+INFO 2025-04-08 22:30:43,737 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+WARNING 2025-04-08 22:30:44,364 log Method Not Allowed: /api/groups/
+WARNING 2025-04-08 22:30:44,364 log Method Not Allowed: /api/groups/
+WARNING 2025-04-08 22:30:44,365 basehttp "POST /api/groups/ HTTP/1.1" 405 41
+WARNING 2025-04-08 22:30:44,366 basehttp "POST /api/groups/ HTTP/1.1" 405 41
+INFO 2025-04-08 22:30:45,164 basehttp "POST /api/conversations/ HTTP/1.1" 200 8368
+INFO 2025-04-08 22:30:45,510 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:30:46,728 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:30:47,349 basehttp "POST /api/conversations/ HTTP/1.1" 200 8368
+INFO 2025-04-08 22:30:47,965 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:30:49,236 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:56:23,667 basehttp "POST /api/messages/1/ HTTP/1.1" 200 37
+INFO 2025-04-08 22:56:24,435 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:56:24,756 basehttp "GET /api/templates/ HTTP/1.1" 200 1143
+INFO 2025-04-08 22:56:25,550 basehttp "GET /api/templates/ HTTP/1.1" 200 1143
+INFO 2025-04-08 22:56:25,992 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:56:27,530 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:56:28,792 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:56:28,795 basehttp "POST /api/conversations/ HTTP/1.1" 200 8368
+INFO 2025-04-08 22:56:29,272 basehttp "POST /api/conversations/ HTTP/1.1" 200 8368
+INFO 2025-04-08 22:56:30,341 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:56:31,614 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+WARNING 2025-04-08 22:57:45,215 log Method Not Allowed: /api/groups/
+WARNING 2025-04-08 22:57:45,217 basehttp "POST /api/groups/ HTTP/1.1" 405 41
+WARNING 2025-04-08 22:57:45,222 log Method Not Allowed: /api/groups/
+WARNING 2025-04-08 22:57:45,224 basehttp "POST /api/groups/ HTTP/1.1" 405 41
+WARNING 2025-04-08 22:58:45,946 log Method Not Allowed: /api/contacts/
+WARNING 2025-04-08 22:58:45,950 log Method Not Allowed: /api/contacts/
+WARNING 2025-04-08 22:58:45,951 basehttp "POST /api/contacts/ HTTP/1.1" 405 41
+WARNING 2025-04-08 22:58:45,952 basehttp "POST /api/contacts/ HTTP/1.1" 405 41
+INFO 2025-04-08 22:59:15,689 basehttp "GET /api/contacts/ HTTP/1.1" 200 8300
+INFO 2025-04-08 22:59:27,377 basehttp "GET /api/contacts/ HTTP/1.1" 200 8300
+INFO 2025-04-08 22:59:45,203 basehttp "POST /api/messages/1/ HTTP/1.1" 200 37
+INFO 2025-04-08 22:59:45,838 basehttp "GET /api/templates/ HTTP/1.1" 200 1143
+INFO 2025-04-08 22:59:46,095 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:59:46,894 basehttp "GET /api/templates/ HTTP/1.1" 200 1143
+INFO 2025-04-08 22:59:47,550 basehttp "GET /api/groups/ HTTP/1.1" 200 185
+INFO 2025-04-08 22:59:47,556 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:59:48,259 basehttp "GET /api/groups/ HTTP/1.1" 200 185
+INFO 2025-04-08 22:59:48,878 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:59:50,194 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:59:50,765 basehttp "POST /api/conversations/ HTTP/1.1" 200 8368
+INFO 2025-04-08 22:59:51,104 basehttp "POST /api/conversations/ HTTP/1.1" 200 8368
+INFO 2025-04-08 22:59:52,259 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:59:53,493 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 22:59:54,403 basehttp "GET /api/contacts/ HTTP/1.1" 200 8300
+INFO 2025-04-08 22:59:55,150 basehttp "GET /api/contacts/ HTTP/1.1" 200 8300
+INFO 2025-04-08 23:01:54,023 basehttp "POST /api/messages/2498882/ HTTP/1.1" 200 2043
+INFO 2025-04-08 23:01:54,055 basehttp "POST /api/messages/2498882/ HTTP/1.1" 200 2043
+INFO 2025-04-08 23:01:58,829 basehttp "POST /api/conversations/ HTTP/1.1" 200 8368
+INFO 2025-04-08 23:01:58,874 basehttp "POST /api/conversations/ HTTP/1.1" 200 8368
+INFO 2025-04-08 23:02:03,557 basehttp "OPTIONS /api/messages/2475966/ HTTP/1.1" 200 0
+INFO 2025-04-08 23:02:04,887 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 5367
+INFO 2025-04-08 23:02:05,274 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 23:02:07,048 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+WARNING 2025-04-08 23:02:08,966 log Bad Request: /api/messages/send/
+WARNING 2025-04-08 23:02:08,967 basehttp "POST /api/messages/send/ HTTP/1.1" 400 33
+WARNING 2025-04-08 23:02:17,509 log Bad Request: /api/messages/send/
+WARNING 2025-04-08 23:02:17,510 basehttp "POST /api/messages/send/ HTTP/1.1" 400 33
+INFO 2025-04-08 23:02:51,159 basehttp "GET /api/templates/ HTTP/1.1" 200 1143
+INFO 2025-04-08 23:02:52,040 basehttp "GET /api/templates/ HTTP/1.1" 200 1143
+INFO 2025-04-08 23:02:54,728 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 6667
+INFO 2025-04-08 23:02:54,928 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 6667
+INFO 2025-04-08 23:02:58,492 basehttp "POST /api/conversations/ HTTP/1.1" 200 8336
+INFO 2025-04-08 23:02:58,772 basehttp "POST /api/conversations/ HTTP/1.1" 200 8336
+WARNING 2025-04-08 23:03:22,273 log Bad Request: /api/messages/send/
+WARNING 2025-04-08 23:03:22,275 basehttp "POST /api/messages/send/ HTTP/1.1" 400 33
+WARNING 2025-04-08 23:04:44,856 log Bad Request: /api/messages/send/
+WARNING 2025-04-08 23:04:44,857 basehttp "POST /api/messages/send/ HTTP/1.1" 400 33
+INFO 2025-04-08 23:09:58,913 basehttp "POST /api/messages/send/ HTTP/1.1" 200 122

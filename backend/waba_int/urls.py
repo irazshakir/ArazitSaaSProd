@@ -32,5 +32,5 @@ urlpatterns = [
 # Add the router URLs to the urlpatterns
 urlpatterns += router.urls
 
-print("WABA_INT URL patterns loaded:", urlpatterns)  # Debug print
+print("WABA_INT URL patterns loaded:", urlpatterns)  
 

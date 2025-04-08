@@ -9,45 +9,94 @@ import {
   TableHead,
   TableRow,
   Typography,
-  IconButton,
-  Tooltip,
   CircularProgress,
-  Switch,
-  FormControlLabel
+  Avatar,
+  Chip,
+  Tooltip,
+  Alert
 } from '@mui/material';
 import GroupIcon from '@mui/icons-material/Group';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import ChatIcon from '@mui/icons-material/Chat';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
 
 const GroupList = () => {
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showContacts, setShowContacts] = useState(false);
+  const [noApiConfigured, setNoApiConfigured] = useState(false);
 
   useEffect(() => {
     fetchGroups();
-  }, [showContacts]);
+  }, []);
 
   const fetchGroups = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/api/groups/?showContacts=${showContacts ? 'yes' : 'no'}`);
+      setLoading(true);
+      setNoApiConfigured(false);
+      
+      // Get tenant ID from localStorage
+      const tenantId = localStorage.getItem('tenant_id');
+      const token = localStorage.getItem('token');
+      
+      console.log('[DEBUG] Using tenant ID from localStorage:', tenantId);
+      console.log('[DEBUG] Using token from localStorage:', token ? 'Token exists' : 'No token found');
+      
+      const response = await fetch('http://localhost:8000/api/groups/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Tenant-ID': tenantId,
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        // Check if the response is HTML (likely a server error page)
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('text/html')) {
+          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+        
+        // Try to parse as JSON
+        try {
+          const errorData = await response.json();
+          if (errorData.error && errorData.error.includes('No WhatsApp API settings configured')) {
+            setNoApiConfigured(true);
+            setError('No WhatsApp API configured for this tenant');
+            return;
+          }
+          throw new Error(errorData.error || errorData.errMsg || 'Failed to load groups');
+        } catch (jsonError) {
+          // If JSON parsing fails, use the status text
+          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+      }
+      
       const data = await response.json();
       
-      if (data.status === 'error') {
-        throw new Error(data.message || 'Failed to load groups');
+      if (!data.status || data.status === 'error') {
+        // Check if the error is due to no API configuration
+        if (data.error && data.error.includes('No WhatsApp API settings configured')) {
+          setNoApiConfigured(true);
+          setError('No WhatsApp API configured for this tenant');
+          return;
+        }
+        throw new Error(data.errMsg || 'Failed to load groups');
       }
       
       setGroups(data.groups || []);
     } catch (error) {
+      console.error('Error fetching groups:', error);
       setError('Error fetching groups: ' + error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAddContact = (groupId) => {
-    // TODO: Implement add contact functionality
-    console.log('Add contact to group:', groupId);
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Never';
+    return new Date(dateString).toLocaleString();
   };
 
   if (loading) {
@@ -58,40 +107,45 @@ const GroupList = () => {
     );
   }
 
+  if (noApiConfigured) {
+    return (
+      <Box p={3}>
+        <Typography variant="h6" gutterBottom>
+          WhatsApp Groups
+        </Typography>
+        <Alert severity="warning">
+          No WhatsApp API configured for this tenant. Please configure your WhatsApp API settings to start using groups.
+        </Alert>
+      </Box>
+    );
+  }
+
   if (error) {
     return (
       <Box p={3}>
-        <Typography color="error">{error}</Typography>
+        <Typography variant="h6" gutterBottom>
+          WhatsApp Groups
+        </Typography>
+        <Alert severity="error">{error}</Alert>
       </Box>
     );
   }
 
   return (
     <Box p={3}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h6">
-          WhatsApp Groups
-        </Typography>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={showContacts}
-              onChange={(e) => setShowContacts(e.target.checked)}
-              name="showContacts"
-            />
-          }
-          label="Show Contacts"
-        />
-      </Box>
+      <Typography variant="h6" mb={3}>
+        WhatsApp Groups
+      </Typography>
       
       <TableContainer component={Paper}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Created At</TableCell>
-              <TableCell>Updated At</TableCell>
-              <TableCell align="right">Actions</TableCell>
+              <TableCell>Group</TableCell>
+              <TableCell>Members</TableCell>
+              <TableCell>Last Message</TableCell>
+              <TableCell>Last Reply</TableCell>
+              <TableCell>Status</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -99,18 +153,46 @@ const GroupList = () => {
               <TableRow key={group.id}>
                 <TableCell>
                   <Box display="flex" alignItems="center">
-                    <GroupIcon sx={{ mr: 1 }} />
-                    {group.name}
+                    <Avatar sx={{ mr: 2, bgcolor: 'primary.main' }}>
+                      {group.avatar ? (
+                        <img src={group.avatar} alt={group.name} />
+                      ) : (
+                        <GroupIcon />
+                      )}
+                    </Avatar>
+                    <Typography>{group.name || 'Unknown'}</Typography>
                   </Box>
                 </TableCell>
-                <TableCell>{new Date(group.created_at).toLocaleString()}</TableCell>
-                <TableCell>{new Date(group.updated_at).toLocaleString()}</TableCell>
-                <TableCell align="right">
-                  <Tooltip title="Add Contact">
-                    <IconButton onClick={() => handleAddContact(group.id)}>
-                      <PersonAddIcon />
-                    </IconButton>
-                  </Tooltip>
+                <TableCell>{group.member_count || 0} members</TableCell>
+                <TableCell>
+                  <Box display="flex" alignItems="center">
+                    {group.last_message}
+                    {group.is_last_message_by_contact === 1 && (
+                      <Tooltip title="Last message by contact">
+                        <ChatIcon sx={{ ml: 1, color: 'primary.main' }} />
+                      </Tooltip>
+                    )}
+                  </Box>
+                </TableCell>
+                <TableCell>{formatDate(group.last_reply_at)}</TableCell>
+                <TableCell>
+                  <Box display="flex" gap={1}>
+                    {group.has_chat === 1 && (
+                      <Tooltip title="Has active chat">
+                        <ChatIcon color="primary" />
+                      </Tooltip>
+                    )}
+                    {group.resolved_chat === 1 && (
+                      <Tooltip title="Chat resolved">
+                        <CheckCircleIcon color="success" />
+                      </Tooltip>
+                    )}
+                    {group.enabled_ai_bot === 1 && (
+                      <Tooltip title="AI Bot enabled">
+                        <SmartToyIcon color="secondary" />
+                      </Tooltip>
+                    )}
+                  </Box>
                 </TableCell>
               </TableRow>
             ))}

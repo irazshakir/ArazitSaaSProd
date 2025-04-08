@@ -43,13 +43,13 @@ class WABASettingsSerializer(serializers.ModelSerializer):
         return representation
     
     def create(self, validated_data):
-        # Hash the password before storing
-        if 'password' in validated_data and validated_data['password']:
-            validated_data['password'] = make_password(validated_data['password'])
+        # Store the password in plain text for the OnCloudAPIClient to use
+        # We're not hashing the password because the OnCloudAPIClient needs the plain text password
+        print(f"[DEBUG] WABASettingsSerializer - Creating new settings with password length: {len(validated_data['password']) if 'password' in validated_data else 0}")
         return super().create(validated_data)
     
     def update(self, instance, validated_data):
-        # Hash the password before storing
-        if 'password' in validated_data and validated_data['password']:
-            validated_data['password'] = make_password(validated_data['password'])
+        # Store the password in plain text for the OnCloudAPIClient to use
+        # We're not hashing the password because the OnCloudAPIClient needs the plain text password
+        print(f"[DEBUG] WABASettingsSerializer - Updating settings with password length: {len(validated_data['password']) if 'password' in validated_data else 0}")
         return super().update(instance, validated_data)

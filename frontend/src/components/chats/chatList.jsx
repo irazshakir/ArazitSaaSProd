@@ -8,6 +8,7 @@ const ChatList = ({ activeChat, setActiveChat }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedChatId, setSelectedChatId] = useState(null);
+  const [noApiConfigured, setNoApiConfigured] = useState(false);
 
   useEffect(() => {
     fetchConversations();
@@ -24,14 +25,17 @@ const ChatList = ({ activeChat, setActiveChat }) => {
   const fetchConversations = async () => {
     try {
       setLoading(true);
+      setNoApiConfigured(false);
       
       // Get tenant ID from localStorage
       const tenantId = localStorage.getItem('tenant_id');
       const token = localStorage.getItem('token'); // Get authentication token
       
-      console.log('Using tenant ID from localStorage:', tenantId);
+      console.log('[DEBUG] Using tenant ID from localStorage:', tenantId);
+      console.log('[DEBUG] Using token from localStorage:', token ? 'Token exists' : 'No token found');
       
       // Make fetch call with Authorization header
+      console.log('[DEBUG] Making fetch request to http://localhost:8000/api/conversations/');
       const response = await fetch('http://localhost:8000/api/conversations/', {
         method: 'POST',
         headers: {
@@ -44,9 +48,17 @@ const ChatList = ({ activeChat, setActiveChat }) => {
         })
       });
       
+      console.log('[DEBUG] Response status:', response.status);
       const data = await response.json();
+      console.log('[DEBUG] Response data:', data);
 
       if (!data.status || data.status === 'error') {
+        // Check if the error is due to no API configuration
+        if (data.error && data.error.includes('No WhatsApp API settings configured')) {
+          setNoApiConfigured(true);
+          setError('No WhatsApp API configured for this tenant');
+          return;
+        }
         throw new Error(data.errMsg || 'Failed to fetch conversations');
       }
 
@@ -97,6 +109,20 @@ const ChatList = ({ activeChat, setActiveChat }) => {
 
   if (loading) {
     return <div className="chat-list-container">Loading conversations...</div>;
+  }
+
+  if (noApiConfigured) {
+    return (
+      <div className="chat-list-container no-api-configured">
+        <div className="no-api-message">
+          <h3>No WhatsApp API Configured</h3>
+          <p>Please configure your WhatsApp API settings to start using the chat feature.</p>
+          <button className="configure-button" onClick={() => window.location.href = '/settings'}>
+            Configure Now
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (error) {

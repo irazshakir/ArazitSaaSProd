@@ -25,7 +25,15 @@ class GroupView(APIView):
         """
         Get all WhatsApp groups
         """
-        client = OnCloudAPIClient()
+        # Get tenant ID from request
+        tenant_id = request.query_params.get('tenant_id') or request.headers.get('X-Tenant-ID')
+        if not tenant_id:
+            return Response(
+                {"error": "Tenant ID is required"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        client = OnCloudAPIClient(tenant_id=tenant_id)
         try:
             # Get showContacts parameter from query string
             show_contacts = request.query_params.get('showContacts', 'no').lower() == 'yes'
@@ -45,7 +53,15 @@ class TemplateView(APIView):
         """
         Get all available WhatsApp templates
         """
-        client = OnCloudAPIClient()
+        # Get tenant ID from request
+        tenant_id = request.query_params.get('tenant_id') or request.headers.get('X-Tenant-ID')
+        if not tenant_id:
+            return Response(
+                {"error": "Tenant ID is required"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        client = OnCloudAPIClient(tenant_id=tenant_id)
         try:
             templates = client.get_templates()
             return Response(templates, status=status.HTTP_200_OK)
@@ -91,8 +107,16 @@ class ChatListView(APIView):
         # Get filters from request query params
         filters = request.query_params.dict()
         
+        # Get tenant ID from request
+        tenant_id = request.query_params.get('tenant_id') or request.headers.get('X-Tenant-ID')
+        if not tenant_id:
+            return Response(
+                {"error": "Tenant ID is required"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
         # Initialize OnCloud client
-        client = OnCloudAPIClient()
+        client = OnCloudAPIClient(tenant_id=tenant_id)
         
         try:
             # Fetch chats from OnCloud API
@@ -111,7 +135,15 @@ class ChatMessageView(APIView):
         """
         Get messages for a specific contact
         """
-        client = OnCloudAPIClient()
+        # Get tenant ID from request
+        tenant_id = request.query_params.get('tenant_id') or request.headers.get('X-Tenant-ID')
+        if not tenant_id:
+            return Response(
+                {"error": "Tenant ID is required"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        client = OnCloudAPIClient(tenant_id=tenant_id)
         try:
             # Get tenant ID with the same priority order
             tenant_id = None
@@ -233,7 +265,15 @@ class ContactView(APIView):
         """
         Get all WhatsApp contacts
         """
-        client = OnCloudAPIClient()
+        # Get tenant ID from request
+        tenant_id = request.query_params.get('tenant_id') or request.headers.get('X-Tenant-ID')
+        if not tenant_id:
+            return Response(
+                {"error": "Tenant ID is required"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        client = OnCloudAPIClient(tenant_id=tenant_id)
         try:
             contacts = client.get_contacts()
             return Response(contacts, status=status.HTTP_200_OK)
@@ -250,7 +290,15 @@ class SingleContactView(APIView):
         """
         Get a single contact by phone or contact_id
         """
-        client = OnCloudAPIClient()
+        # Get tenant ID from request
+        tenant_id = request.query_params.get('tenant_id') or request.headers.get('X-Tenant-ID')
+        if not tenant_id:
+            return Response(
+                {"error": "Tenant ID is required"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        client = OnCloudAPIClient(tenant_id=tenant_id)
         try:
             # Get phone or contact_id from query parameters
             phone = request.query_params.get('phone')
@@ -278,7 +326,15 @@ class SendMessageView(APIView):
         """
         Send a WhatsApp message
         """
-        client = OnCloudAPIClient()
+        # Get tenant ID from request
+        tenant_id = request.query_params.get('tenant_id') or request.headers.get('X-Tenant-ID')
+        if not tenant_id:
+            return Response(
+                {"error": "Tenant ID is required"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        client = OnCloudAPIClient(tenant_id=tenant_id)
         try:
             data = {
                 "phone": request.data.get('phone'),
@@ -317,7 +373,15 @@ class SendImageMessageView(APIView):
         """
         Send a WhatsApp image message
         """
-        client = OnCloudAPIClient()
+        # Get tenant ID from request
+        tenant_id = request.query_params.get('tenant_id') or request.headers.get('X-Tenant-ID')
+        if not tenant_id:
+            return Response(
+                {"error": "Tenant ID is required"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        client = OnCloudAPIClient(tenant_id=tenant_id)
         try:
             # Get the image file from the request
             image_file = request.FILES.get('image')
@@ -358,7 +422,15 @@ class ConversationListView(APIView):
         """
         Get all WhatsApp conversations
         """
-        client = OnCloudAPIClient()
+        # Get tenant ID from request
+        tenant_id = request.query_params.get('tenant_id') or request.headers.get('X-Tenant-ID')
+        if not tenant_id:
+            return Response(
+                {"error": "Tenant ID is required"}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        client = OnCloudAPIClient(tenant_id=tenant_id)
         try:
             # Get tenant ID from request body, headers, or query params (in that order of priority)
             tenant_id = None
@@ -788,21 +860,43 @@ def get_conversations(request):
     try:
         # Get tenant ID from request
         tenant_id = request.data.get('tenant_id') or request.headers.get('X-Tenant-ID')
+        print(f"[DEBUG] get_conversations - Received tenant_id: {tenant_id}")
+        print(f"[DEBUG] get_conversations - Request data: {request.data}")
+        print(f"[DEBUG] get_conversations - Request headers: {request.headers}")
+        
         if not tenant_id:
+            print("[DEBUG] get_conversations - No tenant_id provided")
             return Response({
                 'status': 'error',
                 'errMsg': 'Tenant ID is required'
             }, status=400)
             
-        print(f"Processing conversations for tenant: {tenant_id}")
+        print(f"[DEBUG] get_conversations - Processing conversations for tenant: {tenant_id}")
             
         # Initialize OnCloud client
-        client = OnCloudAPIClient()
+        try:
+            client = OnCloudAPIClient(tenant_id=tenant_id)
+            print("[DEBUG] get_conversations - Successfully initialized OnCloudAPIClient")
+        except Exception as client_error:
+            print(f"[DEBUG] get_conversations - Error initializing OnCloudAPIClient: {str(client_error)}")
+            return Response({
+                'status': 'error',
+                'errMsg': str(client_error)
+            }, status=400)
         
         # Fetch conversations
-        conversations = client.get_conversations()
+        try:
+            conversations = client.get_conversations()
+            print(f"[DEBUG] get_conversations - Successfully fetched conversations: {conversations.get('status')}")
+        except Exception as conv_error:
+            print(f"[DEBUG] get_conversations - Error fetching conversations: {str(conv_error)}")
+            return Response({
+                'status': 'error',
+                'errMsg': str(conv_error)
+            }, status=400)
         
         if conversations.get('status') == 'error':
+            print(f"[DEBUG] get_conversations - API returned error: {conversations.get('message')}")
             return Response({
                 'status': 'error',
                 'errMsg': conversations.get('message', 'Failed to fetch conversations')
@@ -810,7 +904,7 @@ def get_conversations(request):
             
         # Get conversations data
         conversations_data = conversations.get('data', [])
-        print(f"Found {len(conversations_data)} conversations")
+        print(f"[DEBUG] get_conversations - Found {len(conversations_data)} conversations")
         
         # For each conversation, create a lead if it doesn't exist
         from .services.lead_service import LeadService
@@ -830,17 +924,17 @@ def get_conversations(request):
             ).first()
             
             if sales_department:
-                print(f"Found Sales department with ID: {sales_department.id}")
+                print(f"[DEBUG] get_conversations - Found Sales department with ID: {sales_department.id}")
             else:
                 # If no sales department, get any department
                 any_department = Department.objects.filter(tenant_id=tenant_id).first()
                 if any_department:
-                    print(f"No Sales department found, using: {any_department.name} (ID: {any_department.id})")
+                    print(f"[DEBUG] get_conversations - No Sales department found, using: {any_department.name} (ID: {any_department.id})")
                     sales_department = any_department
                 else:
-                    print("WARNING: No departments found for tenant ID:", tenant_id)
+                    print("[DEBUG] get_conversations - WARNING: No departments found for tenant ID:", tenant_id)
         except Exception as e:
-            print(f"Error finding Sales department: {e}")
+            print(f"[DEBUG] get_conversations - Error finding Sales department: {e}")
         
         # Process each conversation
         leads_created = 0
@@ -874,7 +968,7 @@ def get_conversations(request):
                         leads_found += 1
                     else:
                         leads_created += 1
-                    print(f"{'Found' if existing_lead else 'Created'} lead ID {lead.id} for conversation ID {conversation.get('id')}")
+                    print(f"[DEBUG] get_conversations - {'Found' if existing_lead else 'Created'} lead ID {lead.id} for conversation ID {conversation.get('id')}")
                     
                     # Make sure the chat record has the lead_id
                     try:
@@ -882,18 +976,18 @@ def get_conversations(request):
                         if chat and not chat.lead_id:
                             chat.lead_id = lead.id
                             chat.save()
-                            print(f"Updated chat {chat.id} with lead_id {lead.id}")
+                            print(f"[DEBUG] get_conversations - Updated chat {chat.id} with lead_id {lead.id}")
                     except Exception as chat_error:
-                        print(f"Error updating chat: {str(chat_error)}")
+                        print(f"[DEBUG] get_conversations - Error updating chat: {str(chat_error)}")
                 else:
-                    print(f"Failed to create lead for conversation ID {conversation.get('id')}")
+                    print(f"[DEBUG] get_conversations - Failed to create lead for conversation ID {conversation.get('id')}")
                     
             except Exception as e:
-                print(f"Error processing conversation for lead creation: {e}")
+                print(f"[DEBUG] get_conversations - Error processing conversation for lead creation: {e}")
                 import traceback
                 traceback.print_exc()
         
-        print(f"SUMMARY: Created {leads_created} new leads, found {leads_found} existing leads")
+        print(f"[DEBUG] get_conversations - SUMMARY: Created {leads_created} new leads, found {leads_found} existing leads")
         
         return Response({
             'status': 'success',

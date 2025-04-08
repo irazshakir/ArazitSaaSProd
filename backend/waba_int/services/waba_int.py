@@ -3,6 +3,7 @@ from django.conf import settings
 from django.core.cache import cache
 import json
 from ..models import WABASettings
+import urllib.parse
 
 class OnCloudAPIClient:
     def __init__(self, tenant_id=None):
@@ -14,20 +15,25 @@ class OnCloudAPIClient:
         # If tenant_id is provided, try to get tenant-specific settings
         if tenant_id:
             try:
+                print(f"[DEBUG] Attempting to fetch WABA settings for tenant_id: {tenant_id}")
                 waba_settings = WABASettings.objects.get(tenant_id=tenant_id, is_active=True)
+                print(f"[DEBUG] Found WABA settings for tenant_id: {tenant_id}")
+                print(f"[DEBUG] API URL: {waba_settings.api_url}")
+                print(f"[DEBUG] Email: {waba_settings.email}")
+                print(f"[DEBUG] Password length: {len(waba_settings.password) if waba_settings.password else 0}")
+                print(f"[DEBUG] Is active: {waba_settings.is_active}")
+                
                 self.base_url = waba_settings.api_url.rstrip('/')
                 self.email = waba_settings.email
                 self.password = waba_settings.password
             except WABASettings.DoesNotExist:
-                # Fallback to default settings if tenant-specific settings don't exist
-                self.base_url = settings.ONCLOUD_API_URL.rstrip('/')
-                self.email = settings.ONCLOUD_EMAIL
-                self.password = settings.ONCLOUD_PASSWORD
+                # No tenant-specific settings found
+                print(f"[DEBUG] No WABA settings found for tenant_id: {tenant_id}")
+                raise Exception("No WhatsApp API settings configured for this tenant")
         else:
-            # Use default settings if no tenant_id is provided
-            self.base_url = settings.ONCLOUD_API_URL.rstrip('/')
-            self.email = settings.ONCLOUD_EMAIL
-            self.password = settings.ONCLOUD_PASSWORD
+            # No tenant_id provided
+            print("[DEBUG] No tenant_id provided to OnCloudAPIClient")
+            raise Exception("Tenant ID is required to access WhatsApp API")
         
     def _get_access_token(self):
         """
@@ -39,33 +45,89 @@ class OnCloudAPIClient:
         # Check if token exists in cache
         cached_token = cache.get(cache_key)
         if cached_token:
+            print(f"[DEBUG] Using cached token for tenant_id: {self.tenant_id}")
             return cached_token
 
         # If no cached token, authenticate and get new token
         login_url = f"{self.base_url}/api/login"
+        print(f"[DEBUG] Attempting to authenticate with URL: {login_url}")
+        print(f"[DEBUG] Using email: {self.email}")
+        print(f"[DEBUG] Password length: {len(self.password) if self.password else 0}")
         
-        try:
-            # Create form-data as it worked in Postman
-            files = {
-                'email': (None, self.email),
-                'password': (None, self.password)
+        # Try different authentication formats
+        auth_attempts = [
+            # Attempt 1: Form data with files
+            {
+                'files': {
+                    'email': (None, self.email),
+                    'password': (None, self.password)
+                }
+            },
+            # Attempt 2: JSON data
+            {
+                'json': {
+                    'email': self.email,
+                    'password': self.password
+                },
+                'headers': {'Content-Type': 'application/json'}
+            },
+            # Attempt 3: Form data
+            {
+                'data': {
+                    'email': self.email,
+                    'password': self.password
+                }
+            },
+            # Attempt 4: URL-encoded form data
+            {
+                'data': urllib.parse.urlencode({
+                    'email': self.email,
+                    'password': self.password
+                }),
+                'headers': {'Content-Type': 'application/x-www-form-urlencoded'}
             }
-            
-            response = requests.post(login_url, files=files)
-            response_data = response.json()
-            
-            if response.status_code == 200 and response_data.get('status') == True:
-                token = response_data.get('token')
-                if token:
-                    # Cache the token for 23 hours
-                    cache.set(cache_key, token, 23 * 60 * 60)
-                    return token
-            
-            raise Exception(f"Authentication failed: {response_data}")
-            
-        except Exception as e:
-            print(f"OnCloud API Error: {str(e)}")
-            raise
+        ]
+        
+        last_error = None
+        for i, attempt in enumerate(auth_attempts, 1):
+            try:
+                print(f"\n[DEBUG] Authentication attempt {i}")
+                print(f"[DEBUG] Request URL: {login_url}")
+                print(f"[DEBUG] Request headers: {attempt.get('headers', {})}")
+                
+                if 'files' in attempt:
+                    print("[DEBUG] Request files:")
+                    for key, value in attempt['files'].items():
+                        print(f"  {key}: {value[1] if isinstance(value, tuple) else value}")
+                
+                if 'json' in attempt:
+                    print(f"[DEBUG] Request JSON data: {attempt['json']}")
+                
+                if 'data' in attempt:
+                    print(f"[DEBUG] Request form data: {attempt['data']}")
+                
+                response = requests.post(login_url, **attempt)
+                print(f"[DEBUG] Response status code: {response.status_code}")
+                print(f"[DEBUG] Response headers: {dict(response.headers)}")
+                print(f"[DEBUG] Response body: {response.text}")
+                
+                response_data = response.json()
+                
+                if response.status_code == 200 and response_data.get('status') == True:
+                    token = response_data.get('token')
+                    if token:
+                        # Cache the token for 23 hours
+                        cache.set(cache_key, token, 23 * 60 * 60)
+                        print(f"[DEBUG] Successfully obtained and cached token for tenant_id: {self.tenant_id}")
+                        return token
+                
+                last_error = response_data
+            except Exception as e:
+                print(f"[DEBUG] Authentication attempt {i} failed: {str(e)}")
+                last_error = str(e)
+        
+        print(f"[DEBUG] All authentication attempts failed. Last error: {last_error}")
+        raise Exception(f"Authentication failed: {last_error}")
     
     def test_connection(self):
         """

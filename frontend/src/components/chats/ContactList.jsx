@@ -12,7 +12,8 @@ import {
   CircularProgress,
   Avatar,
   Chip,
-  Tooltip
+  Tooltip,
+  Alert
 } from '@mui/material';
 import PersonIcon from '@mui/icons-material/Person';
 import ChatIcon from '@mui/icons-material/Chat';
@@ -23,6 +24,7 @@ const ContactList = () => {
   const [contacts, setContacts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [noApiConfigured, setNoApiConfigured] = useState(false);
 
   useEffect(() => {
     fetchContacts();
@@ -30,15 +32,62 @@ const ContactList = () => {
 
   const fetchContacts = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/contacts/');
+      setLoading(true);
+      setNoApiConfigured(false);
+      
+      // Get tenant ID from localStorage
+      const tenantId = localStorage.getItem('tenant_id');
+      const token = localStorage.getItem('token');
+      
+      console.log('[DEBUG] Using tenant ID from localStorage:', tenantId);
+      console.log('[DEBUG] Using token from localStorage:', token ? 'Token exists' : 'No token found');
+      
+      const response = await fetch('http://localhost:8000/api/contacts/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Tenant-ID': tenantId,
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        // Check if the response is HTML (likely a server error page)
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('text/html')) {
+          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+        
+        // Try to parse as JSON
+        try {
+          const errorData = await response.json();
+          if (errorData.error && errorData.error.includes('No WhatsApp API settings configured')) {
+            setNoApiConfigured(true);
+            setError('No WhatsApp API configured for this tenant');
+            return;
+          }
+          throw new Error(errorData.error || errorData.errMsg || 'Failed to load contacts');
+        } catch (jsonError) {
+          // If JSON parsing fails, use the status text
+          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+      }
+      
       const data = await response.json();
       
-      if (data.status === 'error') {
-        throw new Error(data.message || 'Failed to load contacts');
+      if (!data.status || data.status === 'error') {
+        // Check if the error is due to no API configuration
+        if (data.error && data.error.includes('No WhatsApp API settings configured')) {
+          setNoApiConfigured(true);
+          setError('No WhatsApp API configured for this tenant');
+          return;
+        }
+        throw new Error(data.errMsg || 'Failed to load contacts');
       }
       
       setContacts(data.contacts || []);
     } catch (error) {
+      console.error('Error fetching contacts:', error);
       setError('Error fetching contacts: ' + error.message);
     } finally {
       setLoading(false);
@@ -58,10 +107,26 @@ const ContactList = () => {
     );
   }
 
+  if (noApiConfigured) {
+    return (
+      <Box p={3}>
+        <Typography variant="h6" gutterBottom>
+          WhatsApp Contacts
+        </Typography>
+        <Alert severity="warning">
+          No WhatsApp API configured for this tenant. Please configure your WhatsApp API settings to start using contacts.
+        </Alert>
+      </Box>
+    );
+  }
+
   if (error) {
     return (
       <Box p={3}>
-        <Typography color="error">{error}</Typography>
+        <Typography variant="h6" gutterBottom>
+          WhatsApp Contacts
+        </Typography>
+        <Alert severity="error">{error}</Alert>
       </Box>
     );
   }

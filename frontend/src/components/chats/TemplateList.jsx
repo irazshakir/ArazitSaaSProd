@@ -34,6 +34,7 @@ const TemplateList = () => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [sending, setSending] = useState(false);
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
+  const [noApiConfigured, setNoApiConfigured] = useState(false);
 
   useEffect(() => {
     fetchTemplates();
@@ -41,15 +42,62 @@ const TemplateList = () => {
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/templates/');
+      setLoading(true);
+      setNoApiConfigured(false);
+      
+      // Get tenant ID from localStorage
+      const tenantId = localStorage.getItem('tenant_id');
+      const token = localStorage.getItem('token');
+      
+      console.log('[DEBUG] Using tenant ID from localStorage:', tenantId);
+      console.log('[DEBUG] Using token from localStorage:', token ? 'Token exists' : 'No token found');
+      
+      const response = await fetch('http://localhost:8000/api/templates/', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Tenant-ID': tenantId,
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        // Check if the response is HTML (likely a server error page)
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('text/html')) {
+          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+        
+        // Try to parse as JSON
+        try {
+          const errorData = await response.json();
+          if (errorData.error && errorData.error.includes('No WhatsApp API settings configured')) {
+            setNoApiConfigured(true);
+            setError('No WhatsApp API configured for this tenant');
+            return;
+          }
+          throw new Error(errorData.error || errorData.errMsg || 'Failed to load templates');
+        } catch (jsonError) {
+          // If JSON parsing fails, use the status text
+          throw new Error(`Server error: ${response.status} ${response.statusText}`);
+        }
+      }
+      
       const data = await response.json();
       
-      if (data.status === 'success' && data.templates) {
-        setTemplates(data.templates);
-      } else {
-        setError('Failed to load templates');
+      if (!data.status || data.status === 'error') {
+        // Check if the error is due to no API configuration
+        if (data.error && data.error.includes('No WhatsApp API settings configured')) {
+          setNoApiConfigured(true);
+          setError('No WhatsApp API configured for this tenant');
+          return;
+        }
+        throw new Error(data.errMsg || 'Failed to load templates');
       }
+      
+      setTemplates(data.templates || []);
     } catch (error) {
+      console.error('Error fetching templates:', error);
       setError('Error fetching templates: ' + error.message);
     } finally {
       setLoading(false);
@@ -71,6 +119,10 @@ const TemplateList = () => {
 
     setSending(true);
     try {
+      // Get tenant ID from localStorage
+      const tenantId = localStorage.getItem('tenant_id');
+      const token = localStorage.getItem('token');
+      
       // Format phone number to remove any spaces and ensure it starts with '+'
       const formattedPhone = phoneNumber.trim().replace(/^\+?/, '+');
 
@@ -78,8 +130,11 @@ const TemplateList = () => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Tenant-ID': tenantId,
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
+          tenant_id: tenantId,
           phone: formattedPhone,
           template_name: selectedTemplate.name,
           template_language: selectedTemplate.language || 'en', // default to English if not specified
@@ -99,17 +154,23 @@ const TemplateList = () => {
 
       const data = await response.json();
       
-      if (response.ok) {
-        setSnackbar({
-          open: true,
-          message: 'Template message sent successfully!',
-          severity: 'success'
-        });
-        setSendDialogOpen(false);
-        setPhoneNumber(''); // Clear the phone number after successful send
-      } else {
-        throw new Error(data.error || 'Failed to send template message');
+      if (!data.status || data.status === 'error') {
+        // Check if the error is due to no API configuration
+        if (data.error && data.error.includes('No WhatsApp API settings configured')) {
+          setNoApiConfigured(true);
+          setError('No WhatsApp API configured for this tenant');
+          return;
+        }
+        throw new Error(data.errMsg || 'Failed to send template message');
       }
+      
+      setSnackbar({
+        open: true,
+        message: 'Template message sent successfully!',
+        severity: 'success'
+      });
+      setSendDialogOpen(false);
+      setPhoneNumber(''); // Clear the phone number after successful send
     } catch (error) {
       setSnackbar({
         open: true,
@@ -133,10 +194,26 @@ const TemplateList = () => {
     );
   }
 
+  if (noApiConfigured) {
+    return (
+      <Box p={3}>
+        <Typography variant="h6" gutterBottom>
+          WhatsApp Templates
+        </Typography>
+        <Alert severity="warning">
+          No WhatsApp API configured for this tenant. Please configure your WhatsApp API settings to start using templates.
+        </Alert>
+      </Box>
+    );
+  }
+
   if (error) {
     return (
       <Box p={3}>
-        <Typography color="error">{error}</Typography>
+        <Typography variant="h6" gutterBottom>
+          WhatsApp Templates
+        </Typography>
+        <Alert severity="error">{error}</Alert>
       </Box>
     );
   }
