@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
 from django.db.models import Q
 from django.utils import timezone
+from rest_framework.pagination import PageNumberPagination
 
 from users.models import User
 from .models import (
@@ -20,6 +21,19 @@ from teams.models import TeamManager, TeamLead, TeamMember
 
 # Create your views here.
 
+# Custom pagination class that increases page size for admin users
+class LeadPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 1000
+    
+    def get_page_size(self, request):
+        # Check if the user is an admin
+        if request.user.role == 'admin':
+            # For admin users, use a larger page size
+            return 100  # You can adjust this value as needed
+        return self.page_size
+
 class LeadViewSet(viewsets.ModelViewSet):
     """
     ViewSet for Lead model.
@@ -32,6 +46,7 @@ class LeadViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'email', 'phone', 'whatsapp']
     ordering_fields = ['created_at', 'updated_at', 'last_contacted', 'next_follow_up', 'status']
     ordering = ['-created_at']
+    pagination_class = LeadPagination
     
     def get_queryset(self):
         """

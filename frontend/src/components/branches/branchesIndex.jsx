@@ -415,6 +415,7 @@ const BranchesIndex = () => {
               onDeleteClick={handleDeleteBranch}
               pagination={true}
               rowsPerPage={10}
+              rowsPerPageOptions={[5, 10, 25, 50, 100]}
               defaultSortField="name"
               defaultSortDirection="asc"
             />

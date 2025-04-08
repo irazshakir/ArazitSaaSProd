@@ -17,6 +17,9 @@ import AnalyticalReport from '../components/analytics/analyticalReport';
 // Company Settings Pages
 import CompanySettings from '../components/company_settings/companySettings';
 
+// WABA Settings Pages
+import WABASettings from '../components/settings/WABAsettings';
+
 // Hajj & Umrah Pages
 import HajjPackagesIndex from '../components/hajjPackages/hajjPackagesIndex';
 import HajjPackageCreate from '../components/forms/products/hajjPackages/HajjPackageCreate';
@@ -32,7 +35,7 @@ import LeadEdit from '../components/leads/leadEdit';
 import LeadView from '../components/leads/leadView';
 
 // Groups Pages
-import { GroupIndex } from '../components/groups/groupIndex';
+import { GroupIndex } from '../components/groups/GroupIndex';
 import { GroupCreate } from '../components/groups/groupCreate';
 import { GroupEdit } from '../components/groups/groupEdit';
 
@@ -164,6 +167,7 @@ const AppRoutes = () => {
           {/* Settings Routes */}
           <Route path="settings">
             <Route path="company" element={<CompanySettings />} />
+            <Route path="waba" element={<WABASettings />} />
             {/* Add other settings routes here */}
           </Route>
           

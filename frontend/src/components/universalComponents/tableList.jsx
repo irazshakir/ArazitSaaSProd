@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Table,
@@ -14,7 +14,6 @@ import {
   Chip,
   TableSortLabel,
   Paper,
-  Pagination,
   Dialog,
   DialogActions,
   DialogContent,
@@ -25,6 +24,7 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
+import EnhancedPagination from './enhancedPagination';
 
 const TableList = ({
   columns = [],
@@ -37,6 +37,7 @@ const TableList = ({
   selectable = true,
   pagination = true,
   rowsPerPage = 10,
+  rowsPerPageOptions = [5, 10, 25, 50],
   defaultSortField = '',
   defaultSortDirection = 'asc'
 }) => {
@@ -44,10 +45,16 @@ const TableList = ({
   const [page, setPage] = useState(1);
   const [sortField, setSortField] = useState(defaultSortField);
   const [sortDirection, setSortDirection] = useState(defaultSortDirection);
+  const [localRowsPerPage, setLocalRowsPerPage] = useState(rowsPerPage);
   
   // State for delete confirmation dialog
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  
+  // Reset page when data changes
+  useEffect(() => {
+    setPage(1);
+  }, [data]);
   
   // Handle row selection
   const handleSelectAllClick = (event) => {
@@ -91,7 +98,15 @@ const TableList = ({
 
   // Handle pagination
   const handleChangePage = (event, newPage) => {
-    setPage(newPage);
+    if (newPage >= 1 && newPage <= Math.ceil(data.length / localRowsPerPage)) {
+      setPage(newPage);
+    }
+  };
+  
+  // Handle rows per page change
+  const handleRowsPerPageChange = (newRowsPerPage) => {
+    setLocalRowsPerPage(newRowsPerPage);
+    setPage(1); // Reset to first page when changing rows per page
   };
 
   // Apply sorting to data
@@ -119,9 +134,11 @@ const TableList = ({
   // Apply pagination
   const paginatedData = React.useMemo(() => {
     if (!pagination) return sortedData;
-    const startIndex = (page - 1) * rowsPerPage;
-    return sortedData.slice(startIndex, startIndex + rowsPerPage);
-  }, [sortedData, page, rowsPerPage, pagination]);
+    const startIndex = (page - 1) * localRowsPerPage;
+    const endIndex = startIndex + localRowsPerPage;
+    console.log(`TableList pagination: Showing items ${startIndex + 1} to ${Math.min(endIndex, sortedData.length)} of ${sortedData.length} total items`);
+    return sortedData.slice(startIndex, endIndex);
+  }, [sortedData, page, localRowsPerPage, pagination]);
 
   // Render cell content based on type
   const renderCellContent = (column, value, row) => {
@@ -208,6 +225,7 @@ const TableList = ({
 
   return (
     <Box sx={{ width: '100%' }}>
+      {console.log(`TableList received ${data.length} items, displaying ${paginatedData.length} after pagination`)}
       <Paper 
         elevation={0} 
         sx={{ 
@@ -366,20 +384,14 @@ const TableList = ({
         </TableContainer>
         
         {pagination && data.length > 0 && (
-          <Box sx={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            p: 2, 
-            borderTop: '1px solid rgba(0, 0, 0, 0.1)'
-          }}>
-            <Pagination 
-              count={Math.ceil(data.length / rowsPerPage)} 
-              page={page} 
-              onChange={handleChangePage} 
-              color="primary"
-              size="medium"
-            />
-          </Box>
+          <EnhancedPagination
+            totalItems={data.length}
+            page={page}
+            rowsPerPage={localRowsPerPage}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleRowsPerPageChange}
+            rowsPerPageOptions={rowsPerPageOptions}
+          />
         )}
       </Paper>
       

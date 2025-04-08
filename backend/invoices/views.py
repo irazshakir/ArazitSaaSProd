@@ -2,10 +2,17 @@ from django.shortcuts import render
 from rest_framework import viewsets, permissions, status, filters
 from rest_framework.response import Response
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from django.db.models import Sum, Q
 
 from .models import Invoice, PaymentHistory
 from .serializers import InvoiceSerializer, InvoiceListSerializer, PaymentHistorySerializer
+
+
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
 
 class InvoiceViewSet(viewsets.ModelViewSet):
@@ -14,6 +21,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['invoice_number', 'customer_name', 'customer_email', 'lead__name']
     ordering_fields = ['created_at', 'issue_date', 'due_date', 'total_amount', 'paid_amount']
+    pagination_class = StandardResultsSetPagination
     
     def get_queryset(self):
         queryset = Invoice.objects.all().order_by('-created_at')

@@ -1,13 +1,18 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from .views import (
     GroupView, TemplateView, ChatListView, ChatMessageView, 
     ContactView, SingleContactView, SendMessageView,
     SendImageMessageView, ConversationListView, ChatLeadView,
     CreateLeadFromChatView, TenantDebugView, get_conversations,
-    check_lead_departments
+    check_lead_departments, WABASettingsViewSet
 )
 
 app_name = 'waba_int'
+
+# Create a router for the WABASettingsViewSet
+router = DefaultRouter()
+router.register(r'settings', WABASettingsViewSet, basename='waba-settings')
 
 urlpatterns = [
     path('groups/', GroupView.as_view(), name='groups'),
@@ -23,6 +28,9 @@ urlpatterns = [
     path('debug-tenant/', TenantDebugView.as_view(), name='debug_tenant'),
     path('check-lead-departments/', check_lead_departments, name='check_lead_departments'),
 ]
+
+# Add the router URLs to the urlpatterns
+urlpatterns += router.urls
 
 print("WABA_INT URL patterns loaded:", urlpatterns)  # Debug print
 

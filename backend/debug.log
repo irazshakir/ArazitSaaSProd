@@ -312,3 +312,1019 @@ INFO 2025-04-08 01:11:05,965 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9b
 INFO 2025-04-08 01:11:06,109 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
 INFO 2025-04-08 01:11:08,715 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
 INFO 2025-04-08 01:11:13,263 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
+INFO 2025-04-08 01:12:39,929 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+INFO 2025-04-08 01:12:40,212 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+WARNING 2025-04-08 01:12:40,802 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 01:12:40,803 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+WARNING 2025-04-08 01:12:40,879 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 01:12:40,880 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 01:12:42,287 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 01:12:43,592 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 01:13:27,777 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2281
+WARNING 2025-04-08 01:13:28,082 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 01:13:28,083 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+WARNING 2025-04-08 01:13:28,113 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 01:13:28,114 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 01:13:28,181 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+INFO 2025-04-08 01:13:28,197 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+WARNING 2025-04-08 01:13:28,224 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 01:13:28,225 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+WARNING 2025-04-08 01:13:28,268 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 01:13:28,270 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 01:13:28,300 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+WARNING 2025-04-08 01:13:28,361 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 01:13:28,362 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 01:13:28,422 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+INFO 2025-04-08 01:13:28,423 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+WARNING 2025-04-08 01:13:28,433 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 01:13:28,436 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 01:13:28,443 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+INFO 2025-04-08 01:13:28,507 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+INFO 2025-04-08 01:13:28,620 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2281
+INFO 2025-04-08 01:13:28,640 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+INFO 2025-04-08 01:13:28,787 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+INFO 2025-04-08 01:13:28,792 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+INFO 2025-04-08 01:13:30,093 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 01:13:31,364 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 01:13:31,676 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
+INFO 2025-04-08 01:13:35,359 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
+INFO 2025-04-08 01:14:23,774 signals Processing flight data for lead ecfeba5f-9bd1-4757-921a-226330aab3ac
+INFO 2025-04-08 01:14:23,775 signals Flight data: {'travelling_from': 'LHR', 'travelling_to': 'DXB', 'travel_date': '2025-04-09', 'return_date': '2025-04-29', 'pnr': 'UNm78798', 'ticket_status': 'inquiry', 'carrier': 'EK', 'passengers': {'adult': 1, 'child': 0}, 'passenger_details': [{'expiry_date': '2028-06-01', 'passport_no': 'AF897765', 'passenger_fname': 'Muhammad ', 'passenger_lname': 'Aslam'}], 'cost_details': {'total_sell': 4680, 'adult_price': 4400, 'total_profit': 280, 'child_price': 0, 'infant_price': 0, 'total_cost': 4400}}
+INFO 2025-04-08 01:14:24,120 signals Flight record updated: 1
+INFO 2025-04-08 01:14:24,880 signals Cost details updated: 1
+INFO 2025-04-08 01:14:25,181 signals Passenger detail created: 2
+INFO 2025-04-08 01:14:25,733 basehttp "PUT /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2317
+INFO 2025-04-08 01:14:26,451 signals Processing flight data for lead ecfeba5f-9bd1-4757-921a-226330aab3ac
+INFO 2025-04-08 01:14:26,455 signals Flight data: {'travelling_from': 'LHR', 'travelling_to': 'DXB', 'travel_date': '2025-04-09', 'return_date': '2025-04-29', 'pnr': 'UNm78798', 'ticket_status': 'inquiry', 'carrier': 'EK', 'passengers': {'adult': 1, 'child': 0}, 'passenger_details': [{'expiry_date': '2028-06-01', 'passport_no': 'AF897765', 'passenger_fname': 'Muhammad ', 'passenger_lname': 'Aslam'}], 'cost_details': {'total_sell': 4680, 'adult_price': 4400, 'total_profit': 280, 'child_price': 0, 'infant_price': 0, 'total_cost': 4400}}
+INFO 2025-04-08 01:14:26,731 signals Flight record updated: 1
+INFO 2025-04-08 01:14:27,004 signals Cost details updated: 1
+INFO 2025-04-08 01:14:27,281 signals Passenger detail created: 3
+INFO 2025-04-08 01:14:27,663 basehttp "PUT /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2317
+INFO 2025-04-08 01:14:36,682 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 21220
+INFO 2025-04-08 01:14:36,970 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 01:14:37,325 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 01:14:37,606 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 01:14:38,916 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 01:14:43,247 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2317
+WARNING 2025-04-08 01:14:43,480 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 01:14:43,481 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+WARNING 2025-04-08 01:14:43,521 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 01:14:43,529 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 01:14:43,593 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+WARNING 2025-04-08 01:14:43,632 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 01:14:43,633 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+INFO 2025-04-08 01:14:43,885 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+WARNING 2025-04-08 01:14:44,008 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 01:14:44,018 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 01:14:44,023 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+WARNING 2025-04-08 01:14:44,093 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 01:14:44,097 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 01:14:44,160 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+WARNING 2025-04-08 01:14:44,168 log Not Found: /api/auth/users/active-by-tenant/
+INFO 2025-04-08 01:14:44,168 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+INFO 2025-04-08 01:14:44,169 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+WARNING 2025-04-08 01:14:44,170 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 01:14:44,229 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+INFO 2025-04-08 01:14:44,381 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+INFO 2025-04-08 01:14:44,445 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2317
+INFO 2025-04-08 01:14:44,514 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+INFO 2025-04-08 01:14:44,518 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+INFO 2025-04-08 01:14:47,020 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 01:14:48,736 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 01:14:49,103 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
+INFO 2025-04-08 01:14:53,034 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
+WARNING 2025-04-08 01:15:05,897 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 01:15:05,898 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+WARNING 2025-04-08 01:15:06,204 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 01:15:06,217 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+WARNING 2025-04-08 01:15:06,517 log Not Found: /api/auth/users/active-by-tenant/
+INFO 2025-04-08 01:15:06,519 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+INFO 2025-04-08 01:15:06,520 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+WARNING 2025-04-08 01:15:06,521 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 01:15:06,583 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+INFO 2025-04-08 01:15:06,718 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+INFO 2025-04-08 01:15:06,727 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+INFO 2025-04-08 01:15:08,428 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 01:15:10,023 basehttp - Broken pipe from ('127.0.0.1', 49260)
+INFO 2025-04-08 01:15:11,071 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2317
+WARNING 2025-04-08 01:15:11,351 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 01:15:11,354 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+WARNING 2025-04-08 01:15:11,394 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 01:15:11,397 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 01:15:11,469 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+INFO 2025-04-08 01:15:11,560 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+WARNING 2025-04-08 01:15:11,583 log Not Found: /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/
+WARNING 2025-04-08 01:15:11,584 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/notes/ HTTP/1.1" 404 56463
+WARNING 2025-04-08 01:15:11,653 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 01:15:11,654 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 01:15:11,702 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+WARNING 2025-04-08 01:15:11,728 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 01:15:11,728 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+WARNING 2025-04-08 01:15:11,800 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-08 01:15:11,801 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-08 01:15:11,846 basehttp "GET /api/lead-documents/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 52
+INFO 2025-04-08 01:15:11,894 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/ HTTP/1.1" 200 2317
+INFO 2025-04-08 01:15:11,929 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+INFO 2025-04-08 01:15:12,060 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+INFO 2025-04-08 01:15:12,061 basehttp "GET /api/leads/ecfeba5f-9bd1-4757-921a-226330aab3ac/activities/ HTTP/1.1" 200 2
+INFO 2025-04-08 01:15:12,224 basehttp "GET /api/lead-notes/?lead=ecfeba5f-9bd1-4757-921a-226330aab3ac HTTP/1.1" 200 674
+INFO 2025-04-08 01:15:12,727 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+INFO 2025-04-08 01:15:12,865 basehttp "GET /api/flights/ HTTP/1.1" 200 52
+INFO 2025-04-08 01:15:13,409 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 01:15:14,569 basehttp "GET /api/auth/users/ HTTP/1.1" 200 3456
+INFO 2025-04-08 01:15:14,717 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
+INFO 2025-04-08 01:15:18,071 basehttp "GET /api/leads/ HTTP/1.1" 200 10198
+INFO 2025-04-08 13:53:50,563 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 13:56:47,794 basehttp "OPTIONS /api/auth/token/ HTTP/1.1" 200 0
+INFO 2025-04-08 13:56:49,542 basehttp "POST /api/auth/token/ HTTP/1.1" 200 683
+INFO 2025-04-08 13:56:49,549 basehttp "OPTIONS /api/auth/me/ HTTP/1.1" 200 0
+WARNING 2025-04-08 13:56:49,555 log Unauthorized: /api/auth/me/
+WARNING 2025-04-08 13:56:49,556 basehttp "GET /api/auth/me/ HTTP/1.1" 401 183
+INFO 2025-04-08 13:56:50,169 basehttp "GET /api/auth/me/ HTTP/1.1" 200 299
+INFO 2025-04-08 13:56:50,645 basehttp "OPTIONS /api/analytics/dashboard-stats?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-08 13:56:50,701 basehttp "OPTIONS /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-08 13:56:55,017 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 507
+INFO 2025-04-08 14:51:08,935 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 507
+INFO 2025-04-08 15:00:39,060 basehttp "OPTIONS /api/company-settings/?tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-08 15:00:39,063 basehttp "OPTIONS /api/company-settings/?tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+WARNING 2025-04-08 15:00:39,370 log Unauthorized: /api/company-settings/
+WARNING 2025-04-08 15:00:39,372 basehttp "GET /api/company-settings/?tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 401 183
+WARNING 2025-04-08 15:00:39,376 log Unauthorized: /api/company-settings/
+WARNING 2025-04-08 15:00:39,377 basehttp "GET /api/company-settings/?tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 401 183
+INFO 2025-04-08 15:00:43,857 basehttp "POST /api/auth/token/ HTTP/1.1" 200 683
+WARNING 2025-04-08 15:00:43,863 log Unauthorized: /api/auth/me/
+WARNING 2025-04-08 15:00:43,865 basehttp "GET /api/auth/me/ HTTP/1.1" 401 183
+INFO 2025-04-08 15:00:44,525 basehttp "GET /api/auth/me/ HTTP/1.1" 200 299
+INFO 2025-04-08 15:00:48,047 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 507
+INFO 2025-04-08 15:00:53,202 basehttp "GET /api/company-settings/?tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 400
+INFO 2025-04-08 15:00:53,366 basehttp "GET /media/company_logos/ArazitCRM-logo.png HTTP/1.1" 200 11967
+INFO 2025-04-08 15:00:53,421 basehttp "GET /api/company-settings/?tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 400
+INFO 2025-04-08 15:00:57,049 basehttp "OPTIONS /api/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+WARNING 2025-04-08 15:00:57,392 log Not Found: /api/branches/
+WARNING 2025-04-08 15:00:57,393 basehttp "GET /api/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 56387
+INFO 2025-04-08 15:00:57,398 basehttp "OPTIONS /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-08 15:00:57,856 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+INFO 2025-04-08 15:01:00,048 basehttp "OPTIONS /api/departments/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+WARNING 2025-04-08 15:01:00,079 log Not Found: /api/departments/
+WARNING 2025-04-08 15:01:00,080 basehttp "GET /api/departments/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 56396
+INFO 2025-04-08 15:01:00,117 basehttp "OPTIONS /api/users/departments/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+WARNING 2025-04-08 15:01:00,138 log Not Found: /api/users/departments/
+WARNING 2025-04-08 15:01:00,139 basehttp "GET /api/users/departments/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 56414
+INFO 2025-04-08 15:01:00,148 basehttp "OPTIONS /api/auth/departments/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-08 15:01:00,698 basehttp "GET /api/auth/departments/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 1468
+INFO 2025-04-08 15:01:02,761 basehttp "OPTIONS /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-08 15:01:02,761 basehttp "OPTIONS /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-08 15:01:04,524 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 3456
+INFO 2025-04-08 15:01:06,112 basehttp "OPTIONS /api/api/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+WARNING 2025-04-08 15:01:06,141 log Not Found: /api/api/branches/
+INFO 2025-04-08 15:01:06,144 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 3456
+WARNING 2025-04-08 15:01:06,146 basehttp "GET /api/api/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 56399
+WARNING 2025-04-08 15:01:06,210 log Not Found: /api/branches/
+WARNING 2025-04-08 15:01:06,211 basehttp "GET /api/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 56387
+INFO 2025-04-08 15:01:06,218 basehttp "OPTIONS /api/teams/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&include_related=true HTTP/1.1" 200 0
+INFO 2025-04-08 15:01:07,195 basehttp "GET /api/teams/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&include_related=true HTTP/1.1" 200 872
+INFO 2025-04-08 15:01:07,202 basehttp "OPTIONS /api/api/departments/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+WARNING 2025-04-08 15:01:07,254 log Not Found: /api/api/departments/
+WARNING 2025-04-08 15:01:07,255 basehttp "GET /api/api/departments/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 56408
+WARNING 2025-04-08 15:01:07,303 log Not Found: /api/departments/
+WARNING 2025-04-08 15:01:07,305 basehttp "GET /api/departments/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 56396
+WARNING 2025-04-08 15:01:07,332 log Not Found: /api/api/branches/
+WARNING 2025-04-08 15:01:07,332 basehttp "GET /api/api/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 56399
+WARNING 2025-04-08 15:01:07,352 log Not Found: /api/branches/
+WARNING 2025-04-08 15:01:07,353 basehttp "GET /api/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 56387
+INFO 2025-04-08 15:01:47,174 basehttp "OPTIONS /api/hajj-packages/ HTTP/1.1" 200 0
+INFO 2025-04-08 15:01:47,174 basehttp "OPTIONS /api/hajj-packages/ HTTP/1.1" 200 0
+INFO 2025-04-08 15:01:47,639 basehttp "GET /api/hajj-packages/ HTTP/1.1" 200 52
+INFO 2025-04-08 15:01:47,783 basehttp "GET /api/hajj-packages/ HTTP/1.1" 200 52
+INFO 2025-04-08 15:01:54,177 basehttp "OPTIONS /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-08 15:02:03,416 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 21220
+INFO 2025-04-08 15:02:03,422 basehttp "OPTIONS /api/auth/users/23/ HTTP/1.1" 200 0
+INFO 2025-04-08 15:02:04,003 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:02:04,009 basehttp "OPTIONS /api/auth/users/24/ HTTP/1.1" 200 0
+INFO 2025-04-08 15:02:04,293 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:02:04,300 basehttp "OPTIONS /api/auth/users/25/ HTTP/1.1" 200 0
+INFO 2025-04-08 15:02:04,909 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 15:02:04,915 basehttp "OPTIONS /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 0
+INFO 2025-04-08 15:02:07,232 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+WARNING 2025-04-08 15:09:18,822 log Not Found: /api/branches/
+WARNING 2025-04-08 15:09:18,823 basehttp "GET /api/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 56387
+INFO 2025-04-08 15:09:20,086 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+WARNING 2025-04-08 15:13:22,756 log Not Found: /api/branches/
+WARNING 2025-04-08 15:13:22,757 basehttp "GET /api/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 56387
+INFO 2025-04-08 15:13:23,170 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+WARNING 2025-04-08 15:14:46,737 log Not Found: /api/branches/
+WARNING 2025-04-08 15:14:46,738 basehttp "GET /api/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 56387
+INFO 2025-04-08 15:14:47,157 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 577
+INFO 2025-04-08 15:15:16,063 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 21220
+INFO 2025-04-08 15:15:16,414 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:15:16,713 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:15:17,006 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 15:15:18,314 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 15:17:55,090 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 21220
+INFO 2025-04-08 15:17:55,406 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:17:55,720 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:17:56,308 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 15:17:57,893 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 15:18:21,060 basehttp "POST /api/auth/token/ HTTP/1.1" 200 683
+INFO 2025-04-08 15:18:21,151 basehttp "GET /api/auth/me/ HTTP/1.1" 200 299
+INFO 2025-04-08 15:18:21,466 basehttp "OPTIONS /api/auth/user-tenants/ HTTP/1.1" 200 0
+WARNING 2025-04-08 15:18:21,494 log Not Found: /api/auth/user-tenants/
+WARNING 2025-04-08 15:18:21,495 basehttp "GET /api/auth/user-tenants/ HTTP/1.1" 404 65396
+INFO 2025-04-08 15:18:26,251 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 507
+INFO 2025-04-08 15:18:33,124 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 21220
+INFO 2025-04-08 15:18:33,419 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:18:33,715 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:18:34,006 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 15:18:35,262 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 15:23:49,986 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 21220
+INFO 2025-04-08 15:23:50,859 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:23:51,164 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:23:51,496 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 15:23:52,781 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 15:23:59,579 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 21220
+INFO 2025-04-08 15:24:00,700 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:24:01,015 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:24:01,319 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 15:24:02,621 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 15:24:07,566 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 21220
+INFO 2025-04-08 15:24:08,353 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 21220
+INFO 2025-04-08 15:24:08,661 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:24:08,960 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:24:09,553 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 21220
+INFO 2025-04-08 15:24:09,554 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:24:09,627 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 21220
+INFO 2025-04-08 15:24:10,478 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:24:10,489 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:24:10,489 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 15:24:10,793 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:24:10,793 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:24:11,083 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 15:24:11,095 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:24:11,394 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 15:24:11,690 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 15:24:11,761 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 15:24:12,256 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 21220
+INFO 2025-04-08 15:24:12,870 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:24:13,015 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 21220
+INFO 2025-04-08 15:24:13,185 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:24:13,288 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 15:24:13,494 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 15:24:13,610 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:24:13,919 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:24:14,459 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 15:24:14,830 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 15:24:16,381 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 15:24:18,044 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 15:24:18,422 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 21220
+INFO 2025-04-08 15:24:18,735 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:24:19,066 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:24:19,330 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 15:24:19,389 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 15:24:21,039 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 15:24:59,375 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 21220
+INFO 2025-04-08 15:24:59,713 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:25:00,295 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:25:00,591 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 15:25:02,248 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 15:25:08,952 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 21220
+INFO 2025-04-08 15:25:09,280 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:25:09,594 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:25:10,413 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 15:25:12,018 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 15:25:18,617 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 21220
+INFO 2025-04-08 15:25:18,906 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:25:19,203 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:25:19,507 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 15:25:21,090 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 15:44:25,342 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 21220
+INFO 2025-04-08 15:44:25,649 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:44:25,931 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:44:26,214 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 15:44:28,291 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 15:49:31,825 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\leads\views.py changed, reloading.
+INFO 2025-04-08 15:49:33,008 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 15:50:50,264 basehttp "OPTIONS /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&page_size=100 HTTP/1.1" 200 0
+INFO 2025-04-08 15:50:50,264 basehttp "OPTIONS /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&page_size=100 HTTP/1.1" 200 0
+INFO 2025-04-08 15:50:50,269 basehttp "OPTIONS /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&page_size=100 HTTP/1.1" 200 0
+INFO 2025-04-08 15:51:04,746 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&page_size=100 HTTP/1.1" 200 32238
+INFO 2025-04-08 15:51:06,065 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:51:06,347 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:51:06,642 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 15:51:08,168 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 15:51:19,146 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&page_size=100 HTTP/1.1" 200 32238
+INFO 2025-04-08 15:51:19,496 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:51:20,220 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:51:20,513 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 15:51:22,066 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 15:51:24,374 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&page_size=100 HTTP/1.1" 200 32238
+INFO 2025-04-08 15:51:24,677 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:51:24,992 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:51:25,291 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 15:51:26,572 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 15:51:45,423 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\leads\views.py changed, reloading.
+INFO 2025-04-08 15:51:46,856 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 15:52:04,988 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&page_size=100 HTTP/1.1" 200 32238
+INFO 2025-04-08 15:52:05,274 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:52:05,860 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:52:06,148 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 15:52:07,590 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 15:52:20,485 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&page_size=100 HTTP/1.1" 200 32238
+INFO 2025-04-08 15:52:20,776 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:52:21,063 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:52:21,378 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 15:52:22,703 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 15:58:51,913 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&page_size=100 HTTP/1.1" 200 32238
+INFO 2025-04-08 15:58:52,214 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:58:52,506 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 15:58:53,400 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 15:58:56,180 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 16:02:33,219 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\invoices\views.py changed, reloading.
+INFO 2025-04-08 16:02:35,431 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 16:35:27,734 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\invoices\views.py changed, reloading.
+INFO 2025-04-08 16:35:28,877 autoreload Watching for file changes with StatReloader
+WARNING 2025-04-08 16:35:38,435 log Unauthorized: /api/leads/by-role/
+WARNING 2025-04-08 16:35:38,436 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&page_size=100 HTTP/1.1" 401 183
+INFO 2025-04-08 16:49:05,742 basehttp "OPTIONS /api/auth/token/ HTTP/1.1" 200 0
+INFO 2025-04-08 16:49:07,348 basehttp "POST /api/auth/token/ HTTP/1.1" 200 683
+INFO 2025-04-08 16:49:07,354 basehttp "OPTIONS /api/auth/me/ HTTP/1.1" 200 0
+WARNING 2025-04-08 16:49:07,359 log Unauthorized: /api/auth/me/
+WARNING 2025-04-08 16:49:07,360 basehttp "GET /api/auth/me/ HTTP/1.1" 401 183
+INFO 2025-04-08 16:49:08,112 basehttp "GET /api/auth/me/ HTTP/1.1" 200 299
+INFO 2025-04-08 16:49:08,486 basehttp "OPTIONS /api/analytics/dashboard-stats?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-08 16:49:08,524 basehttp "OPTIONS /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-08 16:49:12,957 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 507
+INFO 2025-04-08 16:49:24,350 basehttp "OPTIONS /api/invoices/?page=1&page_size=10 HTTP/1.1" 200 0
+INFO 2025-04-08 16:49:24,496 basehttp "GET /api/invoices/?page=1&page_size=10 HTTP/1.1" 200 52
+INFO 2025-04-08 17:16:13,919 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\models.py changed, reloading.
+INFO 2025-04-08 17:16:15,152 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:16:31,485 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\services\waba_int.py changed, reloading.
+INFO 2025-04-08 17:16:32,562 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:19:04,963 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 17:19:06,075 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:19:17,678 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\urls.py changed, reloading.
+INFO 2025-04-08 17:19:18,669 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:19:25,148 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\models.py changed, reloading.
+INFO 2025-04-08 17:19:26,717 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:19:29,816 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\models.py changed, reloading.
+INFO 2025-04-08 17:19:31,054 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:19:47,889 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 17:19:49,335 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:19:51,631 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 17:19:52,584 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:20:04,933 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\serializers.py changed, reloading.
+INFO 2025-04-08 17:20:06,444 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:20:13,652 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 17:20:15,048 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:29:20,938 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\models.py changed, reloading.
+INFO 2025-04-08 17:29:21,986 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:30:05,727 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\services\waba_int.py changed, reloading.
+INFO 2025-04-08 17:30:07,066 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:30:34,610 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:31:19,119 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\services\waba_int.py changed, reloading.
+INFO 2025-04-08 17:31:20,100 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:31:26,379 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\services\waba_int.py changed, reloading.
+INFO 2025-04-08 17:31:27,372 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:32:37,782 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\urls.py changed, reloading.
+INFO 2025-04-08 17:32:38,749 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:33:44,472 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\urls.py changed, reloading.
+INFO 2025-04-08 17:33:45,530 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:33:47,370 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\urls.py changed, reloading.
+INFO 2025-04-08 17:33:48,321 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:34:13,232 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 17:34:14,573 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:34:16,870 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 17:34:17,820 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:34:22,661 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 17:34:23,560 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:34:39,840 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\serializers.py changed, reloading.
+INFO 2025-04-08 17:34:40,776 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:34:44,742 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\serializers.py changed, reloading.
+INFO 2025-04-08 17:34:45,681 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:34:53,878 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 17:34:54,988 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:34:57,393 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 17:34:58,295 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:36:00,400 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\models.py changed, reloading.
+INFO 2025-04-08 17:36:01,547 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:36:08,365 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\models.py changed, reloading.
+INFO 2025-04-08 17:36:09,560 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:36:35,989 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\serializers.py changed, reloading.
+INFO 2025-04-08 17:36:37,092 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:36:47,830 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\serializers.py changed, reloading.
+INFO 2025-04-08 17:36:48,918 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:44:08,500 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\models.py changed, reloading.
+INFO 2025-04-08 17:44:09,889 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:44:13,650 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\models.py changed, reloading.
+INFO 2025-04-08 17:44:15,337 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:44:21,852 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\urls.py changed, reloading.
+INFO 2025-04-08 17:44:22,998 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:44:31,435 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\urls.py changed, reloading.
+INFO 2025-04-08 17:44:32,616 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 17:45:29,412 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&page_size=100 HTTP/1.1" 200 32238
+INFO 2025-04-08 17:45:29,738 basehttp "OPTIONS /api/auth/users/23/ HTTP/1.1" 200 0
+INFO 2025-04-08 17:45:30,296 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 17:45:30,300 basehttp "OPTIONS /api/auth/users/24/ HTTP/1.1" 200 0
+INFO 2025-04-08 17:45:30,586 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 17:45:30,592 basehttp "OPTIONS /api/auth/users/25/ HTTP/1.1" 200 0
+INFO 2025-04-08 17:45:30,873 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 17:45:30,880 basehttp "OPTIONS /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 0
+INFO 2025-04-08 17:45:32,178 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 18:30:54,190 basehttp "OPTIONS /api/waba/settings/ HTTP/1.1" 200 0
+WARNING 2025-04-08 18:30:54,892 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:30:54,893 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 18:33:53,801 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:33:53,803 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 18:34:00,905 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:34:00,906 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 18:34:00,943 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:34:00,944 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 18:34:27,202 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:34:27,203 basehttp "POST /api/waba/settings/ HTTP/1.1" 404 57592
+WARNING 2025-04-08 18:37:59,968 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:37:59,970 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+INFO 2025-04-08 18:38:00,293 basehttp "OPTIONS /api/api/waba/settings/ HTTP/1.1" 200 0
+WARNING 2025-04-08 18:38:00,319 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 18:38:00,320 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+INFO 2025-04-08 18:38:00,343 basehttp "OPTIONS /api/settings/ HTTP/1.1" 200 0
+WARNING 2025-04-08 18:38:00,351 log Unauthorized: /api/settings/
+WARNING 2025-04-08 18:38:00,352 basehttp "GET /api/settings/ HTTP/1.1" 401 183
+INFO 2025-04-08 18:40:40,387 basehttp "POST /api/auth/token/ HTTP/1.1" 200 683
+WARNING 2025-04-08 18:40:40,396 log Unauthorized: /api/auth/me/
+WARNING 2025-04-08 18:40:40,397 basehttp "GET /api/auth/me/ HTTP/1.1" 401 183
+INFO 2025-04-08 18:40:40,987 basehttp "GET /api/auth/me/ HTTP/1.1" 200 299
+INFO 2025-04-08 18:40:45,612 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 507
+WARNING 2025-04-08 18:41:54,088 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:41:54,089 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 18:41:54,120 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:41:54,121 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 18:41:54,258 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 18:41:54,259 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+WARNING 2025-04-08 18:41:54,373 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 18:41:54,376 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+ERROR 2025-04-08 18:41:54,621 log Internal Server Error: /api/settings/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\mixins.py", line 38, in list
+    queryset = self.filter_queryset(self.get_queryset())
+                                    ~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py", line 975, in get_queryset
+    return WABASettings.objects.filter(tenant=self.request.user.tenant)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'User' object has no attribute 'tenant'
+ERROR 2025-04-08 18:41:54,629 basehttp "GET /api/settings/ HTTP/1.1" 500 104325
+ERROR 2025-04-08 18:41:54,752 log Internal Server Error: /api/settings/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\mixins.py", line 38, in list
+    queryset = self.filter_queryset(self.get_queryset())
+                                    ~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py", line 975, in get_queryset
+    return WABASettings.objects.filter(tenant=self.request.user.tenant)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'User' object has no attribute 'tenant'
+ERROR 2025-04-08 18:41:54,755 basehttp "GET /api/settings/ HTTP/1.1" 500 104325
+WARNING 2025-04-08 18:42:03,912 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:42:03,914 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 18:42:03,945 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:42:03,947 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 18:42:04,016 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 18:42:04,017 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+WARNING 2025-04-08 18:42:04,052 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 18:42:04,054 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+ERROR 2025-04-08 18:42:04,195 log Internal Server Error: /api/settings/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\mixins.py", line 38, in list
+    queryset = self.filter_queryset(self.get_queryset())
+                                    ~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py", line 975, in get_queryset
+    return WABASettings.objects.filter(tenant=self.request.user.tenant)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'User' object has no attribute 'tenant'
+ERROR 2025-04-08 18:42:04,199 basehttp "GET /api/settings/ HTTP/1.1" 500 104325
+ERROR 2025-04-08 18:42:05,056 log Internal Server Error: /api/settings/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\mixins.py", line 38, in list
+    queryset = self.filter_queryset(self.get_queryset())
+                                    ~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py", line 975, in get_queryset
+    return WABASettings.objects.filter(tenant=self.request.user.tenant)
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'User' object has no attribute 'tenant'
+ERROR 2025-04-08 18:42:05,059 basehttp "GET /api/settings/ HTTP/1.1" 500 104325
+INFO 2025-04-08 18:43:05,753 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 18:43:09,580 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 18:43:37,477 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 18:43:38,654 autoreload Watching for file changes with StatReloader
+WARNING 2025-04-08 18:43:53,679 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:43:53,681 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 18:43:53,713 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:43:53,715 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 18:43:53,746 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 18:43:53,746 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+WARNING 2025-04-08 18:43:53,781 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 18:43:53,782 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+ERROR 2025-04-08 18:43:57,593 log Internal Server Error: /api/settings/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: relation "waba_settings" does not exist
+LINE 1: SELECT COUNT(*) AS "__count" FROM "waba_settings" WHERE "wab...
+                                          ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\mixins.py", line 40, in list
+    page = self.paginate_queryset(queryset)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\generics.py", line 171, in paginate_queryset
+    return self.paginator.paginate_queryset(queryset, self.request, view=self)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\pagination.py", line 204, in paginate_queryset
+    self.page = paginator.page(page_number)
+                ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\paginator.py", line 72, in page
+    number = self.validate_number(number)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\paginator.py", line 53, in validate_number
+    if number > self.num_pages:
+                ^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ~~~~~~~~~^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\paginator.py", line 99, in num_pages
+    if self.count == 0 and not self.allow_empty_first_page:
+       ^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ~~~~~~~~~^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\paginator.py", line 93, in count
+    return c()
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 608, in count
+    return self.query.get_count(using=self.db)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\sql\query.py", line 568, in get_count
+    return obj.get_aggregation(using, {"__count": Count("*")})["__count"]
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\sql\query.py", line 554, in get_aggregation
+    result = compiler.execute_sql(SINGLE)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\sql\compiler.py", line 1562, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\utils.py", line 102, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\utils.py", line 84, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: relation "waba_settings" does not exist
+LINE 1: SELECT COUNT(*) AS "__count" FROM "waba_settings" WHERE "wab...
+                                          ^
+
+ERROR 2025-04-08 18:43:57,611 basehttp "GET /api/settings/ HTTP/1.1" 500 190896
+ERROR 2025-04-08 18:43:58,687 log Internal Server Error: /api/settings/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+psycopg2.errors.UndefinedTable: relation "waba_settings" does not exist
+LINE 1: SELECT COUNT(*) AS "__count" FROM "waba_settings" WHERE "wab...
+                                          ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\mixins.py", line 40, in list
+    page = self.paginate_queryset(queryset)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\generics.py", line 171, in paginate_queryset
+    return self.paginator.paginate_queryset(queryset, self.request, view=self)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\pagination.py", line 204, in paginate_queryset
+    self.page = paginator.page(page_number)
+                ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\paginator.py", line 72, in page
+    number = self.validate_number(number)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\paginator.py", line 53, in validate_number
+    if number > self.num_pages:
+                ^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ~~~~~~~~~^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\paginator.py", line 99, in num_pages
+    if self.count == 0 and not self.allow_empty_first_page:
+       ^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\functional.py", line 57, in __get__
+    res = instance.__dict__[self.name] = self.func(instance)
+                                         ~~~~~~~~~^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\paginator.py", line 93, in count
+    return c()
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 608, in count
+    return self.query.get_count(using=self.db)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\sql\query.py", line 568, in get_count
+    return obj.get_aggregation(using, {"__count": Count("*")})["__count"]
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\sql\query.py", line 554, in get_aggregation
+    result = compiler.execute_sql(SINGLE)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\sql\compiler.py", line 1562, in execute_sql
+    cursor.execute(sql, params)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\utils.py", line 102, in execute
+    return super().execute(sql, params)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\utils.py", line 67, in execute
+    return self._execute_with_wrappers(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        sql, params, many=False, executor=self._execute
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\utils.py", line 80, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\utils.py", line 84, in _execute
+    with self.db.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\utils.py", line 89, in _execute
+    return self.cursor.execute(sql, params)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+django.db.utils.ProgrammingError: relation "waba_settings" does not exist
+LINE 1: SELECT COUNT(*) AS "__count" FROM "waba_settings" WHERE "wab...
+                                          ^
+
+ERROR 2025-04-08 18:43:58,691 basehttp "GET /api/settings/ HTTP/1.1" 500 190896
+INFO 2025-04-08 18:45:58,573 autoreload Watching for file changes with StatReloader
+WARNING 2025-04-08 18:46:05,917 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:46:05,918 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 18:46:05,942 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:46:05,944 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 18:46:05,988 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 18:46:05,989 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+WARNING 2025-04-08 18:46:06,016 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 18:46:06,017 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+INFO 2025-04-08 18:46:06,708 basehttp "GET /api/settings/ HTTP/1.1" 200 52
+INFO 2025-04-08 18:46:06,921 basehttp "GET /api/settings/ HTTP/1.1" 200 52
+WARNING 2025-04-08 18:46:35,283 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:46:35,285 basehttp "POST /api/waba/settings/ HTTP/1.1" 404 57592
+WARNING 2025-04-08 18:46:35,340 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 18:46:35,341 basehttp "POST /api/api/waba/settings/ HTTP/1.1" 404 57604
+INFO 2025-04-08 18:46:35,659 basehttp "POST /api/settings/ HTTP/1.1" 201 383
+WARNING 2025-04-08 18:48:45,898 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:48:45,899 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 18:48:45,965 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 18:48:45,967 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+INFO 2025-04-08 18:48:46,189 basehttp "GET /api/settings/ HTTP/1.1" 200 52
+INFO 2025-04-08 18:48:59,366 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\serializers.py changed, reloading.
+INFO 2025-04-08 18:49:01,156 autoreload Watching for file changes with StatReloader
+WARNING 2025-04-08 18:49:16,196 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:49:16,198 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 18:49:16,236 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 18:49:16,237 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+INFO 2025-04-08 18:49:17,263 basehttp "GET /api/settings/ HTTP/1.1" 200 52
+WARNING 2025-04-08 18:49:32,889 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:49:32,892 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 18:49:32,942 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 18:49:32,945 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+INFO 2025-04-08 18:49:33,115 basehttp "GET /api/settings/ HTTP/1.1" 200 52
+WARNING 2025-04-08 18:49:34,837 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:49:34,839 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 18:49:34,868 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:49:34,876 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 18:49:34,901 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 18:49:34,902 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+WARNING 2025-04-08 18:49:34,934 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 18:49:34,935 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+INFO 2025-04-08 18:49:35,064 basehttp "GET /api/settings/ HTTP/1.1" 200 52
+INFO 2025-04-08 18:49:35,220 basehttp "GET /api/settings/ HTTP/1.1" 200 52
+WARNING 2025-04-08 18:49:50,879 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:49:50,880 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 18:49:50,918 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 18:49:50,919 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+INFO 2025-04-08 18:49:51,094 basehttp "GET /api/settings/ HTTP/1.1" 200 52
+INFO 2025-04-08 18:49:54,930 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\serializers.py changed, reloading.
+INFO 2025-04-08 18:49:56,245 autoreload Watching for file changes with StatReloader
+WARNING 2025-04-08 18:49:58,485 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:49:58,490 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 18:49:58,560 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 18:49:58,562 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+INFO 2025-04-08 18:49:59,314 basehttp "GET /api/settings/ HTTP/1.1" 200 52
+WARNING 2025-04-08 18:50:08,205 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:50:08,208 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 18:50:08,250 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:50:08,251 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 18:50:08,355 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 18:50:08,357 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+WARNING 2025-04-08 18:50:08,387 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 18:50:08,389 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+INFO 2025-04-08 18:50:08,656 basehttp "GET /api/settings/ HTTP/1.1" 200 52
+INFO 2025-04-08 18:50:08,808 basehttp "GET /api/settings/ HTTP/1.1" 200 52
+WARNING 2025-04-08 18:50:46,247 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:50:46,248 basehttp "POST /api/waba/settings/ HTTP/1.1" 404 57592
+WARNING 2025-04-08 18:50:46,295 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 18:50:46,296 basehttp "POST /api/api/waba/settings/ HTTP/1.1" 404 57604
+INFO 2025-04-08 18:50:47,164 basehttp "POST /api/settings/ HTTP/1.1" 201 344
+WARNING 2025-04-08 18:50:57,184 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:50:57,186 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 18:50:57,244 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 18:50:57,246 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 18:50:57,353 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 18:50:57,354 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+WARNING 2025-04-08 18:50:57,392 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 18:50:57,400 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+INFO 2025-04-08 18:50:58,349 basehttp "GET /api/settings/ HTTP/1.1" 200 396
+INFO 2025-04-08 18:50:58,564 basehttp "GET /api/settings/ HTTP/1.1" 200 396
+INFO 2025-04-08 19:04:02,965 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 19:04:04,193 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 19:04:14,878 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\serializers.py changed, reloading.
+INFO 2025-04-08 19:04:16,043 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 19:07:44,584 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 19:07:45,785 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 19:08:18,818 basehttp "OPTIONS /api/auth/token/ HTTP/1.1" 200 0
+INFO 2025-04-08 19:08:20,312 basehttp "POST /api/auth/token/ HTTP/1.1" 200 683
+INFO 2025-04-08 19:08:20,320 basehttp "OPTIONS /api/auth/me/ HTTP/1.1" 200 0
+INFO 2025-04-08 19:08:20,401 basehttp "GET /api/auth/me/ HTTP/1.1" 200 299
+INFO 2025-04-08 19:08:20,407 basehttp "OPTIONS /api/auth/user-tenants/ HTTP/1.1" 200 0
+WARNING 2025-04-08 19:08:20,439 log Not Found: /api/auth/user-tenants/
+WARNING 2025-04-08 19:08:20,440 basehttp "GET /api/auth/user-tenants/ HTTP/1.1" 404 66629
+INFO 2025-04-08 19:08:20,890 basehttp "OPTIONS /api/analytics/dashboard-stats?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-08 19:08:20,979 basehttp "OPTIONS /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+WARNING 2025-04-08 19:08:24,435 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 19:08:24,436 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 19:08:24,474 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 19:08:24,475 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 19:08:24,513 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 19:08:24,520 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+WARNING 2025-04-08 19:08:24,595 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 19:08:24,596 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+INFO 2025-04-08 19:08:24,870 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 507
+INFO 2025-04-08 19:08:25,740 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+INFO 2025-04-08 19:08:26,104 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+INFO 2025-04-08 19:13:59,039 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 19:14:00,369 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 19:14:10,242 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 19:14:11,409 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 19:14:14,664 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\apps.py changed, reloading.
+INFO 2025-04-08 19:14:15,892 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 19:14:19,368 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\apps.py changed, reloading.
+INFO 2025-04-08 19:14:20,627 autoreload Watching for file changes with StatReloader
+WARNING 2025-04-08 19:15:15,295 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 19:15:15,296 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 19:15:15,328 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 19:15:15,330 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 19:15:15,361 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 19:15:15,362 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+WARNING 2025-04-08 19:15:15,390 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 19:15:15,391 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+INFO 2025-04-08 19:15:17,045 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+INFO 2025-04-08 19:15:17,959 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+INFO 2025-04-08 19:20:47,557 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 19:20:48,823 autoreload Watching for file changes with StatReloader
+WARNING 2025-04-08 19:22:49,935 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 19:22:49,937 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 19:22:50,004 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 19:22:50,006 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 19:22:50,048 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 19:22:50,049 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+WARNING 2025-04-08 19:22:50,093 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 19:22:50,094 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+INFO 2025-04-08 19:22:51,020 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+INFO 2025-04-08 19:22:51,305 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+INFO 2025-04-08 21:08:58,302 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 21:09:29,394 basehttp "OPTIONS /api/auth/token/ HTTP/1.1" 200 0
+INFO 2025-04-08 21:09:31,581 basehttp "POST /api/auth/token/ HTTP/1.1" 200 683
+INFO 2025-04-08 21:09:31,586 basehttp "OPTIONS /api/auth/me/ HTTP/1.1" 200 0
+WARNING 2025-04-08 21:09:31,590 log Unauthorized: /api/auth/me/
+WARNING 2025-04-08 21:09:31,593 basehttp "GET /api/auth/me/ HTTP/1.1" 401 183
+INFO 2025-04-08 21:09:32,234 basehttp "GET /api/auth/me/ HTTP/1.1" 200 299
+INFO 2025-04-08 21:09:32,629 basehttp "OPTIONS /api/analytics/dashboard-stats?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-08 21:09:32,666 basehttp "OPTIONS /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-08 21:09:36,940 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 507
+INFO 2025-04-08 21:09:38,395 basehttp "OPTIONS /api/conversations/ HTTP/1.1" 200 0
+INFO 2025-04-08 21:09:38,397 basehttp "OPTIONS /api/conversations/ HTTP/1.1" 200 0
+INFO 2025-04-08 21:09:38,401 basehttp "OPTIONS /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 0
+INFO 2025-04-08 21:09:38,410 basehttp "OPTIONS /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 0
+INFO 2025-04-08 21:09:38,708 basehttp "OPTIONS /api/messages/1/ HTTP/1.1" 200 0
+INFO 2025-04-08 21:09:40,365 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 21:09:41,077 basehttp "POST /api/messages/1/ HTTP/1.1" 200 37
+INFO 2025-04-08 21:09:41,618 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 21:09:42,858 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 21:09:44,142 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 21:09:46,783 basehttp "POST /api/conversations/ HTTP/1.1" 200 8350
+INFO 2025-04-08 21:09:46,794 basehttp "POST /api/conversations/ HTTP/1.1" 200 8350
+INFO 2025-04-08 21:09:46,884 basehttp "OPTIONS /api/messages/2498882/ HTTP/1.1" 200 0
+INFO 2025-04-08 21:09:47,977 basehttp "POST /api/messages/2498882/ HTTP/1.1" 200 1369
+INFO 2025-04-08 21:09:48,988 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 21:09:50,241 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 21:10:04,441 basehttp "OPTIONS /api/messages/send/ HTTP/1.1" 200 0
+INFO 2025-04-08 21:10:06,854 basehttp "POST /api/messages/send/ HTTP/1.1" 200 122
+INFO 2025-04-08 21:10:09,579 basehttp "OPTIONS /api/messages/2492681/ HTTP/1.1" 200 0
+INFO 2025-04-08 21:10:10,303 basehttp "POST /api/messages/2492681/ HTTP/1.1" 200 2689
+INFO 2025-04-08 21:10:10,943 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 21:10:11,334 basehttp "OPTIONS /api/messages/2491407/ HTTP/1.1" 200 0
+INFO 2025-04-08 21:10:12,010 basehttp "POST /api/messages/2491407/ HTTP/1.1" 200 2701
+INFO 2025-04-08 21:10:12,199 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 21:10:14,158 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 21:10:14,842 basehttp "OPTIONS /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&page_size=100 HTTP/1.1" 200 0
+INFO 2025-04-08 21:10:16,319 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 21:10:17,205 basehttp "POST /api/messages/2498882/ HTTP/1.1" 200 2043
+INFO 2025-04-08 21:10:17,584 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 21:10:18,825 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 21:10:34,715 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&page_size=100 HTTP/1.1" 200 35908
+INFO 2025-04-08 21:10:34,723 basehttp "OPTIONS /api/auth/users/23/ HTTP/1.1" 200 0
+INFO 2025-04-08 21:10:35,428 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-08 21:10:35,432 basehttp "OPTIONS /api/auth/users/24/ HTTP/1.1" 200 0
+INFO 2025-04-08 21:10:35,749 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-08 21:10:35,756 basehttp "OPTIONS /api/auth/users/25/ HTTP/1.1" 200 0
+INFO 2025-04-08 21:10:36,057 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-08 21:10:36,064 basehttp "OPTIONS /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 0
+INFO 2025-04-08 21:10:37,445 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3456
+INFO 2025-04-08 21:10:43,503 basehttp "OPTIONS /api/leads/cf4d4c51-bbd0-482d-9ac2-91cb337071b3/ HTTP/1.1" 200 0
+INFO 2025-04-08 21:10:44,509 basehttp "DELETE /api/leads/cf4d4c51-bbd0-482d-9ac2-91cb337071b3/ HTTP/1.1" 204 0
+INFO 2025-04-08 21:13:22,647 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 21:13:23,902 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 21:13:47,971 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-08 21:13:49,357 autoreload Watching for file changes with StatReloader
+INFO 2025-04-08 21:16:54,978 basehttp "POST /api/auth/token/ HTTP/1.1" 200 683
+INFO 2025-04-08 21:16:55,063 basehttp "GET /api/auth/me/ HTTP/1.1" 200 299
+INFO 2025-04-08 21:16:55,377 basehttp "OPTIONS /api/auth/user-tenants/ HTTP/1.1" 200 0
+WARNING 2025-04-08 21:16:55,405 log Not Found: /api/auth/user-tenants/
+WARNING 2025-04-08 21:16:55,406 basehttp "GET /api/auth/user-tenants/ HTTP/1.1" 404 66629
+INFO 2025-04-08 21:16:59,282 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 507
+INFO 2025-04-08 21:17:02,875 basehttp "OPTIONS /api/waba/settings/ HTTP/1.1" 200 0
+INFO 2025-04-08 21:17:02,875 basehttp "OPTIONS /api/waba/settings/ HTTP/1.1" 200 0
+WARNING 2025-04-08 21:17:02,905 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 21:17:02,907 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 21:17:02,958 log Not Found: /api/waba/settings/
+INFO 2025-04-08 21:17:02,962 basehttp "OPTIONS /api/api/waba/settings/ HTTP/1.1" 200 0
+WARNING 2025-04-08 21:17:02,968 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 21:17:03,004 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 21:17:03,006 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+INFO 2025-04-08 21:17:03,058 basehttp "OPTIONS /api/settings/ HTTP/1.1" 200 0
+WARNING 2025-04-08 21:17:03,087 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 21:17:03,088 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+INFO 2025-04-08 21:17:03,489 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+INFO 2025-04-08 21:17:03,918 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+INFO 2025-04-08 21:19:27,693 basehttp "OPTIONS /api/company-settings/?tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-08 21:19:27,693 basehttp "OPTIONS /api/company-settings/?tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-08 21:19:27,917 basehttp "GET /api/company-settings/?tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 400
+INFO 2025-04-08 21:19:28,145 basehttp "GET /api/company-settings/?tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 400
+INFO 2025-04-08 21:19:28,265 basehttp "GET /media/company_logos/ArazitCRM-logo.png HTTP/1.1" 200 11967
+WARNING 2025-04-08 21:19:41,652 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 21:19:41,653 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 21:19:41,685 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 21:19:41,687 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 21:19:41,733 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 21:19:41,734 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+WARNING 2025-04-08 21:19:41,765 log Not Found: /api/api/waba/settings/
+WARNING 2025-04-08 21:19:41,769 basehttp "GET /api/api/waba/settings/ HTTP/1.1" 404 57603
+INFO 2025-04-08 21:19:42,997 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+INFO 2025-04-08 21:19:43,425 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+WARNING 2025-04-08 21:21:37,210 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 21:21:37,211 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+INFO 2025-04-08 21:21:37,645 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+WARNING 2025-04-08 21:21:57,424 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 21:21:57,425 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+INFO 2025-04-08 21:21:57,867 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+WARNING 2025-04-08 21:22:03,323 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 21:22:03,324 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 21:22:03,361 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 21:22:03,363 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+INFO 2025-04-08 21:22:03,887 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+INFO 2025-04-08 21:22:04,323 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+WARNING 2025-04-08 21:24:01,298 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 21:24:01,299 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 21:24:03,112 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 21:24:03,117 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 21:24:12,800 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 21:24:12,801 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+WARNING 2025-04-08 21:24:12,839 log Not Found: /api/waba/settings/
+WARNING 2025-04-08 21:24:12,841 basehttp "GET /api/waba/settings/ HTTP/1.1" 404 57591
+INFO 2025-04-08 21:26:51,274 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+INFO 2025-04-08 21:27:10,002 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+INFO 2025-04-08 21:27:10,491 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+INFO 2025-04-08 21:27:24,615 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+INFO 2025-04-08 21:27:38,653 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+INFO 2025-04-08 21:27:46,953 basehttp "GET /api/settings/ HTTP/1.1" 200 447
+INFO 2025-04-08 21:27:47,395 basehttp "GET /api/settings/ HTTP/1.1" 200 447

@@ -28,6 +28,12 @@ const InvoiceIndex = () => {
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [tenantId, setTenantId] = useState(null);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    pageSize: 10,
+    totalCount: 0,
+    totalPages: 0
+  });
   
   // Get current user and role from localStorage
   useEffect(() => {
@@ -180,16 +186,20 @@ const InvoiceIndex = () => {
           setLoading(true);
           
           console.log('Fetching invoices...');
-          const response = await api.get('invoices/');
+          const response = await api.get('invoices/', {
+            params: {
+              page: pagination.page,
+              page_size: pagination.pageSize,
+              ...activeFilters
+            }
+          });
           
           // Process response data
-          let invoicesArray = Array.isArray(response.data) 
-            ? response.data
-            : (response.data?.results && Array.isArray(response.data.results))
-              ? response.data.results
-              : [];
+          let invoicesArray = response.data.results || [];
+          const totalCount = response.data.count || 0;
+          const totalPages = Math.ceil(totalCount / pagination.pageSize);
           
-          console.log(`Fetched ${invoicesArray.length} invoices`);
+          console.log(`Fetched ${invoicesArray.length} invoices (page ${pagination.page} of ${totalPages})`);
           
           // Format the invoices data
           const formattedData = invoicesArray.map(invoice => {
@@ -201,6 +211,11 @@ const InvoiceIndex = () => {
           
           setInvoices(formattedData);
           setFilteredInvoices(formattedData);
+          setPagination(prev => ({
+            ...prev,
+            totalCount,
+            totalPages
+          }));
           setLoading(false);
         } catch (error) {
           console.error('Error fetching invoices:', error);
@@ -212,7 +227,7 @@ const InvoiceIndex = () => {
 
       fetchInvoices();
     }
-  }, [user, userRole, tenantId]);
+  }, [user, userRole, tenantId, pagination.page, pagination.pageSize, activeFilters]);
 
   // Handle search
   const handleSearch = (query) => {
@@ -389,6 +404,16 @@ const InvoiceIndex = () => {
     }
   };
 
+  // Handle pagination change
+  const handlePageChange = (event, newPage) => {
+    setPagination(prev => ({ ...prev, page: newPage }));
+  };
+
+  // Handle rows per page change
+  const handleRowsPerPageChange = (newRowsPerPage) => {
+    setPagination(prev => ({ ...prev, pageSize: newRowsPerPage, page: 1 }));
+  };
+
   return (
     <Container maxWidth="xl" sx={{ pt: 2, pb: 4 }}>
       <Grid container spacing={3}>
@@ -462,9 +487,14 @@ const InvoiceIndex = () => {
                   </Tooltip>
                 )}
                 pagination={true}
-                rowsPerPage={10}
+                rowsPerPage={pagination.pageSize}
+                rowsPerPageOptions={[5, 10, 25, 50, 100]}
                 defaultSortField="created_at"
                 defaultSortDirection="desc"
+                page={pagination.page}
+                totalItems={pagination.totalCount}
+                onPageChange={handlePageChange}
+                onRowsPerPageChange={handleRowsPerPageChange}
               />
             )}
           </Paper>

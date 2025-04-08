@@ -1,5 +1,44 @@
 from django.db import models
 from users.models import Tenant
+from django.core.validators import MinValueValidator, MaxValueValidator
+
+class WABASettings(models.Model):
+    """Model to store WhatsApp Business API settings per tenant"""
+    tenant = models.OneToOneField(Tenant, on_delete=models.CASCADE, related_name='waba_settings')
+    api_url = models.URLField(default='https://apps.oncloudapi.com')
+    email = models.EmailField()
+    password = models.CharField(max_length=255)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    api_key = models.CharField(max_length=255, null=True, blank=True)
+    api_secret = models.CharField(max_length=255, null=True, blank=True)
+    phone_number_id = models.CharField(max_length=255, null=True, blank=True)
+    business_account_id = models.CharField(max_length=255, null=True, blank=True)
+    webhook_verify_token = models.CharField(max_length=255, null=True, blank=True)
+    webhook_url = models.URLField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'WABA Settings'
+        verbose_name_plural = 'WABA Settings'
+        db_table = 'waba_settings'
+
+    def __str__(self):
+        return f"WABA Settings for {self.tenant.name}"
+
+    @property
+    def is_configured(self):
+        """Check if all required fields are set"""
+        required_fields = [
+            self.api_key,
+            self.api_secret,
+            self.phone_number_id,
+            self.business_account_id,
+            self.webhook_verify_token,
+            self.webhook_url
+        ]
+        return all(required_fields)
 
 class Chat(models.Model):
     """Model to store WhatsApp chat contacts with tenant support"""

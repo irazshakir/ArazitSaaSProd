@@ -214,6 +214,11 @@ const LeadsIndex = () => {
             tenant: tenantId
           };
           
+          // Add page_size parameter for admin users to get more leads at once
+          if (userRole === 'admin') {
+            apiParams.page_size = 100; // Request 100 leads for admin users
+          }
+          
           console.log('Fetching leads with params:', apiParams);
           const response = await api.get('leads/by-role/', { params: apiParams });
           
@@ -353,6 +358,7 @@ const LeadsIndex = () => {
             };
           });
           
+          console.log(`Formatted ${formattedData.length} leads with user names`);
           setLeads(formattedData);
           setFilteredLeads(formattedData);
           setLoading(false);
@@ -409,6 +415,7 @@ const LeadsIndex = () => {
       results = results.filter(lead => filters.lead_activity_status.includes(lead.lead_activity_status));
     }
     
+    console.log(`After filtering: ${results.length} leads remain`);
     setFilteredLeads(results);
   };
 
@@ -538,6 +545,11 @@ const LeadsIndex = () => {
         const apiParams = {
           tenant: tenantId
         };
+        
+        // Add page_size parameter for admin users to get more leads at once
+        if (userRole === 'admin') {
+          apiParams.page_size = 100; // Request 100 leads for admin users
+        }
         
         console.log('Refreshing leads with params:', apiParams);
         const response = await api.get('leads/by-role/', { params: apiParams });
@@ -743,18 +755,22 @@ const LeadsIndex = () => {
                 dense={false} 
               />
             ) : (
-              <TableList
-                columns={columns}
-                data={filteredLeads}
-                loading={false}
-                onRowClick={handleViewLead}
-                onEditClick={handleEditLead}
-                onDeleteClick={handleDeleteLead}
-                pagination={true}
-                rowsPerPage={10}
-                defaultSortField="created_at"
-                defaultSortDirection="desc"
-              />
+              <>
+                {console.log(`Rendering TableList with ${filteredLeads.length} leads`)}
+                <TableList
+                  columns={columns}
+                  data={filteredLeads}
+                  loading={false}
+                  onRowClick={handleViewLead}
+                  onEditClick={handleEditLead}
+                  onDeleteClick={handleDeleteLead}
+                  pagination={true}
+                  rowsPerPage={10}
+                  rowsPerPageOptions={[5, 10, 25, 50, 100]}
+                  defaultSortField="created_at"
+                  defaultSortDirection="desc"
+                />
+              </>
             )}
           </Paper>
         </Grid>

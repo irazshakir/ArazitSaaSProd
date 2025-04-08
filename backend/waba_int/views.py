@@ -10,6 +10,13 @@ from django.utils import timezone
 from datetime import datetime
 import pytz
 from django.conf import settings
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from django.shortcuts import get_object_or_404
+from .models import WABASettings
+from .serializers import WABASettingsSerializer
+from rest_framework import permissions
+from rest_framework import serializers
 
 class GroupView(APIView):
     permission_classes = [AllowAny]  # Allow unauthenticated access for testing
@@ -960,3 +967,28 @@ def check_lead_departments(request):
         import traceback
         traceback.print_exc()
         return Response({"error": str(e)}, status=500)
+
+class WABASettingsViewSet(viewsets.ModelViewSet):
+    serializer_class = WABASettingsSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # Get the user's tenant through TenantUser relationship
+        try:
+            tenant_user = self.request.user.tenant_users.first()
+            if not tenant_user:
+                return WABASettings.objects.none()
+            
+            # Filter by tenant
+            return WABASettings.objects.filter(tenant=tenant_user.tenant)
+        except Exception as e:
+            print(f"Error getting WABA settings: {str(e)}")
+            return WABASettings.objects.none()
+
+    def perform_create(self, serializer):
+        # Get the tenant through TenantUser relationship
+        tenant_user = self.request.user.tenant_users.first()
+        if not tenant_user:
+            raise serializers.ValidationError({"tenant": "No tenant found for user."})
+        
+        serializer.save(tenant=tenant_user.tenant)

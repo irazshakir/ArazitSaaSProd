@@ -2,19 +2,42 @@ import requests
 from django.conf import settings
 from django.core.cache import cache
 import json
+from ..models import WABASettings
 
 class OnCloudAPIClient:
-    def __init__(self):
-        self.base_url = settings.ONCLOUD_API_URL.rstrip('/')
-        self.email = settings.ONCLOUD_EMAIL
-        self.password = settings.ONCLOUD_PASSWORD
+    def __init__(self, tenant_id=None):
+        self.tenant_id = tenant_id
+        self.base_url = None
+        self.email = None
+        self.password = None
+        
+        # If tenant_id is provided, try to get tenant-specific settings
+        if tenant_id:
+            try:
+                waba_settings = WABASettings.objects.get(tenant_id=tenant_id, is_active=True)
+                self.base_url = waba_settings.api_url.rstrip('/')
+                self.email = waba_settings.email
+                self.password = waba_settings.password
+            except WABASettings.DoesNotExist:
+                # Fallback to default settings if tenant-specific settings don't exist
+                self.base_url = settings.ONCLOUD_API_URL.rstrip('/')
+                self.email = settings.ONCLOUD_EMAIL
+                self.password = settings.ONCLOUD_PASSWORD
+        else:
+            # Use default settings if no tenant_id is provided
+            self.base_url = settings.ONCLOUD_API_URL.rstrip('/')
+            self.email = settings.ONCLOUD_EMAIL
+            self.password = settings.ONCLOUD_PASSWORD
         
     def _get_access_token(self):
         """
         Get access token from OnCloud API or cache
         """
+        # Create a tenant-specific cache key
+        cache_key = f'oncloud_access_token_{self.tenant_id}' if self.tenant_id else 'oncloud_access_token'
+        
         # Check if token exists in cache
-        cached_token = cache.get('oncloud_access_token')
+        cached_token = cache.get(cache_key)
         if cached_token:
             return cached_token
 
@@ -35,7 +58,7 @@ class OnCloudAPIClient:
                 token = response_data.get('token')
                 if token:
                     # Cache the token for 23 hours
-                    cache.set('oncloud_access_token', token, 23 * 60 * 60)
+                    cache.set(cache_key, token, 23 * 60 * 60)
                     return token
             
             raise Exception(f"Authentication failed: {response_data}")
