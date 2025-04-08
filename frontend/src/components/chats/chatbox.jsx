@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { SendOutlined, MoreOutlined, InfoCircleOutlined, PictureOutlined, SyncOutlined } from '@ant-design/icons';
 import './Chatbox.css';
 
-const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, lastRefreshTime }) => {
+const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, lastRefreshTime, noApiConfigured: parentNoApiConfigured }) => {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
@@ -17,6 +17,13 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
   const [currentChatId, setCurrentChatId] = useState(null);
   const lastProcessedRefreshTime = useRef(0);
 
+  // Update noApiConfigured state when parent prop changes
+  useEffect(() => {
+    if (parentNoApiConfigured) {
+      setNoApiConfigured(true);
+    }
+  }, [parentNoApiConfigured]);
+
   const scrollToBottom = (smooth = true) => {
     messagesEndRef.current?.scrollIntoView({ 
       behavior: smooth ? 'smooth' : 'auto' 
@@ -29,22 +36,25 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
       setCurrentChatId(activeChat.id);
       setMessages([]);
       setError(null);
-      setNoApiConfigured(false);
       setMessage('');
       setSelectedImage(null);
       setImagePreview(null);
       
-      fetchMessages();
+      // Only fetch messages if API is configured
+      if (!parentNoApiConfigured) {
+        setNoApiConfigured(false);
+        fetchMessages();
+      }
     }
-  }, [activeChat?.id]);
+  }, [activeChat?.id, parentNoApiConfigured]);
 
   useEffect(() => {
-    if (lastRefreshTime > lastProcessedRefreshTime.current && currentChatId) {
+    if (lastRefreshTime > lastProcessedRefreshTime.current && currentChatId && !parentNoApiConfigured) {
       console.log('ChatBox: Refresh triggered by lastRefreshTime update');
       lastProcessedRefreshTime.current = lastRefreshTime;
       fetchMessages(true);
     }
-  }, [lastRefreshTime, currentChatId]);
+  }, [lastRefreshTime, currentChatId, parentNoApiConfigured]);
   
   // Auto-scroll to newest messages
   useEffect(() => {
@@ -98,12 +108,24 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
         })
       });
       
+      // Check content type before trying to parse JSON
+      const contentType = response.headers.get('content-type');
+      if (contentType && !contentType.includes('application/json')) {
+        // Got HTML instead of JSON, likely due to missing API configuration
+        console.error('Received non-JSON response');
+        setNoApiConfigured(true);
+        setError(null);
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
+      
       const data = await response.json();
 
       if (!data.status || data.status === 'error') {
         if (data.error && data.error.includes('No WhatsApp API settings configured')) {
           setNoApiConfigured(true);
-          setError('No WhatsApp API configured for this tenant');
+          setError(null);
           return;
         }
         throw new Error(data.errMsg || 'Failed to fetch messages');
@@ -132,7 +154,14 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
       setError(null);
     } catch (err) {
       console.error('Error fetching messages:', err);
-      setError(err.message);
+      
+      // Check if it's a JSON parsing error (likely HTML response)
+      if (err instanceof SyntaxError && err.message.includes('JSON')) {
+        setNoApiConfigured(true);
+        setError(null);
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -193,7 +222,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
             const errorData = await response.json();
             if (errorData.error && errorData.error.includes('No WhatsApp API settings configured')) {
               setNoApiConfigured(true);
-              setError('No WhatsApp API configured for this tenant');
+              setError(null);
               return;
             }
             throw new Error(errorData.error || errorData.errMsg || 'Failed to send image');
@@ -207,7 +236,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
         if (!data.status || data.status === 'error') {
           if (data.error && data.error.includes('No WhatsApp API settings configured')) {
             setNoApiConfigured(true);
-            setError('No WhatsApp API configured for this tenant');
+            setError(null);
             return;
           }
           throw new Error(data.message || 'Failed to send image');
@@ -249,7 +278,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
             const errorData = await response.json();
             if (errorData.error && errorData.error.includes('No WhatsApp API settings configured')) {
               setNoApiConfigured(true);
-              setError('No WhatsApp API configured for this tenant');
+              setError(null);
               return;
             }
             throw new Error(errorData.error || errorData.errMsg || 'Failed to send message');
@@ -263,7 +292,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
         if (!data.status || data.status === 'error') {
           if (data.error && data.error.includes('No WhatsApp API settings configured')) {
             setNoApiConfigured(true);
-            setError('No WhatsApp API configured for this tenant');
+            setError(null);
             return;
           }
           throw new Error(data.message || 'Failed to send message');
@@ -346,10 +375,18 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
         </div>
 
         <div className="no-api-message">
-          <h3>No WhatsApp API Configured</h3>
-          <p>Please configure your WhatsApp API settings to start using the chat feature.</p>
-          <button className="configure-button" onClick={() => window.location.href = '/settings'}>
-            Configure Now
+          <div className="no-api-icon">
+            <svg viewBox="0 0 24 24" width="64" height="64" fill="#25D366">
+              <path d="M17.498 14.382c-.301-.15-1.767-.867-2.04-.966-.273-.101-.473-.15-.673.15-.197.295-.771.964-.944 1.162-.175.195-.349.21-.646.075-.3-.15-1.263-.465-2.403-1.485-.888-.795-1.484-1.77-1.66-2.07-.174-.3-.019-.465.13-.615.136-.135.301-.345.451-.523.146-.181.194-.301.297-.496.1-.21.049-.375-.025-.524-.075-.15-.672-1.62-.922-2.206-.24-.584-.487-.51-.672-.51-.172-.015-.371-.015-.571-.015-.2 0-.523.074-.797.359-.273.3-1.045 1.02-1.045 2.475s1.07 2.865 1.219 3.075c.149.195 2.105 3.195 5.1 4.485.714.3 1.27.48 1.704.629.714.227 1.365.195 1.88.121.574-.091 1.767-.721 2.016-1.426.255-.705.255-1.29.18-1.425-.074-.135-.27-.21-.57-.345m-5.446 7.443h-.016c-1.77 0-3.524-.48-5.055-1.38l-.36-.214-3.75.975 1.005-3.645-.239-.375c-.99-1.576-1.516-3.391-1.516-5.26 0-5.445 4.455-9.885 9.942-9.885 2.654 0 5.145 1.035 7.021 2.91 1.875 1.859 2.909 4.35 2.909 6.99-.004 5.444-4.46 9.885-9.935 9.885M20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.463 0 .104 5.334.101 11.893c0 2.096.549 4.14 1.595 5.945L0 24l6.335-1.652c1.746.943 3.71 1.444 5.71 1.447h.006c6.585 0 11.946-5.336 11.949-11.896 0-3.176-1.24-6.165-3.495-8.411"/>
+            </svg>
+          </div>
+          <h3>WhatsApp API Not Configured</h3>
+          <p>You need to configure your WhatsApp Business API settings before you can use this feature. Configure it now to start engaging with your customers via WhatsApp.</p>
+          <button 
+            className="configure-button" 
+            onClick={() => window.location.href = '/settings/waba-settings'}
+          >
+            Configure WhatsApp API
           </button>
         </div>
       </div>
@@ -401,7 +438,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
       <div className="messages-container">
         {loading ? (
           <div className="loading-messages">Loading messages...</div>
-        ) : error ? (
+        ) : error && !noApiConfigured ? (
           <div className="error-messages">Error: {error}</div>
         ) : (
           <>

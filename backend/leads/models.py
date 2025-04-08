@@ -56,7 +56,19 @@ class Lead(models.Model):
     TYPE_TRANSFER = 'transfer'
     TYPE_ZIYARAT = 'ziyarat'
     
+    # Immigration industry lead types
+    TYPE_STUDY_VISA = 'study_visa'
+    TYPE_VISIT_VISA = 'visit_visa'
+    TYPE_SKILLED_IMMIGRATION = 'skilled_immigration'
+    TYPE_JOB_VISA = 'job_visa'
+    TYPE_TRC = 'trc'
+    TYPE_BUSINESS_IMMIGRATION = 'business_immigration'
+    
+    # Travel and Tourism industry lead types
+    TYPE_TRAVEL_PACKAGE = 'travel_package'
+    
     TYPE_CHOICES = [
+        # Hajj & Umrah lead types
         (TYPE_HAJJ_PACKAGE, 'Hajj Package'),
         (TYPE_CUSTOM_UMRAH, 'Custom Umrah'),
         (TYPE_READYMADE_UMRAH, 'Readymade Umrah'),
@@ -64,6 +76,17 @@ class Lead(models.Model):
         (TYPE_VISA, 'Visa'),
         (TYPE_TRANSFER, 'Transfer'),
         (TYPE_ZIYARAT, 'Ziyarat'),
+        
+        # Immigration lead types
+        (TYPE_STUDY_VISA, 'Study Visa'),
+        (TYPE_VISIT_VISA, 'Visit Visa'),
+        (TYPE_SKILLED_IMMIGRATION, 'Skilled Immigration'),
+        (TYPE_JOB_VISA, 'Job Visa'),
+        (TYPE_TRC, 'TRC'),
+        (TYPE_BUSINESS_IMMIGRATION, 'Business Immigration'),
+        
+        # Travel and Tourism lead types
+        (TYPE_TRAVEL_PACKAGE, 'Travel Package'),
     ]
     
     # Lead activity status

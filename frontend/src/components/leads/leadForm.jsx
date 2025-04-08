@@ -79,16 +79,128 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     { value: 'walk_in', label: 'Walk In' }
   ];
   
-  // Lead type options
-  const leadTypeOptions = [
-    { value: 'hajj_package', label: 'Hajj Package' },
-    { value: 'custom_umrah', label: 'Custom Umrah' },
-    { value: 'readymade_umrah', label: 'Readymade Umrah' },
-    { value: 'flight', label: 'Flight' },
-    { value: 'visa', label: 'Visa' },
-    { value: 'transfer', label: 'Transfer' },
-    { value: 'ziyarat', label: 'Ziyarat' }
-  ];
+  // Function to get lead type options based on industry
+  const getIndustryLeadTypes = () => {
+    try {
+      // Try multiple possible localStorage keys for industry
+      const directIndustry = localStorage.getItem('industry') || 
+                           localStorage.getItem('user_industry') || 
+                           '';
+      
+      // Get the full user object to see what's actually stored
+      const userStr = localStorage.getItem('user');
+      let userObj = null;
+      
+      try {
+        if (userStr) {
+          userObj = JSON.parse(userStr);
+          console.log('Full user object from localStorage:', userObj);
+        }
+      } catch (err) {
+        console.error('Error parsing user from localStorage:', err);
+      }
+      
+      // Check if industry is available in the user object - this appears to be the key we need based on the screenshot
+      const userIndustry = userObj?.industry || '';
+      // Also check for userData.industry which is seen in the screenshot
+      const userData = userObj?.userData || {};
+      const userDataIndustry = (userData && userData.industry) ? userData.industry : '';
+      
+      console.log('User industry from direct localStorage key:', directIndustry);
+      console.log('User industry from user object:', userIndustry);
+      console.log('User industry from userData object:', userDataIndustry);
+      
+      // Use the first available industry value
+      const effectiveIndustry = userDataIndustry || userIndustry || directIndustry || '';
+      console.log('Effective industry being used:', effectiveIndustry);
+      
+      // Also log all localStorage keys for debugging
+      console.log('All localStorage keys:');
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        try {
+          console.log(`${key}: ${localStorage.getItem(key)}`);
+        } catch (e) {
+          console.log(`Error reading localStorage key ${key}:`, e);
+        }
+      }
+      
+      // Default lead types for any industry
+      const commonLeadTypes = [
+        { value: 'flight', label: 'Flight' },
+        { value: 'visa', label: 'Visa' },
+        { value: 'transfer', label: 'Transfer' }
+      ];
+      
+      // Industry-specific lead types
+      let leadTypes = [];
+      
+      // Convert to lowercase and remove quotes for comparison
+      const normalizedIndustry = effectiveIndustry ? effectiveIndustry.toLowerCase().replace(/"/g, '') : '';
+      console.log('Normalized industry for comparison:', normalizedIndustry);
+      
+      switch(normalizedIndustry) {
+        case 'hajj_umrah':
+          console.log('Loading hajj_umrah lead types');
+          leadTypes = [
+            { value: 'hajj_package', label: 'Hajj Package' },
+            { value: 'custom_umrah', label: 'Custom Umrah' },
+            { value: 'readymade_umrah', label: 'Readymade Umrah' },
+            { value: 'ziyarat', label: 'Ziyarat' },
+            ...commonLeadTypes
+          ];
+          break;
+        case 'immigration':
+          console.log('Loading immigration lead types');
+          leadTypes = [
+            { value: 'study_visa', label: 'Study Visa' },
+            { value: 'visit_visa', label: 'Visit Visa' },
+            { value: 'skilled_immigration', label: 'Skilled Immigration' },
+            { value: 'job_visa', label: 'Job Visa' },
+            { value: 'trc', label: 'TRC' },
+            { value: 'business_immigration', label: 'Business Immigration' }
+          ];
+          break;
+        case 'travel_tourism':
+          console.log('Loading travel_tourism lead types');
+          leadTypes = [
+            { value: 'travel_package', label: 'Travel Package' },
+            ...commonLeadTypes
+          ];
+          break;
+        default:
+          console.log(`Unknown industry: "${effectiveIndustry}". Defaulting to hajj_umrah lead types`);
+          // Default to hajj_umrah if no industry is specified
+          leadTypes = [
+            { value: 'hajj_package', label: 'Hajj Package' },
+            { value: 'custom_umrah', label: 'Custom Umrah' },
+            { value: 'readymade_umrah', label: 'Readymade Umrah' },
+            { value: 'ziyarat', label: 'Ziyarat' },
+            ...commonLeadTypes
+          ];
+      }
+      
+      console.log(`Returning ${leadTypes.length} lead types for industry "${effectiveIndustry}":`, 
+        leadTypes.map(lt => lt.label).join(', '));
+      
+      return leadTypes;
+    } catch (error) {
+      console.error('Error in getIndustryLeadTypes:', error);
+      // Return default lead types as fallback
+      return [
+        { value: 'hajj_package', label: 'Hajj Package' },
+        { value: 'custom_umrah', label: 'Custom Umrah' },
+        { value: 'readymade_umrah', label: 'Readymade Umrah' },
+        { value: 'flight', label: 'Flight' },
+        { value: 'visa', label: 'Visa' },
+        { value: 'transfer', label: 'Transfer' },
+        { value: 'ziyarat', label: 'Ziyarat' }
+      ];
+    }
+  };
+  
+  // Lead type options (will be set based on industry)
+  const [leadTypeOptions, setLeadTypeOptions] = useState([]);
   
   // Activity status options
   const activityStatusOptions = [
@@ -172,6 +284,77 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       }
     }
   }, [initialData, form]);
+  
+  // Initialize lead type options based on user's industry
+  useEffect(() => {
+    try {
+      // Get industry-specific lead types
+      const industryLeadTypes = getIndustryLeadTypes();
+      setLeadTypeOptions(industryLeadTypes);
+      
+      // Set default lead type if none is provided
+      if ((!initialData.lead_type || initialData.lead_type === '') && industryLeadTypes.length > 0) {
+        const defaultLeadType = industryLeadTypes[0].value;
+        setLeadType(defaultLeadType);
+        form.setFieldValue('lead_type', defaultLeadType);
+        
+        // Update formValues
+        setFormValues(prev => ({
+          ...prev,
+          lead_type: defaultLeadType
+        }));
+        
+        console.log(`Set default lead type to ${defaultLeadType} based on industry`);
+      } else if (initialData.lead_type) {
+        // Check if the provided lead_type is compatible with the industry
+        const isValidType = industryLeadTypes.some(option => option.value === initialData.lead_type);
+        
+        if (!isValidType) {
+          console.warn(`Initial lead type "${initialData.lead_type}" is not valid for the current industry`);
+          
+          // Use the first valid lead type instead
+          if (industryLeadTypes.length > 0) {
+            const defaultType = industryLeadTypes[0].value;
+            setLeadType(defaultType);
+            form.setFieldValue('lead_type', defaultType);
+            
+            // Update formValues
+            setFormValues(prev => ({
+              ...prev,
+              lead_type: defaultType
+            }));
+            
+            console.log(`Reset to valid lead type: ${defaultType} from invalid: ${initialData.lead_type}`);
+          }
+        } else {
+          // Valid type, make sure it's set everywhere
+          setLeadType(initialData.lead_type);
+          form.setFieldValue('lead_type', initialData.lead_type);
+          
+          console.log(`Using provided lead type: ${initialData.lead_type}`);
+        }
+      }
+    } catch (error) {
+      console.error('Error in lead type initialization useEffect:', error);
+      // Set default options as fallback
+      const defaultOptions = [
+        { value: 'hajj_package', label: 'Hajj Package' },
+        { value: 'custom_umrah', label: 'Custom Umrah' },
+        { value: 'readymade_umrah', label: 'Readymade Umrah' },
+        { value: 'flight', label: 'Flight' },
+        { value: 'visa', label: 'Visa' },
+        { value: 'transfer', label: 'Transfer' },
+        { value: 'ziyarat', label: 'Ziyarat' }
+      ];
+      
+      setLeadTypeOptions(defaultOptions);
+      
+      // Set a safe default lead type
+      const safeDefaultType = 'hajj_package';
+      setLeadType(safeDefaultType);
+      form.setFieldValue('lead_type', safeDefaultType);
+    }
+  }, []);
   
   // Fetch product options based on lead type
   useEffect(() => {
@@ -762,6 +945,23 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   
   // Handle lead type change
   const handleLeadTypeChange = (value) => {
+    // Verify the selected lead type is valid for current industry
+    const isValidType = leadTypeOptions.some(option => option.value === value);
+    
+    if (!isValidType) {
+      console.warn(`Selected lead type "${value}" is not valid for the current industry`);
+      message.warning('Selected lead type is not valid for your industry');
+      
+      // Use the first valid lead type instead
+      if (leadTypeOptions.length > 0) {
+        const defaultType = leadTypeOptions[0].value;
+        setLeadType(defaultType);
+        form.setFieldValue('lead_type', defaultType);
+        console.log(`Reset to valid lead type: ${defaultType}`);
+        return;
+      }
+    }
+    
     setLeadType(value);
     form.setFieldValue('lead_type', value);
     
@@ -773,6 +973,13 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     form.setFieldValue('visa', null);
     form.setFieldValue('transfer', null);
     form.setFieldValue('ziyarat', null);
+    form.setFieldValue('study_visa', null);
+    form.setFieldValue('visit_visa', null);
+    form.setFieldValue('skilled_immigration', null);
+    form.setFieldValue('job_visa', null);
+    form.setFieldValue('trc', null);
+    form.setFieldValue('business_immigration', null);
+    form.setFieldValue('travel_package', null);
     
     // Clear selected package details
     setSelectedPackageDetails(null);
@@ -797,6 +1004,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       
       // Determine endpoint based on lead type
       switch(leadType) {
+        // Hajj & Umrah lead types
         case 'hajj_package':
           endpoint = `hajj-packages/${value}/`;
           break;
@@ -806,6 +1014,11 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         case 'readymade_umrah':
           endpoint = `umrah-packages/${value}/`;
           break;
+        case 'ziyarat':
+          endpoint = `ziyarats/${value}/`;
+          break;
+          
+        // Common lead types
         case 'flight':
           endpoint = `flights/${value}/`;
           break;
@@ -815,11 +1028,35 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         case 'transfer':
           endpoint = `transfers/${value}/`;
           break;
-        case 'ziyarat':
-          endpoint = `ziyarats/${value}/`;
+          
+        // Immigration lead types
+        case 'study_visa':
+          endpoint = `study-visas/${value}/`;
           break;
+        case 'visit_visa':
+          endpoint = `visit-visas/${value}/`;
+          break;
+        case 'skilled_immigration':
+          endpoint = `skilled-immigration/${value}/`;
+          break;
+        case 'job_visa':
+          endpoint = `job-visas/${value}/`;
+          break;
+        case 'trc':
+          endpoint = `trc/${value}/`;
+          break;
+        case 'business_immigration':
+          endpoint = `business-immigration/${value}/`;
+          break;
+          
+        // Travel and Tourism lead types
+        case 'travel_package':
+          endpoint = `travel-packages/${value}/`;
+          break;
+          
         default:
-          endpoint = `hajj-packages/${value}/`;
+          console.warn(`No endpoint defined for lead type: ${leadType}`);
+          return;
       }
       
       console.log(`Fetching package details from endpoint: ${endpoint}`);
@@ -1038,27 +1275,60 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   // Get product field name based on lead type
   const getProductFieldName = () => {
     switch(leadType) {
+      // Hajj & Umrah lead types
       case 'hajj_package': return 'hajj_package';
       case 'custom_umrah': return 'custom_umrah';
       case 'readymade_umrah': return 'readymade_umrah';
+      case 'ziyarat': return 'ziyarat';
+      
+      // Common lead types
       case 'flight': return 'flight';
       case 'visa': return 'visa';
       case 'transfer': return 'transfer';
-      case 'ziyarat': return 'ziyarat';
-      default: return 'hajj_package';
+      
+      // Immigration lead types
+      case 'study_visa': return 'study_visa';
+      case 'visit_visa': return 'visit_visa';
+      case 'skilled_immigration': return 'skilled_immigration';
+      case 'job_visa': return 'job_visa';
+      case 'trc': return 'trc';
+      case 'business_immigration': return 'business_immigration';
+      
+      // Travel and Tourism lead types
+      case 'travel_package': return 'travel_package';
+      
+      default: 
+        // Log warning and fallback to lead_type itself
+        console.warn(`No field name mapping for lead type: ${leadType}`);
+        return leadType;
     }
   };
   
   // Get product field label based on lead type
   const getProductFieldLabel = () => {
     switch(leadType) {
+      // Hajj & Umrah lead types
       case 'hajj_package': return 'Select Hajj Package';
       case 'custom_umrah': return 'Select Custom Umrah';
       case 'readymade_umrah': return 'Select Readymade Umrah Package';
+      case 'ziyarat': return 'Select Ziyarat';
+      
+      // Common lead types
       case 'flight': return 'Select Flight';
       case 'visa': return 'Select Visa';
       case 'transfer': return 'Select Transfer';
-      case 'ziyarat': return 'Select Ziyarat';
+      
+      // Immigration lead types
+      case 'study_visa': return 'Select Study Visa';
+      case 'visit_visa': return 'Select Visit Visa';
+      case 'skilled_immigration': return 'Select Skilled Immigration Program';
+      case 'job_visa': return 'Select Job Visa';
+      case 'trc': return 'Select TRC Option';
+      case 'business_immigration': return 'Select Business Immigration Program';
+      
+      // Travel and Tourism lead types
+      case 'travel_package': return 'Select Travel Package';
+      
       default: return 'Select Product';
     }
   };
