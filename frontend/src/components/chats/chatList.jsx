@@ -1,18 +1,41 @@
 import React, { useState, useEffect } from 'react';
-import { SearchOutlined, UserOutlined, TeamOutlined } from '@ant-design/icons';
+import { SearchOutlined, UserOutlined, TeamOutlined, SyncOutlined } from '@ant-design/icons';
 import './chatList.css';
 
-const ChatList = ({ activeChat, setActiveChat }) => {
+const ChatList = ({ activeChat, setActiveChat, refreshData, lastRefreshTime, hasNewChats }) => {
   const [activeTab, setActiveTab] = useState('personal');
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedChatId, setSelectedChatId] = useState(null);
   const [noApiConfigured, setNoApiConfigured] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const lastProcessedRefreshTime = React.useRef(0);
+  const prevChatsLength = React.useRef(0);
+  const prevChatIds = React.useRef([]);
 
+  // Initial load of conversations
   useEffect(() => {
     fetchConversations();
   }, []);
+
+  // Track changes in chat list
+  useEffect(() => {
+    if (chats.length > 0) {
+      prevChatsLength.current = chats.length;
+      prevChatIds.current = chats.map(chat => chat.id);
+    }
+  }, [chats]);
+
+  // Effect for refresh trigger
+  useEffect(() => {
+    // Only refresh if the refresh time has changed and is newer than the last processed time
+    if (lastRefreshTime && lastRefreshTime > lastProcessedRefreshTime.current) {
+      console.log('ChatList: Refresh triggered by lastRefreshTime update');
+      lastProcessedRefreshTime.current = lastRefreshTime;
+      fetchConversations(true);
+    }
+  }, [lastRefreshTime]);
 
   // Update selectedChatId when activeChat changes from parent
   useEffect(() => {
@@ -22,38 +45,33 @@ const ChatList = ({ activeChat, setActiveChat }) => {
     }
   }, [activeChat?.id, selectedChatId]);
 
-  const fetchConversations = async () => {
+  const fetchConversations = async (silentCheck = false) => {
     try {
-      setLoading(true);
+      if (!silentCheck) {
+        setLoading(true);
+      }
+      
+      setRefreshing(true);
       setNoApiConfigured(false);
       
-      // Get tenant ID from localStorage
       const tenantId = localStorage.getItem('tenant_id');
-      const token = localStorage.getItem('token'); // Get authentication token
+      const token = localStorage.getItem('token');
       
-      console.log('[DEBUG] Using tenant ID from localStorage:', tenantId);
-      console.log('[DEBUG] Using token from localStorage:', token ? 'Token exists' : 'No token found');
-      
-      // Make fetch call with Authorization header
-      console.log('[DEBUG] Making fetch request to http://localhost:8000/api/conversations/');
       const response = await fetch('http://localhost:8000/api/conversations/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Tenant-ID': tenantId, // Add tenant ID in header
-          'Authorization': `Bearer ${token}` // Add auth token
+          'X-Tenant-ID': tenantId,
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          tenant_id: tenantId // Also include in body
+          tenant_id: tenantId
         })
       });
       
-      console.log('[DEBUG] Response status:', response.status);
       const data = await response.json();
-      console.log('[DEBUG] Response data:', data);
 
       if (!data.status || data.status === 'error') {
-        // Check if the error is due to no API configuration
         if (data.error && data.error.includes('No WhatsApp API settings configured')) {
           setNoApiConfigured(true);
           setError('No WhatsApp API configured for this tenant');
@@ -77,22 +95,72 @@ const ChatList = ({ activeChat, setActiveChat }) => {
         messages: []
       }));
 
-      setChats(transformedChats);
+      // Check if the list of chats has changed
+      const hasChanges = hasChatsChanged(transformedChats);
       
-      // Set the first chat as active if none is selected
-      if (transformedChats.length > 0 && !selectedChatId) {
-        const firstChat = transformedChats[0];
-        setSelectedChatId(firstChat.id);
-        setActiveChat(firstChat);
-        console.log('ChatList: Setting first chat as active:', firstChat.id);
+      if (hasChanges || !silentCheck) {
+        setChats(transformedChats);
+        
+        // Set the first chat as active if none is selected
+        if (transformedChats.length > 0 && !selectedChatId) {
+          const firstChat = transformedChats[0];
+          setSelectedChatId(firstChat.id);
+          setActiveChat(firstChat);
+          console.log('ChatList: Setting first chat as active:', firstChat.id);
+        } else if (selectedChatId) {
+          // If there's a selected chat, make sure it's updated
+          const updatedSelectedChat = transformedChats.find(chat => chat.id === selectedChatId);
+          if (updatedSelectedChat) {
+            setActiveChat(updatedSelectedChat);
+          }
+        }
       }
       
       setError(null);
     } catch (err) {
       console.error('Error fetching conversations:', err);
-      setError(err.message);
+      if (!silentCheck) {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  // Compare chats to detect changes
+  const hasChatsChanged = (newChats) => {
+    // First check if number of chats changed
+    if (newChats.length !== prevChatsLength.current) {
+      return true;
+    }
+    
+    // Then check if the list of IDs has changed
+    const newChatIds = newChats.map(chat => chat.id);
+    if (JSON.stringify(newChatIds) !== JSON.stringify(prevChatIds.current)) {
+      return true;
+    }
+    
+    // Finally check for changes in unread status or last message
+    for (const newChat of newChats) {
+      const prevChat = chats.find(c => c.id === newChat.id);
+      if (prevChat) {
+        if (prevChat.unread !== newChat.unread || 
+            prevChat.lastMessage !== newChat.lastMessage) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  };
+
+  // Handle manual refresh - pass through to parent
+  const handleManualRefresh = () => {
+    if (refreshData) {
+      refreshData();
+    } else {
+      fetchConversations();
     }
   };
 
@@ -107,7 +175,7 @@ const ChatList = ({ activeChat, setActiveChat }) => {
     }
   };
 
-  if (loading) {
+  if (loading && !refreshing) {
     return <div className="chat-list-container">Loading conversations...</div>;
   }
 
@@ -125,7 +193,7 @@ const ChatList = ({ activeChat, setActiveChat }) => {
     );
   }
 
-  if (error) {
+  if (error && !refreshing) {
     return <div className="chat-list-container">Error: {error}</div>;
   }
 
@@ -133,9 +201,18 @@ const ChatList = ({ activeChat, setActiveChat }) => {
     <div className="chat-list-container">
       <div className="chat-list-header">
         <h2>Chat</h2>
-        <button className="search-button">
-          <SearchOutlined className="search-icon" />
-        </button>
+        <div className="chat-list-actions">
+          <button 
+            className={`refresh-button ${refreshing ? 'refreshing' : ''} ${hasNewChats ? 'has-new' : ''}`}
+            onClick={handleManualRefresh}
+            disabled={refreshing}
+          >
+            <SyncOutlined spin={refreshing} />
+          </button>
+          <button className="search-button">
+            <SearchOutlined className="search-icon" />
+          </button>
+        </div>
       </div>
 
       <div className="chat-tabs">
@@ -157,7 +234,7 @@ const ChatList = ({ activeChat, setActiveChat }) => {
         {chats.map((chat) => (
           <div 
             key={chat.id} 
-            className={`chat-item ${selectedChatId === chat.id ? 'active' : ''}`}
+            className={`chat-item ${selectedChatId === chat.id ? 'active' : ''} ${chat.unread ? 'unread-chat' : ''}`}
             onClick={() => handleChatSelect(chat)}
           >
             <div className="avatar">

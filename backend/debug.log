@@ -1672,3 +1672,59 @@ WARNING 2025-04-08 23:03:22,275 basehttp "POST /api/messages/send/ HTTP/1.1" 400
 WARNING 2025-04-08 23:04:44,856 log Bad Request: /api/messages/send/
 WARNING 2025-04-08 23:04:44,857 basehttp "POST /api/messages/send/ HTTP/1.1" 400 33
 INFO 2025-04-08 23:09:58,913 basehttp "POST /api/messages/send/ HTTP/1.1" 200 122
+WARNING 2025-04-08 23:13:44,489 log Unauthorized: /api/templates/
+WARNING 2025-04-08 23:13:44,490 basehttp "GET /api/templates/ HTTP/1.1" 401 183
+WARNING 2025-04-08 23:13:44,494 log Unauthorized: /api/templates/
+WARNING 2025-04-08 23:13:44,496 basehttp "GET /api/templates/ HTTP/1.1" 401 183
+WARNING 2025-04-08 23:13:49,776 log Unauthorized: /api/groups/
+WARNING 2025-04-08 23:13:49,777 basehttp "GET /api/groups/ HTTP/1.1" 401 183
+WARNING 2025-04-08 23:13:49,781 log Unauthorized: /api/groups/
+WARNING 2025-04-08 23:13:49,783 basehttp "GET /api/groups/ HTTP/1.1" 401 183
+INFO 2025-04-08 23:13:58,051 basehttp "OPTIONS /api/auth/token/ HTTP/1.1" 200 0
+INFO 2025-04-08 23:14:00,580 basehttp "POST /api/auth/token/ HTTP/1.1" 200 683
+INFO 2025-04-08 23:14:00,590 basehttp "OPTIONS /api/auth/me/ HTTP/1.1" 200 0
+WARNING 2025-04-08 23:14:00,593 log Unauthorized: /api/auth/me/
+WARNING 2025-04-08 23:14:00,594 basehttp "GET /api/auth/me/ HTTP/1.1" 401 183
+INFO 2025-04-08 23:14:00,673 basehttp "GET /api/auth/me/ HTTP/1.1" 200 299
+INFO 2025-04-08 23:14:01,079 basehttp "OPTIONS /api/analytics/dashboard-stats?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-08 23:14:01,145 basehttp "OPTIONS /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-08 23:14:03,857 basehttp "OPTIONS /api/conversations/ HTTP/1.1" 200 0
+INFO 2025-04-08 23:14:03,861 basehttp "OPTIONS /api/conversations/ HTTP/1.1" 200 0
+INFO 2025-04-08 23:14:04,179 basehttp "OPTIONS /api/messages/1/ HTTP/1.1" 200 0
+INFO 2025-04-08 23:14:04,181 basehttp "OPTIONS /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 0
+INFO 2025-04-08 23:14:04,189 basehttp "OPTIONS /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 0
+INFO 2025-04-08 23:14:04,296 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 507
+INFO 2025-04-08 23:14:05,896 basehttp "POST /api/messages/1/ HTTP/1.1" 200 37
+INFO 2025-04-08 23:14:06,244 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 23:14:06,746 basehttp "GET /api/templates/ HTTP/1.1" 200 1143
+INFO 2025-04-08 23:14:07,456 basehttp "GET /api/templates/ HTTP/1.1" 200 1143
+INFO 2025-04-08 23:14:07,539 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 23:14:08,802 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 23:14:09,004 basehttp "POST /api/messages/1/ HTTP/1.1" 200 37
+INFO 2025-04-08 23:14:09,497 basehttp "POST /api/messages/1/ HTTP/1.1" 200 37
+INFO 2025-04-08 23:14:10,057 basehttp "POST /api/conversations/ HTTP/1.1" 200 8363
+INFO 2025-04-08 23:14:10,446 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 23:14:10,731 basehttp "POST /api/conversations/ HTTP/1.1" 200 8363
+INFO 2025-04-08 23:14:11,715 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 23:14:12,426 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 7995
+INFO 2025-04-08 23:14:13,035 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 23:14:13,911 basehttp "POST /api/conversations/ HTTP/1.1" 200 8363
+INFO 2025-04-08 23:14:16,504 basehttp "POST /api/conversations/ HTTP/1.1" 200 8363
+INFO 2025-04-08 23:57:18,042 basehttp "POST /api/messages/1/ HTTP/1.1" 200 37
+INFO 2025-04-08 23:57:18,903 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 23:57:20,122 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 23:57:21,824 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 23:57:23,010 basehttp "POST /api/conversations/ HTTP/1.1" 200 8363
+INFO 2025-04-08 23:57:23,114 basehttp "POST /api/conversations/ HTTP/1.1" 200 8363
+INFO 2025-04-08 23:57:23,320 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 23:57:24,638 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 23:57:25,150 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 7995
+INFO 2025-04-08 23:57:25,815 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3456
+INFO 2025-04-08 23:57:59,259 basehttp "OPTIONS /api/messages/send/ HTTP/1.1" 200 0
+INFO 2025-04-08 23:58:03,171 basehttp "POST /api/messages/send/ HTTP/1.1" 200 122
+INFO 2025-04-08 23:58:29,469 basehttp "GET /api/templates/ HTTP/1.1" 200 1143
+INFO 2025-04-08 23:58:30,650 basehttp "GET /api/templates/ HTTP/1.1" 200 1143
+INFO 2025-04-08 23:58:32,733 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 9321
+INFO 2025-04-08 23:58:33,632 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 9321
+INFO 2025-04-08 23:58:36,288 basehttp "POST /api/conversations/ HTTP/1.1" 200 8342
+INFO 2025-04-08 23:58:36,592 basehttp "POST /api/conversations/ HTTP/1.1" 200 8342

@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { SendOutlined, MoreOutlined, InfoCircleOutlined, PictureOutlined } from '@ant-design/icons';
+import { SendOutlined, MoreOutlined, InfoCircleOutlined, PictureOutlined, SyncOutlined } from '@ant-design/icons';
 import './Chatbox.css';
 
-const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
+const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, lastRefreshTime }) => {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
@@ -11,12 +11,16 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [noApiConfigured, setNoApiConfigured] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const [currentChatId, setCurrentChatId] = useState(null);
+  const lastProcessedRefreshTime = useRef(0);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = (smooth = true) => {
+    messagesEndRef.current?.scrollIntoView({ 
+      behavior: smooth ? 'smooth' : 'auto' 
+    });
   };
 
   useEffect(() => {
@@ -35,35 +39,68 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
   }, [activeChat?.id]);
 
   useEffect(() => {
+    if (lastRefreshTime > lastProcessedRefreshTime.current && currentChatId) {
+      console.log('ChatBox: Refresh triggered by lastRefreshTime update');
+      lastProcessedRefreshTime.current = lastRefreshTime;
+      fetchMessages(true);
+    }
+  }, [lastRefreshTime, currentChatId]);
+  
+  // Auto-scroll to newest messages
+  useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages.length]);
 
-  const fetchMessages = async () => {
+  // Store record of viewed messages
+  useEffect(() => {
+    if (messages.length > 0 && activeChat?.id) {
+      // Get received messages (from contacts)
+      const receivedMessages = messages.filter(m => !m.sent);
+      
+      if (receivedMessages.length > 0) {
+        // Find latest received message timestamp
+        const latestReceivedTime = Math.max(
+          ...receivedMessages.map(m => m.timestamp.getTime())
+        );
+        
+        // Store this timestamp as the last viewed time for this chat
+        localStorage.setItem(
+          `last_viewed_msg_time_${activeChat.id}`, 
+          latestReceivedTime.toString()
+        );
+      }
+    }
+  }, [messages, activeChat?.id]);
+
+  const fetchMessages = async (silentCheck = false) => {
     if (!activeChat?.id) return;
     
     try {
-      setLoading(true);
-      setNoApiConfigured(false);
+      if (!silentCheck) {
+        setLoading(true);
+      }
       
-      // Get tenant ID from localStorage
+      setNoApiConfigured(false);
+      setRefreshing(true);
+      
       const tenantId = localStorage.getItem('tenant_id');
-      console.log('Using tenant ID for messages:', tenantId);
+      const token = localStorage.getItem('token');
       
       const response = await fetch(`http://localhost:8000/api/messages/${activeChat.id}/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Tenant-ID': tenantId // Add tenant ID in header
+          'X-Tenant-ID': tenantId,
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          tenant_id: tenantId // Also include in body
+          tenant_id: tenantId
         })
       });
       
       const data = await response.json();
 
       if (!data.status || data.status === 'error') {
-        // Check if the error is due to no API configuration
         if (data.error && data.error.includes('No WhatsApp API settings configured')) {
           setNoApiConfigured(true);
           setError('No WhatsApp API configured for this tenant');
@@ -72,7 +109,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
         throw new Error(data.errMsg || 'Failed to fetch messages');
       }
 
-      // Transform messages data
       const transformedMessages = data.data
         .map(msg => ({
           id: msg.id,
@@ -82,15 +118,24 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
           isImage: msg.message_type === 2,
           image: msg.message_type === 2 ? msg.header_image : null
         }))
-        .sort((a, b) => a.timestamp - b.timestamp); // Sort messages by timestamp in ascending order
+        .sort((a, b) => a.timestamp - b.timestamp);
 
-      setMessages(transformedMessages);
+      // Check if the message list has changed
+      const messagesChanged = messages.length !== transformedMessages.length || 
+        JSON.stringify(messages.map(m => m.id)) !== JSON.stringify(transformedMessages.map(m => m.id));
+      
+      if (messagesChanged) {
+        console.log('ChatBox: Messages have changed, updating state');
+        setMessages(transformedMessages);
+      }
+      
       setError(null);
     } catch (err) {
       console.error('Error fetching messages:', err);
       setError(err.message);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -115,7 +160,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
       let response;
       let newMessage;
       
-      // Get tenant ID and token from localStorage
       const tenantId = localStorage.getItem('tenant_id');
       const token = localStorage.getItem('token');
       
@@ -123,7 +167,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
       console.log('[DEBUG] Using token from localStorage:', token ? 'Token exists' : 'No token found');
 
       if (selectedImage) {
-        // Send image message
         const formData = new FormData();
         formData.append('phone', activeChat.phone);
         formData.append('image', selectedImage);
@@ -141,13 +184,11 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
         });
 
         if (!response.ok) {
-          // Check if the response is HTML (likely a server error page)
           const contentType = response.headers.get('content-type');
           if (contentType && contentType.includes('text/html')) {
             throw new Error(`Server error: ${response.status} ${response.statusText}`);
           }
           
-          // Try to parse as JSON
           try {
             const errorData = await response.json();
             if (errorData.error && errorData.error.includes('No WhatsApp API settings configured')) {
@@ -157,7 +198,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
             }
             throw new Error(errorData.error || errorData.errMsg || 'Failed to send image');
           } catch (jsonError) {
-            // If JSON parsing fails, use the status text
             throw new Error(`Server error: ${response.status} ${response.statusText}`);
           }
         }
@@ -165,7 +205,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
         const data = await response.json();
         
         if (!data.status || data.status === 'error') {
-          // Check if the error is due to no API configuration
           if (data.error && data.error.includes('No WhatsApp API settings configured')) {
             setNoApiConfigured(true);
             setError('No WhatsApp API configured for this tenant');
@@ -183,7 +222,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
           isImage: true
         };
       } else {
-        // Send text message
         if (!message.trim()) return;
 
         const messageData = {
@@ -202,13 +240,11 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
         });
 
         if (!response.ok) {
-          // Check if the response is HTML (likely a server error page)
           const contentType = response.headers.get('content-type');
           if (contentType && contentType.includes('text/html')) {
             throw new Error(`Server error: ${response.status} ${response.statusText}`);
           }
           
-          // Try to parse as JSON
           try {
             const errorData = await response.json();
             if (errorData.error && errorData.error.includes('No WhatsApp API settings configured')) {
@@ -218,7 +254,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
             }
             throw new Error(errorData.error || errorData.errMsg || 'Failed to send message');
           } catch (jsonError) {
-            // If JSON parsing fails, use the status text
             throw new Error(`Server error: ${response.status} ${response.statusText}`);
           }
         }
@@ -226,7 +261,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
         const data = await response.json();
         
         if (!data.status || data.status === 'error') {
-          // Check if the error is due to no API configuration
           if (data.error && data.error.includes('No WhatsApp API settings configured')) {
             setNoApiConfigured(true);
             setError('No WhatsApp API configured for this tenant');
@@ -243,19 +277,25 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
         };
       }
 
-      // Add new message to state immediately for better UX
       setMessages(prevMessages => [...prevMessages, newMessage]);
       setMessage('');
       setSelectedImage(null);
       setImagePreview(null);
+      
+      if (refreshData) {
+        setTimeout(() => refreshData(), 1000);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       setError(error.message || 'Failed to send message');
-      // Clear error after 3 seconds
       setTimeout(() => setError(null), 3000);
     } finally {
       setSending(false);
     }
+  };
+
+  const handleManualRefresh = () => {
+    fetchMessages();
   };
 
   if (!activeChat) {
@@ -284,6 +324,14 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
             </div>
           </div>
           <div className="chat-header-actions">
+            <button 
+              className="refresh-button"
+              onClick={handleManualRefresh}
+              disabled={refreshing}
+              title="Refresh messages"
+            >
+              <SyncOutlined spin={refreshing} />
+            </button>
             <button 
               className="info-button" 
               onClick={toggleDetailsDrawer}
@@ -329,6 +377,14 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer }) => {
           </div>
         </div>
         <div className="chat-header-actions">
+          <button 
+            className="refresh-button"
+            onClick={handleManualRefresh}
+            disabled={refreshing}
+            title="Refresh messages"
+          >
+            <SyncOutlined spin={refreshing} />
+          </button>
           <button 
             className="info-button" 
             onClick={toggleDetailsDrawer}
