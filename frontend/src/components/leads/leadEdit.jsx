@@ -24,8 +24,10 @@ const LeadEdit = () => {
         setLoading(true);
         const response = await api.get(`/leads/${id}/`);
         
-        // Convert date strings to dayjs objects for Ant Design DatePicker
-        const leadData = {
+        console.log('Lead data from API:', response.data);
+        
+        // Process study visa data if present
+        let processedData = {
           ...response.data,
           // Convert date fields to dayjs objects
           last_contacted: response.data.last_contacted ? dayjs(response.data.last_contacted) : null,
@@ -34,9 +36,10 @@ const LeadEdit = () => {
           branch: response.data.branch || null
         };
         
-        setLeadData(leadData);
+        setLeadData(processedData);
         setLoading(false);
       } catch (error) {
+        console.error('Error fetching lead data:', error);
         setError('Failed to load lead details. Please try again.');
         setLoading(false);
       }

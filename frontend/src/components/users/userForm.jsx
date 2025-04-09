@@ -332,6 +332,35 @@ const UserForm = ({
       formData.append('tenant_id', tenantId); // IMPORTANT: ensure tenant_id is always included
       formData.append('is_active', values.is_active ? 'true' : 'false');
       
+      // Get tenant industry from localStorage - this is needed for TenantUser creation
+      const userStr = localStorage.getItem('user');
+      let industry = '';
+      
+      // Try to get industry from user object in localStorage
+      try {
+        if (userStr) {
+          const userObj = JSON.parse(userStr);
+          industry = userObj?.industry || '';
+          if (!industry && userObj?.userData?.industry) {
+            industry = userObj.userData.industry;
+          }
+        }
+      } catch (err) {
+        console.warn('Error parsing user from localStorage:', err);
+      }
+      
+      // Fallback to direct industry key if needed
+      if (!industry) {
+        industry = localStorage.getItem('industry') || 'hajj_umrah'; // Default to hajj_umrah if nothing found
+      }
+      
+      // Use industry from form if provided, otherwise use the one from localStorage
+      const selectedIndustry = values.industry || industry;
+      
+      // Add industry to formData - this is required for TenantUser creation
+      formData.append('industry', selectedIndustry);
+      console.log('Adding industry to form data:', selectedIndustry);
+      
       if (values.department) {
         formData.append('department_id', values.department);
       }
@@ -683,6 +712,23 @@ const UserForm = ({
                 {roleOptions.map(role => (
                   <Option key={role.value} value={role.value}>{role.label}</Option>
                 ))}
+              </Select>
+            </Form.Item>
+          </Col>
+          
+          {/* Industry */}
+          <Col xs={24} sm={12}>
+            <Form.Item
+              name="industry"
+              label="Industry"
+              initialValue="hajj_umrah"
+            >
+              <Select placeholder="Select Industry">
+                <Option value="hajj_umrah">Hajj and Umrah</Option>
+                <Option value="travel_tourism">Travel and Tourism</Option>
+                <Option value="immigration">Immigration Consultancy</Option>
+                <Option value="real_estate">Real Estate</Option>
+                <Option value="ecommerce">Ecommerce</Option>
               </Select>
             </Form.Item>
           </Col>

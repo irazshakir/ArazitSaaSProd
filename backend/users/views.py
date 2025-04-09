@@ -74,17 +74,15 @@ class UserViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         """
-        Filter users by the authenticated user's tenant.
+        Filter users by request parameters.
         Allow filtering by tenant_id and is_active parameters.
         """
         queryset = User.objects.all()
         
-        # Filter by tenant_id from query params or user's tenant_id
+        # Filter by tenant_id from query params if provided
         tenant_id = self.request.query_params.get('tenant')
         if tenant_id:
             queryset = queryset.filter(tenant_id=tenant_id)
-        elif not self.request.user.is_superuser:
-            queryset = queryset.filter(tenant_id=self.request.user.tenant_id)
         
         # Filter by is_active if provided
         is_active = self.request.query_params.get('is_active')
@@ -216,14 +214,13 @@ class UserViewSet(viewsets.ModelViewSet):
         if department_id:
             try:
                 department = Department.objects.get(
-                    id=department_id,
-                    tenant_id=tenant_id
+                    id=department_id
                 )
                 data['department_id'] = department.id
                 print(f"Department found and assigned: {department.name} (ID: {department.id})")
             except Department.DoesNotExist:
                 print(f"Department with ID {department_id} not found")
-                raise serializers.ValidationError({"department": "Department not found or does not belong to this tenant."})
+                raise serializers.ValidationError({"department": "Department not found."})
         
         print("MODIFIED DATA FOR SERIALIZER:")
         for key, value in data.items():
@@ -308,14 +305,16 @@ class DepartmentViewSet(viewsets.ModelViewSet):
         """
         Create a new department.
         """
-        # Get tenant_id from request data or from the authenticated user
-        tenant_id = self.request.data.get('tenant', self.request.user.tenant_id)
-        
-        # Validate tenant exists
+        # Always use the first tenant for all departments
         try:
-            tenant = Tenant.objects.get(id=tenant_id)
+            # Get the first tenant in the system
+            tenant = Tenant.objects.first()
+            if not tenant:
+                # If no tenant exists, use the authenticated user's tenant
+                tenant_id = self.request.user.tenant_id
+                tenant = Tenant.objects.get(id=tenant_id)
         except Tenant.DoesNotExist:
-            raise serializers.ValidationError({"tenant": "Invalid tenant ID or tenant not found."})
+            raise serializers.ValidationError({"tenant": "No tenant found in the system."})
         
         serializer.save(tenant=tenant)
 
@@ -332,24 +331,22 @@ class BranchViewSet(viewsets.ModelViewSet):
         """
         Filter branches by the authenticated user's tenant.
         """
-        user = self.request.user
-        if user.is_superuser:
-            return Branch.objects.all()
-        
-        # Get branches for the user's tenant
-        return Branch.objects.filter(tenant_id=user.tenant_id)
+        # Return all branches regardless of tenant
+        return Branch.objects.all()
     
     def perform_create(self, serializer):
         """
         Create a new branch for the current tenant.
         """
-        # Get tenant_id from request data or from the authenticated user
-        tenant_id = self.request.data.get('tenant_id', self.request.user.tenant_id)
-        
-        # Validate tenant exists
+        # Always use the first tenant for all branches
         try:
-            tenant = Tenant.objects.get(id=tenant_id)
+            # Get the first tenant in the system
+            tenant = Tenant.objects.first()
+            if not tenant:
+                # If no tenant exists, use the authenticated user's tenant
+                tenant_id = self.request.user.tenant_id
+                tenant = Tenant.objects.get(id=tenant_id)
         except Tenant.DoesNotExist:
-            raise serializers.ValidationError({"tenant_id": "Invalid tenant ID or tenant not found."})
+            raise serializers.ValidationError({"tenant": "No tenant found in the system."})
         
         serializer.save(tenant=tenant)

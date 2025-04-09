@@ -4,6 +4,8 @@ import { Form, Input, DatePicker, Select, InputNumber, Row, Col, Divider } from 
 import { PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
+console.log('FlightForm.jsx module loaded');
+
 const { Option } = Select;
 
 const FlightForm = ({ form, formValues, handleInputChange }) => {

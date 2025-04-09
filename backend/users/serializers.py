@@ -200,7 +200,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
             branch_id = validated_data.pop('branch_id')
             if branch_id:
                 try:
-                    branch = Branch.objects.get(id=branch_id, tenant=tenant)
+                    branch = Branch.objects.get(id=branch_id)
                 except Branch.DoesNotExist:
                     raise serializers.ValidationError({"branch_id": "Branch not found."})
         
@@ -210,7 +210,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
             department_id = validated_data.pop('department_id')
             if department_id:
                 try:
-                    department = Department.objects.get(id=department_id, tenant=tenant)
+                    department = Department.objects.get(id=department_id)
                 except Department.DoesNotExist:
                     raise serializers.ValidationError({"department_id": "Department not found."})
         

@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Grid, Paper, Typography, Divider, Tab, Tabs, Button, List, ListItem, ListItemText, ListItemIcon, Chip, TextField, IconButton, Card, CardContent, CircularProgress } from '@mui/material';
+import { 
+  Box, Grid, Paper, Typography, Divider as MuiDivider, Tab, Tabs, Button, 
+  List, ListItem, ListItemText, ListItemIcon, Chip, TextField, IconButton, 
+  Card, CardContent, CircularProgress 
+} from '@mui/material';
 import { 
   Form, message, InputNumber, Row, Col, 
-  Upload, Select, DatePicker, Checkbox, Table, Tag, Space, Modal, Input
+  Upload, Select, DatePicker, Checkbox, Table, Tag, Space, Modal, Input, Switch, Divider
 } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
@@ -16,9 +20,11 @@ import FormSelect from '../forms/common/formSelect';
 import FormTextarea from '../forms/common/formTextarea';
 import FormDatePicker from '../forms/common/formDatePicker';
 import FormActions from '../forms/common/formActions';
+import FormNumberInput from '../forms/common/formNumberInput';
 import LeadDocuments from './components/leadDocuments';
 import LeadActivities from './components/leadActivities';
 import FlightForm from './components/FlightForm';
+import StudyVisaForm from '../forms/products/studyVisa/StudyVisaForm';
 
 const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   const navigate = useNavigate();
@@ -53,7 +59,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     last_contacted: initialData.last_contacted || null,
     next_follow_up: initialData.next_follow_up || null,
     assigned_to: initialData.assigned_to || null,
-    branch: initialData.branch || null,
+    branch: initialData.branch || null
   });
   
   // Status options
@@ -385,6 +391,9 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
           case 'ziyarat':
             endpoint = 'ziyarats/';
             break;
+          case 'study_visa':
+            endpoint = 'study-visas/';
+            break;
           default:
             endpoint = 'hajj-packages/';
         }
@@ -606,7 +615,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         
         try {
           // Fetch branches for the current tenant
-          const response = await api.get('auth/branches/', {
+          const response = await api.get('/auth/branches/', {
             params: {
               tenant: tenantId
             }
@@ -621,7 +630,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
               ? response.data.results
               : [];
           
-          console.log(`Fetched ${branchesArray.length} branches`);
+          console.log(`Fetched ${branchesArray.length} branches:`, branchesArray);
           
           // Create branch options
           const options = branchesArray.map(branch => ({
@@ -629,14 +638,37 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
             label: branch.name
           }));
           
+          console.log('Branch options created:', options);
           setBranchOptions(options);
+          
+          // Set branch field value explicitly in edit mode
+          if (isEditMode && initialData.branch) {
+            console.log('Edit mode - setting branch value explicitly:', initialData.branch);
+            
+            // First set form's field value
+            form.setFieldsValue({ branch: initialData.branch });
+            
+            // Then update the formValues state to match
+            setFormValues(prev => ({
+              ...prev,
+              branch: initialData.branch
+            }));
+            
+            // Debug check
+            setTimeout(() => {
+              console.log('Branch value after setting:', {
+                formField: form.getFieldValue('branch'),
+                formValues: formValues.branch
+              });
+            }, 100);
+          }
         } catch (error) {
           console.error('Error fetching branches:', error);
           
           // Try fallback method
           try {
             console.log('Trying to fetch all branches as fallback...');
-            const response = await api.get('auth/branches/');
+            const response = await api.get('/auth/branches/');
             
             let allBranches = Array.isArray(response.data) 
               ? response.data
@@ -644,12 +676,17 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
                 ? response.data.results
                 : [];
             
+            console.log('All branches:', allBranches);
+            
             // Filter branches by tenant_id manually
             const filteredBranches = allBranches.filter(branch => 
-              branch.tenant === tenantId || branch.tenant_id === tenantId
+              branch.tenant === parseInt(tenantId) || 
+              branch.tenant_id === parseInt(tenantId) ||
+              branch.tenant === tenantId || 
+              branch.tenant_id === tenantId
             );
             
-            console.log(`Filtered ${filteredBranches.length} branches from ${allBranches.length} total`);
+            console.log(`Filtered ${filteredBranches.length} branches from ${allBranches.length} total:`, filteredBranches);
             
             // Convert to options format
             const options = filteredBranches.map(branch => ({
@@ -657,7 +694,14 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
               label: branch.name
             }));
             
+            console.log('Branch options created (fallback):', options);
             setBranchOptions(options);
+            
+            // If we're in edit mode, set the branch value explicitly
+            if (isEditMode && initialData.branch) {
+              console.log('Edit mode - setting branch value (fallback):', initialData.branch);
+              form.setFieldsValue({ branch: initialData.branch });
+            }
           } catch (fallbackError) {
             console.error('All branch fetch attempts failed:', fallbackError);
             message.error('Failed to load branches');
@@ -670,7 +714,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     };
     
     fetchBranches();
-  }, []);
+  }, [form, isEditMode, initialData.branch]);
   
   // Fetch lead notes if in edit mode
   useEffect(() => {
@@ -945,27 +989,10 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   
   // Handle lead type change
   const handleLeadTypeChange = (value) => {
-    // Verify the selected lead type is valid for current industry
-    const isValidType = leadTypeOptions.some(option => option.value === value);
-    
-    if (!isValidType) {
-      console.warn(`Selected lead type "${value}" is not valid for the current industry`);
-      message.warning('Selected lead type is not valid for your industry');
-      
-      // Use the first valid lead type instead
-      if (leadTypeOptions.length > 0) {
-        const defaultType = leadTypeOptions[0].value;
-        setLeadType(defaultType);
-        form.setFieldValue('lead_type', defaultType);
-        console.log(`Reset to valid lead type: ${defaultType}`);
-        return;
-      }
-    }
-    
+    // Update lead type state
     setLeadType(value);
-    form.setFieldValue('lead_type', value);
     
-    // Clear product selection when type changes
+    // Reset product selection
     form.setFieldValue('hajj_package', null);
     form.setFieldValue('custom_umrah', null);
     form.setFieldValue('readymade_umrah', null);
@@ -973,13 +1000,13 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     form.setFieldValue('visa', null);
     form.setFieldValue('transfer', null);
     form.setFieldValue('ziyarat', null);
-    form.setFieldValue('study_visa', null);
     form.setFieldValue('visit_visa', null);
     form.setFieldValue('skilled_immigration', null);
     form.setFieldValue('job_visa', null);
     form.setFieldValue('trc', null);
     form.setFieldValue('business_immigration', null);
     form.setFieldValue('travel_package', null);
+    form.setFieldValue('study_visa', null);
     
     // Clear selected package details
     setSelectedPackageDetails(null);
@@ -1145,6 +1172,13 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       const formValues = form.getFieldsValue(true);
       console.log('Direct form values:', formValues);
       
+      // Log critical values for troubleshooting
+      console.log('Critical values before submission:', {
+        branch: formValues.branch,
+        department: formValues.department,
+        lead_type: formValues.lead_type
+      });
+      
       // Check if dates are dayjs objects and convert them to ISO strings
       const isDayjsObject = (obj) => obj && typeof obj === 'object' && typeof obj.isValid === 'function';
       
@@ -1170,7 +1204,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
             new Date(formValues.next_follow_up).toISOString()) : 
           null,
         assigned_to: formValues.assigned_to,
-        branch: formValues.branch,
+        branch: formValues.branch || null,
         tenant: localStorage.getItem('tenant_id'),
         created_by: localStorage.getItem('user_id'),
         // Add product-specific fields based on lead type
@@ -1640,6 +1674,40 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     fetchFlightDetails();
   }, [isEditMode, leadType, initialData.id]);
   
+  // Debug - log initial data for troubleshooting
+  useEffect(() => {
+    console.log('LeadForm initialData:', initialData);
+    console.log('Form values initialized to:', formValues);
+    
+    // Set initial values explicitly for edit mode
+    if (isEditMode) {
+      // Set basic fields
+      form.setFieldsValue({
+        name: initialData.name,
+        email: initialData.email,
+        phone: initialData.phone,
+        whatsapp: initialData.whatsapp,
+        lead_type: initialData.lead_type,
+        source: initialData.source,
+        status: initialData.status,
+        lead_activity_status: initialData.lead_activity_status,
+        last_contacted: initialData.last_contacted,
+        next_follow_up: initialData.next_follow_up,
+        assigned_to: initialData.assigned_to,
+        branch: initialData.branch
+      });
+      
+      // Set study visa fields if present
+      if (initialData.lead_type === 'study_visa') {
+        form.setFieldsValue({
+          inquiry_details: initialData.inquiry_details || {},
+          eligibility_details: initialData.eligibility_details || {},
+          cost_details: initialData.cost_details || {}
+        });
+      }
+    }
+  }, [form, initialData, isEditMode, formValues]);
+  
   return (
     <Box>
       <Paper sx={{ p: 3, mb: 3 }}>
@@ -1881,8 +1949,12 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
                     <Select
                       placeholder="Select branch"
                       options={branchOptions}
-                      value={formValues.branch}
-                      onChange={(value) => handleInputChange('branch', value)}
+                      defaultValue={initialData.branch}
+                      value={formValues.branch || initialData.branch}
+                      onChange={(value) => {
+                        handleInputChange('branch', value);
+                        console.log(`Branch changed to: ${value}`);
+                      }}
                     />
                   </Form.Item>
                 </Grid>
@@ -1892,119 +1964,146 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
           
           {/* Product Details Tab */}
           {activeTab === 'product' && (
-            <FormSection title="Product Information">
-              {leadType === 'flight' ? (
-                <FlightForm 
-                  form={form} 
-                  formValues={formValues} 
-                  handleInputChange={handleInputChange} 
+            <>
+            {leadType === 'flight' ? (
+                <React.Fragment>
+                {console.log('Rendering FlightForm component. Is it defined?', typeof FlightForm)}
+                <FormSection title="Product Information">
+                  <FlightForm 
+                    form={form} 
+                    formValues={formValues} 
+                    handleInputChange={handleInputChange} 
+                  />
+                </FormSection>
+                </React.Fragment>
+              ) : leadType === 'study_visa' ? (
+                <React.Fragment>
+                {console.log('Rendering StudyVisaForm component. Is it defined?', typeof StudyVisaForm)}
+                <StudyVisaForm 
+                  isEditMode={isEditMode}
+                  initialData={{
+                    lead_id: initialData.id || null,
+                    last_qualification: formValues.last_qualification || '',
+                    country: formValues.country || ''
+                  }}
+                  onSuccess={(data) => {
+                    console.log('Study visa inquiry saved:', data);
+                    message.success('Study visa inquiry saved successfully!');
+                    // Update form values if needed
+                    if (data && data.id) {
+                      handleInputChange('study_visa', data.id);
+                    }
+                  }}
                 />
+                </React.Fragment>
               ) : (
-                <Grid container spacing={3}>
-                  <Grid item xs={12}>
-                    <FormSelect
-                      label={getProductFieldLabel()}
-                      name={getProductFieldName()}
-                      value={formValues[getProductFieldName()]}
-                      onChange={(value) => handlePackageSelect(value)}
-                      options={productOptions}
-                    />
-                  </Grid>
-                  
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle1" sx={{ mb: 2, mt: 2 }}>
-                      Query Details
-                    </Typography>
-                    <Row gutter={16}>
-                      <Col span={8}>
-                        <Form.Item 
-                          label="Adults" 
-                          name="adults"
-                          rules={[{ type: 'number', min: 0 }]}
-                        >
-                          <InputNumber 
-                            min={0} 
-                            style={{ width: '100%' }} 
-                            value={formValues.adults}
-                            onChange={(value) => handleInputChange('adults', value)}
-                          />
-                        </Form.Item>
-                      </Col>
-                      <Col span={8}>
-                        <Form.Item 
-                          label="Children" 
-                          name="children"
-                          rules={[{ type: 'number', min: 0 }]}
-                        >
-                          <InputNumber 
-                            min={0} 
-                            style={{ width: '100%' }} 
-                            value={formValues.children}
-                            onChange={(value) => handleInputChange('children', value)}
-                          />
-                        </Form.Item>
-                      </Col>
-                      <Col span={8}>
-                        <Form.Item 
-                          label="Infants" 
-                          name="infants"
-                          rules={[{ type: 'number', min: 0 }]}
-                        >
-                          <InputNumber 
-                            min={0} 
-                            style={{ width: '100%' }} 
-                            value={formValues.infants}
-                            onChange={(value) => handleInputChange('infants', value)}
-                          />
-                        </Form.Item>
-                      </Col>
-                    </Row>
-                  </Grid>
-                  
-                  {/* Package Details Section */}
-                  {selectedPackageDetails && (
+                <FormSection title="Product Information">
+                  <Grid container spacing={3}>
                     <Grid item xs={12}>
-                      <Paper 
-                        elevation={0} 
-                        sx={{ 
-                          p: 3, 
-                          mt: 2, 
-                          backgroundColor: '#f9f9f9', 
-                          border: '1px solid #e0e0e0',
-                          borderRadius: 2
-                        }}
-                      >
-                        <Typography variant="h6" sx={{ mb: 2, color: '#9d277c', fontWeight: 'bold' }}>
-                          {selectedPackageDetails.package_name || 'Package Details'}
-                        </Typography>
-                        
-                        {/* Selling Price Banner */}
-                        <Box sx={{ 
-                          backgroundColor: '#9d277c', 
-                          color: 'white', 
-                          p: 1.5, 
-                          borderRadius: 1, 
-                          mb: 3,
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center'
-                        }}>
-                          <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                            Selling Price:
-                          </Typography>
-                          <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                            {selectedPackageDetails.selling_price ? 
-                              selectedPackageDetails.selling_price.toLocaleString() : 
-                              (selectedPackageDetails.total_cost ? 
-                                selectedPackageDetails.total_cost.toLocaleString() : 'Contact for pricing')}
-                          </Typography>
-                        </Box>
-                      </Paper>
+                      <FormSelect
+                        label={getProductFieldLabel()}
+                        name={getProductFieldName()}
+                        value={formValues[getProductFieldName()]}
+                        onChange={(value) => handlePackageSelect(value)}
+                        options={productOptions}
+                      />
                     </Grid>
-                  )}
-                </Grid>
+                  
+                    <Grid item xs={12}>
+                      <Typography variant="subtitle1" sx={{ mb: 2, mt: 2 }}>
+                        Query Details
+                      </Typography>
+                      <Row gutter={16}>
+                        <Col span={8}>
+                          <Form.Item 
+                            label="Adults" 
+                            name="adults"
+                            rules={[{ type: 'number', min: 0 }]}
+                          >
+                            <InputNumber 
+                              min={0} 
+                              style={{ width: '100%' }} 
+                              value={formValues.adults}
+                              onChange={(value) => handleInputChange('adults', value)}
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={8}>
+                          <Form.Item 
+                            label="Children" 
+                            name="children"
+                            rules={[{ type: 'number', min: 0 }]}
+                          >
+                            <InputNumber 
+                              min={0} 
+                              style={{ width: '100%' }} 
+                              value={formValues.children}
+                              onChange={(value) => handleInputChange('children', value)}
+                            />
+                          </Form.Item>
+                        </Col>
+                        <Col span={8}>
+                          <Form.Item 
+                            label="Infants" 
+                            name="infants"
+                            rules={[{ type: 'number', min: 0 }]}
+                          >
+                            <InputNumber 
+                              min={0} 
+                              style={{ width: '100%' }} 
+                              value={formValues.infants}
+                              onChange={(value) => handleInputChange('infants', value)}
+                            />
+                          </Form.Item>
+                        </Col>
+                      </Row>
+                    </Grid>
+                    
+                    {/* Package Details Section */}
+                    {selectedPackageDetails && (
+                      <Grid item xs={12}>
+                        <Paper 
+                          elevation={0} 
+                          sx={{ 
+                            p: 3, 
+                            mt: 2, 
+                            backgroundColor: '#f9f9f9', 
+                            border: '1px solid #e0e0e0',
+                            borderRadius: 2
+                          }}
+                        >
+                          <Typography variant="h6" sx={{ mb: 2, color: '#9d277c', fontWeight: 'bold' }}>
+                            {selectedPackageDetails.package_name || 'Package Details'}
+                          </Typography>
+                          
+                          {/* Selling Price Banner */}
+                          <Box sx={{ 
+                            backgroundColor: '#9d277c', 
+                            color: 'white', 
+                            p: 1.5, 
+                            borderRadius: 1, 
+                            mb: 3,
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center'
+                          }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                              Selling Price:
+                            </Typography>
+                            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+                              {selectedPackageDetails.selling_price ? 
+                                selectedPackageDetails.selling_price.toLocaleString() : 
+                                (selectedPackageDetails.total_cost ? 
+                                  selectedPackageDetails.total_cost.toLocaleString() : 'Contact for pricing')}
+                            </Typography>
+                          </Box>
+                        </Paper>
+                      </Grid>
+                    )}
+                  </Grid>
+                </FormSection>
               )}
-            </FormSection>
+            </>
           )}
           
           {/* Notes Tab */}

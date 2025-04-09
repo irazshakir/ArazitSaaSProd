@@ -16,6 +16,7 @@ urlpatterns = [
     path('api/', include('invoices.urls')),  # Invoices API endpoints
     path('api/', include('analytics.urls')),  # Analytics API endpoints
     path('api/', include('flights.urls')),  # Flights API endpoints
+    path('api/', include('study.urls')),  # Study Visa API endpoints
 ]
 
 # Serve media files in development
