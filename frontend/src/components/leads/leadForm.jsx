@@ -165,12 +165,8 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
           ];
       }
       
-      console.log(`Returning ${leadTypes.length} lead types for industry "${effectiveIndustry}":`, 
-        leadTypes.map(lt => lt.label).join(', '));
-      
       return leadTypes;
     } catch (error) {
-      console.error('Error in getIndustryLeadTypes:', error);
       // Return default lead types as fallback
       return [
         { value: 'hajj_package', label: 'Hajj Package' },
@@ -288,15 +284,11 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
           ...prev,
           lead_type: defaultLeadType
         }));
-        
-        console.log(`Set default lead type to ${defaultLeadType} based on industry`);
       } else if (initialData.lead_type) {
         // Check if the provided lead_type is compatible with the industry
         const isValidType = industryLeadTypes.some(option => option.value === initialData.lead_type);
         
         if (!isValidType) {
-          console.warn(`Initial lead type "${initialData.lead_type}" is not valid for the current industry`);
-          
           // Use the first valid lead type instead
           if (industryLeadTypes.length > 0) {
             const defaultType = industryLeadTypes[0].value;
@@ -308,19 +300,14 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
               ...prev,
               lead_type: defaultType
             }));
-            
-            console.log(`Reset to valid lead type: ${defaultType} from invalid: ${initialData.lead_type}`);
           }
         } else {
           // Valid type, make sure it's set everywhere
           setLeadType(initialData.lead_type);
           form.setFieldValue('lead_type', initialData.lead_type);
-          
-          console.log(`Using provided lead type: ${initialData.lead_type}`);
         }
       }
     } catch (error) {
-      console.error('Error in lead type initialization useEffect:', error);
       // Set default options as fallback
       const defaultOptions = [
         { value: 'hajj_package', label: 'Hajj Package' },
@@ -423,18 +410,14 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         const tenantId = localStorage.getItem('tenant_id');
         
         if (!tenantId) {
+          message.error('Tenant information not available');
           return;
         }
         
         try {
-          // Updated path to include auth/ prefix
-          const response = await api.get('auth/users/active-by-tenant/', {
-            params: {
-              tenant: tenantId
-            }
-          });
+          // Try to fetch active users for this tenant with the correct path
+          const response = await api.get(`auth/users/active-by-tenant/?tenant=${tenantId}`);
           
-          // Process response data
           let usersArray = Array.isArray(response.data) 
             ? response.data
             : (response.data?.results && Array.isArray(response.data.results))
@@ -465,13 +448,9 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
           
           setUserOptions(options);
         } catch (error) {
-          console.error('Error fetching from users endpoint:', error);
-          
           // Try a direct fetch to debug the issue with the correct path
           try {
-            console.log('Attempting direct fetch to debug...');
             const fullUrl = `http://localhost:8000/api/auth/users/active-by-tenant/?tenant=${tenantId}`;
-            console.log('Full URL:', fullUrl);
             
             const response = await fetch(fullUrl, {
               headers: {
@@ -485,7 +464,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
             }
             
             const data = await response.json();
-            console.log('Direct fetch response:', data);
             
             // Process the data
             const usersArray = Array.isArray(data) ? data : [];
@@ -514,57 +492,50 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
             
             setUserOptions(options);
           } catch (directError) {
-            console.error('Direct fetch also failed:', directError);
-          }
-          
-          // As a last resort, try to get all users with the correct path
-          try {
-            console.log('Trying to fetch all users as fallback...');
-            const response = await api.get('auth/users/');
-            
-            let allUsers = Array.isArray(response.data) 
-              ? response.data
-              : (response.data?.results && Array.isArray(response.data.results))
-                ? response.data.results
-                : [];
-            
-            // Filter users by tenant_id manually
-            const filteredUsers = allUsers.filter(user => 
-              user.tenant_id === tenantId && user.is_active !== false
-            );
-            
-            console.log(`Filtered ${filteredUsers.length} users from ${allUsers.length} total`);
-            
-            // Group users by department
-            const usersByDepartment = {};
-            
-            filteredUsers.forEach(user => {
-              const deptName = user.department_name || 'Other';
+            // As a last resort, try to get all users with the correct path
+            try {
+              const response = await api.get('auth/users/');
               
-              if (!usersByDepartment[deptName]) {
-                usersByDepartment[deptName] = [];
-              }
+              let allUsers = Array.isArray(response.data) 
+                ? response.data
+                : (response.data?.results && Array.isArray(response.data.results))
+                  ? response.data.results
+                  : [];
               
-              usersByDepartment[deptName].push({
-                value: user.id,
-                label: `${user.first_name} ${user.last_name} (${user.email})`
+              // Filter users by tenant_id manually
+              const filteredUsers = allUsers.filter(user => 
+                user.tenant_id === tenantId && user.is_active !== false
+              );
+              
+              // Group users by department
+              const usersByDepartment = {};
+              
+              filteredUsers.forEach(user => {
+                const deptName = user.department_name || 'Other';
+                
+                if (!usersByDepartment[deptName]) {
+                  usersByDepartment[deptName] = [];
+                }
+                
+                usersByDepartment[deptName].push({
+                  value: user.id,
+                  label: `${user.first_name} ${user.last_name} (${user.email})`
+                });
               });
-            });
-            
-            // Convert to options format with department groups
-            const options = Object.keys(usersByDepartment).map(dept => ({
-              label: dept,
-              options: usersByDepartment[dept]
-            }));
-            
-            setUserOptions(options);
-          } catch (fallbackError) {
-            console.error('All fallback attempts failed:', fallbackError);
-            message.error('Failed to load users');
+              
+              // Convert to options format with department groups
+              const options = Object.keys(usersByDepartment).map(dept => ({
+                label: dept,
+                options: usersByDepartment[dept]
+              }));
+              
+              setUserOptions(options);
+            } catch (fallbackError) {
+              message.error('Failed to load users');
+            }
           }
         }
       } catch (error) {
-        console.error('Error in fetchUsers:', error);
         message.error('Failed to load users');
       }
     };

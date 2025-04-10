@@ -108,13 +108,36 @@ const DepartmentsIndex = () => {
   const fetchDepartments = async () => {
     try {
       setLoading(true);
-      const response = await api.get('departments/', {
-        params: {
-          page: page,
-          page_size: pageSize,
-          search: searchTerm
+      
+      // Try multiple endpoints in order
+      const endpoints = [
+        'auth/departments/',
+        'departments/',
+        'users/departments/'
+      ];
+      
+      let response = null;
+      let lastError = null;
+      
+      for (const endpoint of endpoints) {
+        try {
+          response = await api.get(endpoint, {
+            params: {
+              page: page,
+              page_size: pageSize,
+              search: searchTerm
+            }
+          });
+          break; // If successful, break the loop
+        } catch (error) {
+          console.error(`Failed to fetch from ${endpoint}:`, error);
+          lastError = error;
         }
-      });
+      }
+      
+      if (!response) {
+        throw lastError || new Error('Failed to fetch department data');
+      }
       
       if (response.data && response.data.results) {
         // Format departments with branch names
@@ -124,6 +147,7 @@ const DepartmentsIndex = () => {
         }));
         
         setDepartments(formattedDepartments);
+        setFilteredDepartments(formattedDepartments);
         setTotalCount(response.data.count || 0);
       }
     } catch (error) {

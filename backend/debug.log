@@ -10579,3 +10579,138 @@ INFO 2025-04-11 00:18:15,004 basehttp "POST /api/conversations/ HTTP/1.1" 200 83
 INFO 2025-04-11 00:18:15,426 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3905
 INFO 2025-04-11 00:18:16,737 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3905
 INFO 2025-04-11 00:18:16,976 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 21201
+INFO 2025-04-11 00:18:21,929 basehttp "OPTIONS /api/messages/send/ HTTP/1.1" 200 0
+INFO 2025-04-11 00:18:27,411 basehttp "POST /api/messages/send/ HTTP/1.1" 200 122
+INFO 2025-04-11 00:18:35,755 basehttp "POST /api/conversations/ HTTP/1.1" 200 8330
+INFO 2025-04-11 00:18:38,323 basehttp "POST /api/messages/send/ HTTP/1.1" 200 122
+INFO 2025-04-11 00:18:41,044 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 22464
+INFO 2025-04-11 00:18:45,141 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 22545
+INFO 2025-04-11 00:18:52,141 basehttp "POST /api/conversations/ HTTP/1.1" 200 8346
+INFO 2025-04-11 00:18:53,635 basehttp "POST /api/conversations/ HTTP/1.1" 200 8346
+INFO 2025-04-11 00:19:00,343 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 22545
+INFO 2025-04-11 00:19:05,572 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 22545
+INFO 2025-04-11 00:19:08,213 basehttp "POST /api/conversations/ HTTP/1.1" 200 8346
+INFO 2025-04-11 00:19:11,921 basehttp "POST /api/conversations/ HTTP/1.1" 200 8346
+INFO 2025-04-11 00:19:12,697 basehttp "OPTIONS /api/messages/2498882/ HTTP/1.1" 200 0
+INFO 2025-04-11 00:19:15,625 basehttp "POST /api/messages/2498882/ HTTP/1.1" 200 2043
+INFO 2025-04-11 00:19:16,738 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3905
+INFO 2025-04-11 00:19:18,637 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 23180
+INFO 2025-04-11 00:19:18,815 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3905
+INFO 2025-04-11 00:19:20,508 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3905
+INFO 2025-04-11 00:19:21,487 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 23180
+INFO 2025-04-11 00:19:23,029 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3905
+INFO 2025-04-11 00:19:23,093 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 23180
+INFO 2025-04-11 00:19:25,106 basehttp "POST /api/conversations/ HTTP/1.1" 200 8330
+INFO 2025-04-11 00:19:36,752 basehttp "POST /api/conversations/ HTTP/1.1" 200 8330
+INFO 2025-04-11 00:19:41,835 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 23821
+INFO 2025-04-11 00:19:44,310 basehttp "POST /api/conversations/ HTTP/1.1" 200 8336
+INFO 2025-04-11 00:19:53,141 basehttp "POST /api/messages/send/ HTTP/1.1" 200 122
+INFO 2025-04-11 00:20:12,801 basehttp "POST /api/conversations/ HTTP/1.1" 200 8347
+INFO 2025-04-11 00:20:17,135 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 24481
+INFO 2025-04-11 00:20:21,136 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 24481
+INFO 2025-04-11 00:20:22,908 basehttp "POST /api/conversations/ HTTP/1.1" 200 8347
+INFO 2025-04-11 00:20:53,166 basehttp "POST /api/conversations/ HTTP/1.1" 200 8347
+INFO 2025-04-11 00:20:56,926 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 24481
+INFO 2025-04-11 00:20:58,939 basehttp "POST /api/conversations/ HTTP/1.1" 200 8347
+INFO 2025-04-11 00:21:17,098 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&page_size=100 HTTP/1.1" 200 37743
+INFO 2025-04-11 00:21:17,108 basehttp "OPTIONS /api/auth/users/23/ HTTP/1.1" 200 0
+INFO 2025-04-11 00:21:17,378 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-11 00:21:17,385 basehttp "OPTIONS /api/auth/users/24/ HTTP/1.1" 200 0
+INFO 2025-04-11 00:21:17,661 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-11 00:21:17,668 basehttp "OPTIONS /api/auth/users/25/ HTTP/1.1" 200 0
+INFO 2025-04-11 00:21:17,940 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-11 00:21:19,297 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3905
+INFO 2025-04-11 00:22:18,948 basehttp "POST /api/auth/token/ HTTP/1.1" 200 683
+INFO 2025-04-11 00:22:19,027 basehttp "GET /api/auth/me/ HTTP/1.1" 200 299
+WARNING 2025-04-11 00:22:19,058 log Not Found: /api/auth/user-tenants/
+WARNING 2025-04-11 00:22:19,059 basehttp "GET /api/auth/user-tenants/ HTTP/1.1" 404 69532
+INFO 2025-04-11 00:22:23,293 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 507
+INFO 2025-04-11 00:22:31,983 basehttp "OPTIONS /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-11 00:22:31,987 basehttp "OPTIONS /api/hajj-packages/ HTTP/1.1" 200 0
+INFO 2025-04-11 00:22:31,988 basehttp "OPTIONS /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-11 00:22:31,990 basehttp "OPTIONS /api/hajj-packages/ HTTP/1.1" 200 0
+INFO 2025-04-11 00:22:31,993 basehttp "OPTIONS /api/leads/ HTTP/1.1" 200 0
+INFO 2025-04-11 00:22:31,994 basehttp "OPTIONS /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-11 00:22:31,997 basehttp "OPTIONS /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-11 00:22:32,003 basehttp "OPTIONS /api/leads/ HTTP/1.1" 200 0
+WARNING 2025-04-11 00:22:32,072 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-11 00:22:32,073 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-11 00:22:32,219 basehttp "GET /api/hajj-packages/ HTTP/1.1" 200 52
+INFO 2025-04-11 00:22:32,719 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 1107
+WARNING 2025-04-11 00:22:33,285 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-11 00:22:33,286 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+WARNING 2025-04-11 00:22:33,582 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-11 00:22:33,585 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-11 00:22:33,591 basehttp "OPTIONS /api/auth/users/ HTTP/1.1" 200 0
+INFO 2025-04-11 00:22:33,654 basehttp "GET /api/hajj-packages/ HTTP/1.1" 200 52
+WARNING 2025-04-11 00:22:33,884 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-11 00:22:33,891 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-11 00:22:33,891 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 1107
+INFO 2025-04-11 00:22:35,276 basehttp "GET /api/auth/users/ HTTP/1.1" 200 4089
+INFO 2025-04-11 00:22:38,079 basehttp "GET /api/auth/users/ HTTP/1.1" 200 4089
+INFO 2025-04-11 00:22:44,845 basehttp "GET /api/leads/ HTTP/1.1" 200 18256
+INFO 2025-04-11 00:22:46,793 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&page_size=100 HTTP/1.1" 200 37743
+INFO 2025-04-11 00:22:47,081 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-11 00:22:47,744 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-11 00:22:48,031 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-11 00:22:49,715 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3905
+INFO 2025-04-11 00:22:51,070 basehttp "GET /api/leads/ HTTP/1.1" 200 18256
+INFO 2025-04-11 00:25:19,997 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-11 00:25:29,723 basehttp "POST /api/leads/ HTTP/1.1" 201 2427
+INFO 2025-04-11 00:25:51,194 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&page_size=100 HTTP/1.1" 200 40171
+INFO 2025-04-11 00:25:51,861 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-11 00:25:52,154 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-11 00:25:52,932 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-11 00:25:52,940 basehttp "OPTIONS /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 0
+INFO 2025-04-11 00:25:54,849 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3905
+INFO 2025-04-11 00:27:24,031 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 3905
+WARNING 2025-04-11 00:27:27,354 log Not Found: /api/departments/
+INFO 2025-04-11 00:27:27,357 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 3905
+WARNING 2025-04-11 00:27:27,357 basehttp "GET /api/departments/?page=1&page_size=10&search= HTTP/1.1" 404 60524
+INFO 2025-04-11 00:28:29,339 basehttp "GET /api/leads/by-role/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&page_size=100 HTTP/1.1" 200 40171
+INFO 2025-04-11 00:28:29,618 basehttp "GET /api/auth/users/23/ HTTP/1.1" 200 442
+INFO 2025-04-11 00:28:29,894 basehttp "GET /api/auth/users/24/ HTTP/1.1" 200 442
+INFO 2025-04-11 00:28:30,168 basehttp "GET /api/auth/users/25/ HTTP/1.1" 200 447
+INFO 2025-04-11 00:28:31,425 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&ids=23,24,25 HTTP/1.1" 200 3905
+INFO 2025-04-11 00:28:35,931 basehttp "OPTIONS /api/leads/b6a4aabb-fe30-4edb-8fec-b3ba0816644d/ HTTP/1.1" 200 0
+INFO 2025-04-11 00:28:35,932 basehttp "OPTIONS /api/leads/b6a4aabb-fe30-4edb-8fec-b3ba0816644d/ HTTP/1.1" 200 0
+INFO 2025-04-11 00:28:36,814 basehttp "GET /api/leads/b6a4aabb-fe30-4edb-8fec-b3ba0816644d/ HTTP/1.1" 200 2427
+INFO 2025-04-11 00:28:37,142 basehttp "OPTIONS /api/leads/b6a4aabb-fe30-4edb-8fec-b3ba0816644d/notes/ HTTP/1.1" 200 0
+INFO 2025-04-11 00:28:37,153 basehttp "OPTIONS /api/lead-documents/?lead=b6a4aabb-fe30-4edb-8fec-b3ba0816644d HTTP/1.1" 200 0
+INFO 2025-04-11 00:28:37,156 basehttp "OPTIONS /api/leads/b6a4aabb-fe30-4edb-8fec-b3ba0816644d/activities/ HTTP/1.1" 200 0
+INFO 2025-04-11 00:28:37,157 basehttp "OPTIONS /api/leads/b6a4aabb-fe30-4edb-8fec-b3ba0816644d/notes/ HTTP/1.1" 200 0
+INFO 2025-04-11 00:28:37,168 basehttp "OPTIONS /api/leads/b6a4aabb-fe30-4edb-8fec-b3ba0816644d/activities/ HTTP/1.1" 200 0
+INFO 2025-04-11 00:28:37,168 basehttp "OPTIONS /api/lead-documents/?lead=b6a4aabb-fe30-4edb-8fec-b3ba0816644d HTTP/1.1" 200 0
+INFO 2025-04-11 00:28:37,290 basehttp "GET /api/hajj-packages/ HTTP/1.1" 200 52
+WARNING 2025-04-11 00:28:37,486 log Not Found: /api/leads/b6a4aabb-fe30-4edb-8fec-b3ba0816644d/notes/
+WARNING 2025-04-11 00:28:37,488 basehttp "GET /api/leads/b6a4aabb-fe30-4edb-8fec-b3ba0816644d/notes/ HTTP/1.1" 404 60599
+INFO 2025-04-11 00:28:37,498 basehttp "OPTIONS /api/lead-notes/?lead=b6a4aabb-fe30-4edb-8fec-b3ba0816644d HTTP/1.1" 200 0
+INFO 2025-04-11 00:28:37,699 basehttp "GET /api/leads/b6a4aabb-fe30-4edb-8fec-b3ba0816644d/ HTTP/1.1" 200 2427
+INFO 2025-04-11 00:28:37,839 basehttp "GET /api/hajj-packages/ HTTP/1.1" 200 52
+WARNING 2025-04-11 00:28:37,865 log Not Found: /api/leads/b6a4aabb-fe30-4edb-8fec-b3ba0816644d/notes/
+WARNING 2025-04-11 00:28:37,866 basehttp "GET /api/leads/b6a4aabb-fe30-4edb-8fec-b3ba0816644d/notes/ HTTP/1.1" 404 60599
+INFO 2025-04-11 00:28:38,280 basehttp "GET /api/lead-notes/?lead=b6a4aabb-fe30-4edb-8fec-b3ba0816644d HTTP/1.1" 200 1855
+WARNING 2025-04-11 00:28:38,290 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-11 00:28:38,292 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-11 00:28:38,349 basehttp "GET /api/lead-documents/?lead=b6a4aabb-fe30-4edb-8fec-b3ba0816644d HTTP/1.1" 200 52
+WARNING 2025-04-11 00:28:38,364 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-11 00:28:38,366 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-11 00:28:38,491 basehttp "GET /api/lead-documents/?lead=b6a4aabb-fe30-4edb-8fec-b3ba0816644d HTTP/1.1" 200 52
+INFO 2025-04-11 00:28:38,677 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 1107
+INFO 2025-04-11 00:28:38,687 basehttp "GET /api/lead-notes/?lead=b6a4aabb-fe30-4edb-8fec-b3ba0816644d HTTP/1.1" 200 1855
+INFO 2025-04-11 00:28:38,690 basehttp "GET /api/leads/b6a4aabb-fe30-4edb-8fec-b3ba0816644d/activities/ HTTP/1.1" 200 2
+INFO 2025-04-11 00:28:38,904 basehttp "GET /api/leads/b6a4aabb-fe30-4edb-8fec-b3ba0816644d/activities/ HTTP/1.1" 200 2
+WARNING 2025-04-11 00:28:38,932 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-11 00:28:38,933 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+WARNING 2025-04-11 00:28:39,010 log Not Found: /api/auth/users/active-by-tenant/
+WARNING 2025-04-11 00:28:39,011 basehttp "GET /api/auth/users/active-by-tenant/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 404 23
+INFO 2025-04-11 00:28:39,146 basehttp "GET /api/auth/branches/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 1107
+INFO 2025-04-11 00:28:40,434 basehttp "GET /api/auth/users/ HTTP/1.1" 200 4089
+INFO 2025-04-11 00:28:41,893 basehttp "GET /api/auth/users/ HTTP/1.1" 200 4089
+INFO 2025-04-11 00:28:43,906 basehttp "GET /api/leads/ HTTP/1.1" 200 19256
+INFO 2025-04-11 00:28:49,211 basehttp "GET /api/leads/ HTTP/1.1" 200 19256
+INFO 2025-04-11 00:29:06,277 basehttp "GET /api/analytics/filter-options/?tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 815
+INFO 2025-04-11 00:29:09,167 basehttp "GET /api/analytics/lead-analytics/?date_from=2025-03-01&date_to=2025-04-30&date_range_type=custom&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 4777
+INFO 2025-04-11 00:29:14,335 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 507
+WARNING 2025-04-11 00:36:08,446 log Not Found: /api/departments/
+WARNING 2025-04-11 00:36:08,448 basehttp "GET /api/departments/?page=1&page_size=10&search= HTTP/1.1" 404 60524
