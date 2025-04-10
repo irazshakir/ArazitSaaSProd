@@ -71,7 +71,41 @@ const LeadsIndex = () => {
       headerName: 'NAME', 
       width: '20%',
       minWidth: 150,
-      sortable: true 
+      sortable: true,
+      render: (value, row) => {
+        // Check if follow-up is past due
+        let isPastDue = false;
+        if (row.next_follow_up) {
+          const followUpDate = new Date(row.next_follow_up);
+          const today = new Date();
+          
+          // Remove time component for comparison
+          today.setHours(0, 0, 0, 0);
+          followUpDate.setHours(0, 0, 0, 0);
+          
+          isPastDue = followUpDate < today && !['won', 'lost'].includes(row.status);
+        }
+        
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Typography variant="body2" sx={{ mr: 1 }}>{value}</Typography>
+            {isPastDue && (
+              <Chip 
+                label="Past Due" 
+                size="small"
+                sx={{ 
+                  borderRadius: '4px',
+                  backgroundColor: 'rgba(231, 76, 60, 0.2)',
+                  color: 'rgb(231, 76, 60)',
+                  fontSize: '0.625rem',
+                  height: '20px',
+                  fontWeight: 500
+                }}
+              />
+            )}
+          </Box>
+        );
+      }
     },
     { 
       field: 'phone', 
@@ -121,7 +155,30 @@ const LeadsIndex = () => {
       width: '15%',
       minWidth: 120,
       sortable: false,
-      render: (value) => value ? new Date(value).toLocaleDateString() : 'Not scheduled'
+      render: (value) => {
+        if (!value) return 'Not scheduled';
+        
+        const followUpDate = new Date(value);
+        const today = new Date();
+        
+        // Remove time component from dates for accurate comparison
+        today.setHours(0, 0, 0, 0);
+        followUpDate.setHours(0, 0, 0, 0);
+        
+        const isPastDue = followUpDate < today;
+        
+        return (
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              color: isPastDue ? 'rgb(231, 76, 60)' : 'inherit',
+              fontWeight: isPastDue ? 500 : 400 
+            }}
+          >
+            {followUpDate.toLocaleDateString()}
+          </Typography>
+        );
+      }
     },
     { 
       field: 'lead_activity_status', 
@@ -135,8 +192,8 @@ const LeadsIndex = () => {
           size="small"
           sx={{ 
             borderRadius: '4px',
-            backgroundColor: value === 'active' ? 'rgba(46, 204, 113, 0.2)' : 'rgba(189, 189, 189, 0.2)',
-            color: value === 'active' ? 'rgb(46, 204, 113)' : 'rgb(158, 158, 158)',
+            backgroundColor: value === 'active' ? 'rgba(46, 204, 113, 0.2)' : 'rgba(231, 76, 60, 0.2)',
+            color: value === 'active' ? 'rgb(46, 204, 113)' : 'rgb(231, 76, 60)',
             fontWeight: 500
           }} 
         />
@@ -172,6 +229,31 @@ const LeadsIndex = () => {
       default:
         return { bg: 'rgba(189, 189, 189, 0.2)', text: 'rgb(189, 189, 189)' };
     }
+  };
+
+  // Function to determine if a row should be highlighted for past follow-ups
+  const getRowHighlight = (row) => {
+    if (row.next_follow_up) {
+      const followUpDate = new Date(row.next_follow_up);
+      const today = new Date();
+      
+      // Remove time component from dates for accurate comparison
+      today.setHours(0, 0, 0, 0);
+      followUpDate.setHours(0, 0, 0, 0);
+      
+      // If follow-up date is in the past and the lead is not in won or lost status
+      if (followUpDate < today && !['won', 'lost'].includes(row.status)) {
+        return {
+          backgroundColor: 'rgba(231, 76, 60, 0.08)',
+          '&:hover': {
+            backgroundColor: 'rgba(231, 76, 60, 0.12)',
+          },
+          // Using a light left border instead of absolute positioning to avoid layout issues
+          borderLeft: '4px solid rgb(231, 76, 60)'
+        };
+      }
+    }
+    return {};
   };
 
   // Filter options
@@ -781,6 +863,7 @@ const LeadsIndex = () => {
                 rowsPerPageOptions={[5, 10, 25, 50, 100]}
                 defaultSortField={null}
                 defaultSortDirection="asc"
+                getRowHighlight={getRowHighlight}
               />
             )}
           </Paper>

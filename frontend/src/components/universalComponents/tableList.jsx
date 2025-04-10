@@ -39,7 +39,8 @@ const TableList = ({
   rowsPerPage = 10,
   rowsPerPageOptions = [5, 10, 25, 50],
   defaultSortField = '',
-  defaultSortDirection = 'asc'
+  defaultSortDirection = 'asc',
+  getRowHighlight = null
 }) => {
   const [selected, setSelected] = useState([]);
   const [page, setPage] = useState(1);
@@ -311,6 +312,7 @@ const TableList = ({
                       '&:hover': {
                         backgroundColor: 'rgba(0, 0, 0, 0.04)',
                       },
+                      ...getRowHighlight?.(row),
                     }}
                   >
                     {selectable && (
