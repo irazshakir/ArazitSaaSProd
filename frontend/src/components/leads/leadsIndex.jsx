@@ -285,6 +285,15 @@ const LeadsIndex = () => {
       ]
     },
     {
+      name: 'follow_up_status',
+      label: 'Follow Up Status',
+      options: [
+        { value: 'past_due', label: 'Past Due' },
+        { value: 'scheduled', label: 'Scheduled' },
+        { value: 'not_scheduled', label: 'Not Scheduled' }
+      ]
+    },
+    {
       name: 'lead_activity_status',
       label: 'Activity Status',
       options: [
@@ -503,6 +512,48 @@ const LeadsIndex = () => {
     // Apply activity status filter
     if (filters.lead_activity_status?.length) {
       results = results.filter(lead => filters.lead_activity_status.includes(lead.lead_activity_status));
+    }
+
+    // Apply follow up status filter
+    if (filters.follow_up_status?.length) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      results = results.filter(lead => {
+        // Handle Past Due: Follow up date is in the past and status is not won/lost
+        if (filters.follow_up_status.includes('past_due')) {
+          if (lead.next_follow_up) {
+            const followUpDate = new Date(lead.next_follow_up);
+            followUpDate.setHours(0, 0, 0, 0);
+            
+            if (followUpDate < today && !['won', 'lost'].includes(lead.status)) {
+              return true;
+            }
+          }
+        }
+        
+        // Handle Scheduled: Follow up date exists and is today or in the future
+        if (filters.follow_up_status.includes('scheduled')) {
+          if (lead.next_follow_up) {
+            const followUpDate = new Date(lead.next_follow_up);
+            followUpDate.setHours(0, 0, 0, 0);
+            
+            if (followUpDate >= today) {
+              return true;
+            }
+          }
+        }
+        
+        // Handle Not Scheduled: No follow up date exists
+        if (filters.follow_up_status.includes('not_scheduled')) {
+          if (!lead.next_follow_up) {
+            return true;
+          }
+        }
+        
+        // If none of the selected filters match this lead, exclude it
+        return filters.follow_up_status.length === 0;
+      });
     }
     
     setFilteredLeads(results);
