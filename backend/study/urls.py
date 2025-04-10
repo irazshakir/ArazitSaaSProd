@@ -1,15 +1,13 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import StudyInquiryViewSet, StudyEligibilityViewSet, StudyCostViewSet
+from .views import StudyViewSet
 
 router = DefaultRouter()
-router.register(r'inquiries', StudyInquiryViewSet)
-router.register(r'eligibility', StudyEligibilityViewSet)
-router.register(r'costs', StudyCostViewSet)
-router.register(r'study-visas', StudyInquiryViewSet)
-
-app_name = 'study'
+router.register(r'study', StudyViewSet, basename='study')
 
 urlpatterns = [
     path('', include(router.urls)),
+    # Add custom action URLs explicitly
+    path('study/for-lead/', StudyViewSet.as_view({'get': 'for_lead'}), name='study-for-lead'),
+    path('study/create-for-lead/', StudyViewSet.as_view({'post': 'create_for_lead'}), name='study-create-for-lead'),
 ] 

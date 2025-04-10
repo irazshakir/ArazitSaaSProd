@@ -1,54 +1,67 @@
 from rest_framework import serializers
-from .models import StudyInquiry, StudyEligibility, StudyCost
+from .models import Study
 
-class StudyCostSerializer(serializers.ModelSerializer):
+class StudySerializer(serializers.ModelSerializer):
     class Meta:
-        model = StudyCost
-        fields = '__all__'
-        read_only_fields = ('id', 'created_at', 'updated_at')
-
-
-class StudyEligibilitySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = StudyEligibility
-        fields = '__all__'
-        read_only_fields = ('id', 'created_at', 'updated_at')
-
-
-class StudyInquirySerializer(serializers.ModelSerializer):
-    eligibility = StudyEligibilitySerializer(read_only=True)
-    cost = StudyCostSerializer(read_only=True)
+        model = Study
+        fields = [
+            'id', 
+            'last_qualification', 
+            'last_qualification_yr', 
+            'ielts_score', 
+            'study_program', 
+            'country', 
+            'student_assesment', 
+            'can_manage_bs', 
+            'consultation_cost',
+            'lead_inquiry',
+            'created_at',
+            'updated_at'
+        ]
+        
+class CreateStudySerializer(serializers.ModelSerializer):
+    last_qualification = serializers.CharField(max_length=255, allow_blank=True, required=False, default='')
+    last_qualification_yr = serializers.IntegerField(allow_null=True, required=False)
+    ielts_score = serializers.DecimalField(max_digits=3, decimal_places=1, allow_null=True, required=False)
+    study_program = serializers.CharField(max_length=255, allow_blank=True, required=False, default='')
+    country = serializers.CharField(max_length=100, allow_blank=True, required=False, default='')
+    student_assesment = serializers.CharField(allow_blank=True, required=False, default='')
+    can_manage_bs = serializers.BooleanField(default=False, required=False)
+    consultation_cost = serializers.DecimalField(max_digits=10, decimal_places=2, default=0, required=False)
     
     class Meta:
-        model = StudyInquiry
-        fields = '__all__'
-        read_only_fields = ('id', 'created_at', 'updated_at')
-
-
-class StudyInquiryCreateSerializer(serializers.ModelSerializer):
-    """Serializer for creating a study inquiry with nested eligibility and cost."""
+        model = Study
+        fields = [
+            'id', 
+            'last_qualification', 
+            'last_qualification_yr', 
+            'ielts_score', 
+            'study_program', 
+            'country', 
+            'student_assesment', 
+            'can_manage_bs', 
+            'consultation_cost',
+            'lead_inquiry'
+        ]
     
-    eligibility = StudyEligibilitySerializer(required=False)
-    cost = StudyCostSerializer(required=False)
-    
-    class Meta:
-        model = StudyInquiry
-        fields = '__all__'
-        read_only_fields = ('id', 'created_at', 'updated_at')
+    def validate(self, data):
+        # Ensure default values for any missing fields
+        if 'last_qualification' not in data:
+            data['last_qualification'] = ''
+        if 'study_program' not in data:
+            data['study_program'] = ''
+        if 'country' not in data:
+            data['country'] = ''
+        if 'student_assesment' not in data:
+            data['student_assesment'] = ''
+        if 'can_manage_bs' not in data:
+            data['can_manage_bs'] = False
+        if 'consultation_cost' not in data:
+            data['consultation_cost'] = 0
+        
+        return data
     
     def create(self, validated_data):
-        eligibility_data = validated_data.pop('eligibility', None)
-        cost_data = validated_data.pop('cost', None)
-        
-        # Create the study inquiry
-        study_inquiry = StudyInquiry.objects.create(**validated_data)
-        
-        # Create eligibility if data provided
-        if eligibility_data:
-            StudyEligibility.objects.create(study_inquiry=study_inquiry, **eligibility_data)
-        
-        # Create cost if data provided
-        if cost_data:
-            StudyCost.objects.create(study_inquiry=study_inquiry, **cost_data)
-        
-        return study_inquiry 
+        # Create study record with lead inquiry reference
+        study = Study.objects.create(**validated_data)
+        return study 

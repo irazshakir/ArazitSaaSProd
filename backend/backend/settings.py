@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'invoices', # Invoices app
     'analytics', # Analytics app for business intelligence and reporting
     'flights', # Flights app for flight bookings and management
-    'study',
+    'study', # Study app for student and education assessment
 ]
 
 MIDDLEWARE = [

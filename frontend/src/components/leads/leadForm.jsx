@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Box, Grid, Paper, Typography, Divider as MuiDivider, Tab, Tabs, Button, 
   List, ListItem, ListItemText, ListItemIcon, Chip, TextField, IconButton, 
@@ -24,7 +24,7 @@ import FormNumberInput from '../forms/common/formNumberInput';
 import LeadDocuments from './components/leadDocuments';
 import LeadActivities from './components/leadActivities';
 import FlightForm from './components/FlightForm';
-import StudyVisaForm from '../forms/products/studyVisa/StudyVisaForm';
+import StudyForm from './components/StudyForm';
 
 const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   const navigate = useNavigate();
@@ -59,7 +59,8 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     last_contacted: initialData.last_contacted || null,
     next_follow_up: initialData.next_follow_up || null,
     assigned_to: initialData.assigned_to || null,
-    branch: initialData.branch || null
+    branch: initialData.branch || null,
+    study: initialData.study || {}
   });
   
   // Status options
@@ -159,12 +160,12 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         case 'immigration':
           console.log('Loading immigration lead types');
           leadTypes = [
-            { value: 'study_visa', label: 'Study Visa' },
             { value: 'visit_visa', label: 'Visit Visa' },
             { value: 'skilled_immigration', label: 'Skilled Immigration' },
             { value: 'job_visa', label: 'Job Visa' },
             { value: 'trc', label: 'TRC' },
-            { value: 'business_immigration', label: 'Business Immigration' }
+            { value: 'business_immigration', label: 'Business Immigration' },
+            { value: 'study_visa', label: 'Study Visa' }
           ];
           break;
         case 'travel_tourism':
@@ -364,74 +365,84 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   
   // Fetch product options based on lead type
   useEffect(() => {
-    const fetchProductOptions = async () => {
-      try {
-        let endpoint = '';
-        
-        // Determine endpoint based on lead type
-        switch(leadType) {
-          case 'hajj_package':
-            endpoint = 'hajj-packages/';
-            break;
-          case 'custom_umrah':
-            endpoint = 'custom-umrah/';
-            break;
-          case 'readymade_umrah':
-            endpoint = 'umrah-packages/';
-            break;
-          case 'flight':
-            endpoint = 'flights/';
-            break;
-          case 'visa':
-            endpoint = 'visas/';
-            break;
-          case 'transfer':
-            endpoint = 'transfers/';
-            break;
-          case 'ziyarat':
-            endpoint = 'ziyarats/';
-            break;
-          case 'study_visa':
-            endpoint = 'study-visas/';
-            break;
-          default:
-            endpoint = 'hajj-packages/';
-        }
-        
-        console.log(`Fetching product options from endpoint: ${endpoint} for lead type: ${leadType}`);
-        
-        // Only fetch if we have a valid endpoint
-        if (endpoint) {
-          const response = await api.get(endpoint);
-          
-          console.log(`API response for ${endpoint}:`, response.data);
-          
-          // Process response data
-          let itemsArray = Array.isArray(response.data) 
-            ? response.data
-            : (response.data?.results && Array.isArray(response.data.results))
-              ? response.data.results
-              : [];
-          
-          console.log(`Processed ${itemsArray.length} items from response`);
-          
-          // Map to options format
-          const options = itemsArray.map(item => ({
-            value: item.id,
-            label: item.package_name || item.name || `ID: ${item.id}`
-          }));
-          
-          setProductOptions(options);
-          console.log(`Set ${options.length} product options`);
-        }
-      } catch (error) {
-        console.error(`Error fetching ${leadType} options:`, error);
-        message.error(`Failed to load ${leadType} options`);
-      }
-    };
-    
-    fetchProductOptions();
+    if (leadType) {
+      fetchProductOptions();
+    }
   }, [leadType]);
+  
+  // Function to fetch product options based on lead type
+  const fetchProductOptions = async () => {
+    try {
+      let endpoint = '';
+      
+      // Determine endpoint based on lead type
+      switch(leadType) {
+        case 'hajj_package':
+          endpoint = 'hajj-packages/';
+          break;
+        case 'custom_umrah':
+          endpoint = 'custom-umrah/';
+          break;
+        case 'readymade_umrah':
+          endpoint = 'umrah-packages/';
+          break;
+        case 'flight':
+          endpoint = 'flights/';
+          break;
+        case 'visa':
+          endpoint = 'visas/';
+          break;
+        case 'transfer':
+          endpoint = 'transfers/';
+          break;
+        case 'ziyarat':
+          endpoint = 'ziyarats/';
+          break;
+        case 'visit_visa':
+          endpoint = 'visit-visas/';
+          break;
+        case 'skilled_immigration':
+          endpoint = 'skilled-immigration/';
+          break;
+        case 'job_visa':
+          endpoint = 'job-visas/';
+          break;
+        case 'trc':
+          endpoint = 'trc/';
+          break;
+        case 'business_immigration':
+          endpoint = 'business-immigration/';
+          break;
+        case 'travel_package':
+          endpoint = 'travel-packages/';
+          break;
+        case 'study_visa':
+          endpoint = 'study/';
+          break;
+        default:
+          console.warn(`No endpoint defined for lead type: ${leadType}`);
+          setProductOptions([]);
+          return;
+      }
+      
+      console.log(`Fetching product options from endpoint: ${endpoint}`);
+      
+      const response = await api.get(endpoint);
+      console.log(`Product options response:`, response.data);
+      
+      const options = response.data.map(item => ({
+        value: item.id,
+        label: item.name || item.title || item.program_name || item.package_name || `ID: ${item.id}`
+      }));
+      
+      console.log(`Processed ${options.length} product options:`, options);
+      
+      setProductOptions(options);
+    } catch (error) {
+      console.error(`Error fetching product options:`, error);
+      setProductOptions([]);
+    }
+  };
   
   // Fetch users for assigned_to dropdown
   useEffect(() => {
@@ -1024,7 +1035,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     
     try {
       // Set the field value
-      form.setFieldValue(getProductFieldName(), value);
+      form.setFieldsValue({ [getProductFieldName()]: value });
       
       // Fetch the package details
       let endpoint = '';
@@ -1057,9 +1068,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
           break;
           
         // Immigration lead types
-        case 'study_visa':
-          endpoint = `study-visas/${value}/`;
-          break;
         case 'visit_visa':
           endpoint = `visit-visas/${value}/`;
           break;
@@ -1074,6 +1082,9 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
           break;
         case 'business_immigration':
           endpoint = `business-immigration/${value}/`;
+          break;
+        case 'study_visa':
+          endpoint = `study/${value}/`;
           break;
           
         // Travel and Tourism lead types
@@ -1161,6 +1172,9 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     }
   };
   
+  // Add a ref for the StudyForm component
+  const studyFormRef = useRef(null);
+  
   // Handle form submission
   const handleSubmit = async () => {
     try {
@@ -1168,9 +1182,23 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       await form.validateFields();
       setLoading(true);
       
-      // Get the form values directly
-      const formValues = form.getFieldsValue(true);
-      console.log('Direct form values:', formValues);
+      // If it's a study visa lead and we have a studyFormRef, save study data first
+      if (formValues.lead_type === 'study_visa' && studyFormRef.current) {
+        try {
+          // Try to save study data first using the ref
+          console.log("Attempting to save study data via ref before submission");
+          await studyFormRef.current.saveStudyData();
+          console.log("Study data saved before lead submission");
+        } catch (error) {
+          console.error("Error saving study data during lead submission:", error);
+          message.error("Failed to save study details. Please try again.");
+          setLoading(false);
+          return; // Stop the submission if study data fails to save
+        }
+      }
+      
+      // Get the form values directly - use the existing formValues state instead of redefining
+      console.log('Direct form values:', form.getFieldsValue(true));
       
       // Log critical values for troubleshooting
       console.log('Critical values before submission:', {
@@ -1250,6 +1278,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         visa: formValues.lead_type === 'visa' ? formValues.visa : null,
         transfer: formValues.lead_type === 'transfer' ? formValues.transfer : null,
         ziyarat: formValues.lead_type === 'ziyarat' ? formValues.ziyarat : null,
+        study_visa: formValues.lead_type === 'study_visa' ? formValues.study : null,
         query_for: {
           adults: formValues.adults || 0,
           children: formValues.children || 0,
@@ -1308,61 +1337,42 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   
   // Get product field name based on lead type
   const getProductFieldName = () => {
-    switch(leadType) {
-      // Hajj & Umrah lead types
+    switch (leadType) {
       case 'hajj_package': return 'hajj_package';
       case 'custom_umrah': return 'custom_umrah';
       case 'readymade_umrah': return 'readymade_umrah';
-      case 'ziyarat': return 'ziyarat';
-      
-      // Common lead types
-      case 'flight': return 'flight';
+      case 'flight': return 'flight_details';
       case 'visa': return 'visa';
       case 'transfer': return 'transfer';
-      
-      // Immigration lead types
-      case 'study_visa': return 'study_visa';
+      case 'ziyarat': return 'ziyarat';
       case 'visit_visa': return 'visit_visa';
       case 'skilled_immigration': return 'skilled_immigration';
       case 'job_visa': return 'job_visa';
       case 'trc': return 'trc';
       case 'business_immigration': return 'business_immigration';
-      
-      // Travel and Tourism lead types
       case 'travel_package': return 'travel_package';
-      
-      default: 
-        // Log warning and fallback to lead_type itself
-        console.warn(`No field name mapping for lead type: ${leadType}`);
-        return leadType;
+      case 'study_visa': return 'study_visa';
+      default: return 'hajj_package';
     }
   };
   
   // Get product field label based on lead type
   const getProductFieldLabel = () => {
-    switch(leadType) {
-      // Hajj & Umrah lead types
+    switch (leadType) {
       case 'hajj_package': return 'Select Hajj Package';
       case 'custom_umrah': return 'Select Custom Umrah';
-      case 'readymade_umrah': return 'Select Readymade Umrah Package';
-      case 'ziyarat': return 'Select Ziyarat';
-      
-      // Common lead types
+      case 'readymade_umrah': return 'Select Readymade Umrah';
       case 'flight': return 'Select Flight';
       case 'visa': return 'Select Visa';
       case 'transfer': return 'Select Transfer';
-      
-      // Immigration lead types
-      case 'study_visa': return 'Select Study Visa';
+      case 'ziyarat': return 'Select Ziyarat';
       case 'visit_visa': return 'Select Visit Visa';
-      case 'skilled_immigration': return 'Select Skilled Immigration Program';
+      case 'skilled_immigration': return 'Select Skilled Immigration';
       case 'job_visa': return 'Select Job Visa';
-      case 'trc': return 'Select TRC Option';
-      case 'business_immigration': return 'Select Business Immigration Program';
-      
-      // Travel and Tourism lead types
+      case 'trc': return 'Select TRC';
+      case 'business_immigration': return 'Select Business Immigration';
       case 'travel_package': return 'Select Travel Package';
-      
+      case 'study_visa': return 'Select Study Program';
       default: return 'Select Product';
     }
   };
@@ -1965,36 +1975,53 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
           {/* Product Details Tab */}
           {activeTab === 'product' && (
             <>
-            {leadType === 'flight' ? (
+              {leadType === 'flight' ? (
                 <React.Fragment>
-                {console.log('Rendering FlightForm component. Is it defined?', typeof FlightForm)}
-                <FormSection title="Product Information">
-                  <FlightForm 
-                    form={form} 
-                    formValues={formValues} 
+                <FormSection title="Flight Details">
+                  <FlightForm
+                    isEditMode={isEditMode}
+                    initialData={{
+                      lead_id: initialData.id || null,
+                      airline: formValues.airline || '',
+                      departure_date: formValues.departure_date || null,
+                      return_date: formValues.return_date || null,
+                      from_city: formValues.from_city || '',
+                      to_city: formValues.to_city || '',
+                      flight_class: formValues.flight_class || ''
+                    }}
+                    onSuccess={(data) => {
+                      console.log('Flight details saved:', data);
+                      message.success('Flight details saved successfully!');
+                      if (data && data.id) {
+                        handleInputChange('flight_details', data.id);
+                      }
+                    }}
                     handleInputChange={handleInputChange} 
+                    form={form}
+                    formValues={formValues}
                   />
                 </FormSection>
                 </React.Fragment>
               ) : leadType === 'study_visa' ? (
                 <React.Fragment>
-                {console.log('Rendering StudyVisaForm component. Is it defined?', typeof StudyVisaForm)}
-                <StudyVisaForm 
-                  isEditMode={isEditMode}
-                  initialData={{
-                    lead_id: initialData.id || null,
-                    last_qualification: formValues.last_qualification || '',
-                    country: formValues.country || ''
-                  }}
-                  onSuccess={(data) => {
-                    console.log('Study visa inquiry saved:', data);
-                    message.success('Study visa inquiry saved successfully!');
-                    // Update form values if needed
-                    if (data && data.id) {
-                      handleInputChange('study_visa', data.id);
-                    }
-                  }}
-                />
+                <FormSection title="Study Visa Details">
+                  <StudyForm
+                    form={form}
+                    formValues={formValues}
+                    handleInputChange={handleInputChange}
+                    initialData={{
+                      lead_id: initialData.id || null
+                    }}
+                    onSave={(studyData) => {
+                      // Update formValues with the saved study data
+                      setFormValues(prev => ({
+                        ...prev,
+                        study: studyData
+                      }));
+                    }}
+                    ref={studyFormRef}
+                  />
+                </FormSection>
                 </React.Fragment>
               ) : (
                 <FormSection title="Product Information">
