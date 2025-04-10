@@ -53,14 +53,7 @@ const InvoiceIndex = () => {
       setUser(userData);
       setUserRole(userRole);
       setTenantId(tenantId);
-      
-      console.log('User data loaded:', { 
-        userData, 
-        userRole, 
-        tenantId
-      });
     } catch (error) {
-      console.error('Error parsing user data:', error);
       message.error('Error loading user data. Please log in again.');
       navigate('/login');
     }
@@ -185,7 +178,6 @@ const InvoiceIndex = () => {
         try {
           setLoading(true);
           
-          console.log('Fetching invoices...');
           const response = await api.get('invoices/', {
             params: {
               page: pagination.page,
@@ -198,8 +190,6 @@ const InvoiceIndex = () => {
           let invoicesArray = response.data.results || [];
           const totalCount = response.data.count || 0;
           const totalPages = Math.ceil(totalCount / pagination.pageSize);
-          
-          console.log(`Fetched ${invoicesArray.length} invoices (page ${pagination.page} of ${totalPages})`);
           
           // Format the invoices data
           const formattedData = invoicesArray.map(invoice => {
@@ -218,8 +208,6 @@ const InvoiceIndex = () => {
           }));
           setLoading(false);
         } catch (error) {
-          console.error('Error fetching invoices:', error);
-          console.error('Error details:', error.response?.data);
           setLoading(false);
           message.error('Failed to load invoices. Please try again.');
         }
@@ -373,7 +361,6 @@ const InvoiceIndex = () => {
       try {
         setLoading(true);
         
-        console.log('Refreshing invoices...');
         const response = await api.get('invoices/');
         
         // Process response data
@@ -382,8 +369,6 @@ const InvoiceIndex = () => {
           : (response.data?.results && Array.isArray(response.data.results))
             ? response.data.results
             : [];
-        
-        console.log(`Refreshed ${invoicesArray.length} invoices`);
         
         // Format the invoices data
         const formattedData = invoicesArray.map(invoice => {
@@ -397,7 +382,6 @@ const InvoiceIndex = () => {
         setFilteredInvoices(formattedData);
         setLoading(false);
       } catch (error) {
-        console.error('Error refreshing invoices:', error);
         setLoading(false);
         message.error('Failed to refresh invoices. Please try again.');
       }

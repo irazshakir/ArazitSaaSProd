@@ -15,31 +15,15 @@ const api = axios.create({
 // Add a request interceptor to add the auth token to requests
 api.interceptors.request.use(
   (config) => {
-    // Log all requests for debugging
-    console.log(`API Request: ${config.method.toUpperCase()} ${config.baseURL}${config.url}`, {
-      headers: config.headers,
-      data: config.data,
-    });
-    
     // Check multiple possible token locations
     const token = localStorage.getItem('token');
     const accessToken = localStorage.getItem('access_token');
-    
-    // Log what we found
-    console.log('API Interceptor - Token check:', {
-      token,
-      accessToken,
-      configUrl: config.url
-    });
     
     // Use the token that exists
     const authToken = token || accessToken;
     
     if (authToken) {
-      console.log('API Interceptor - Setting Authorization header:', `Bearer ${authToken}`);
       config.headers.Authorization = `Bearer ${authToken}`;
-    } else {
-      console.warn('API Interceptor - No token found in storage');
     }
     
     // Get CSRF token from cookie if it exists
@@ -55,7 +39,6 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
-    console.error('API Interceptor - Request error:', error);
     return Promise.reject(error);
   }
 );
@@ -63,50 +46,13 @@ api.interceptors.request.use(
 // Add a response interceptor to handle errors
 api.interceptors.response.use(
   (response) => {
-    // Log successful responses for debugging
-    console.log(`API Response [${response.status}] for ${response.config.url}:`, {
-      status: response.status,
-      statusText: response.statusText,
-      headers: response.headers,
-      data: response.data ? response.data : 'No data'
-    });
     return response;
   },
   (error) => {
-    // Log detailed error information
-    console.error('API Error Response:', {
-      message: error.message,
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      url: error.config?.url,
-      method: error.config?.method,
-      headers: error.config?.headers,
-      data: error.response?.data
-    });
-    
-    // For 400 Bad Request, log validation errors
-    if (error.response && error.response.status === 400) {
-      console.error('Validation Errors:', error.response.data);
-      
-      // If we have detailed field errors, log them
-      if (typeof error.response.data === 'object') {
-        Object.entries(error.response.data).forEach(([field, errors]) => {
-          console.error(`Field '${field}' errors:`, errors);
-        });
-      }
-    }
-    
     // Handle 401 Unauthorized errors
     if (error.response && error.response.status === 401) {
-      console.error('401 Unauthorized Error - Token details:', {
-        token: localStorage.getItem('token'),
-        accessToken: localStorage.getItem('access_token'),
-        authHeader: error.config?.headers?.Authorization
-      });
-      
       // Check if we're already on the login page to avoid redirect loops
       if (!window.location.pathname.includes('/login')) {
-        console.log('Redirecting to login page due to 401 error');
         // Clear auth data
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
@@ -131,17 +77,6 @@ export const authService = {
     // Extract user data from response
     const userData = response.data.user || { email };
     
-    // Log all user data properties to debug
-    console.log('Raw user data from token response:', response.data);
-    console.log('User data properties:', Object.keys(userData));
-    
-    // Check if tenant_id exists in user data
-    if (userData.tenant_id) {
-      console.log('Found tenant_id in user data:', userData.tenant_id);
-    } else {
-      console.warn('tenant_id not found in user data from token response');
-    }
-    
     // If no user data from token response, fetch user details
     if (!userData.id) {
       try {
@@ -151,10 +86,8 @@ export const authService = {
         // Get user details
         const userResponse = await api.get('/auth/me/');
         Object.assign(userData, userResponse.data);
-        
-        console.log('Retrieved user data:', userData);
       } catch (err) {
-        console.error('Error fetching user details:', err);
+        // Handle error silently
       }
     }
     
@@ -170,17 +103,12 @@ export const authService = {
           userData.tenant_details = tenantsResponse.data[0].tenant;
           userData.tenant_role = tenantsResponse.data[0].role;
           
-          console.log('User tenant information:', {
-            tenant_id: userData.tenant_id,
-            role: userData.tenant_role
-          });
-          
           // Store current tenant in session storage
           sessionStorage.setItem('currentTenant', JSON.stringify(userData.tenant_details));
         }
       }
     } catch (err) {
-      console.error('Error fetching tenant data:', err);
+      // Handle error silently
     }
     
     // Return complete user data
@@ -193,15 +121,8 @@ export const authService = {
 
   // Register user
   register: async (userData) => {
-    try {
-      console.log('Registering user with data:', userData);
-      const response = await api.post('/auth/register/', userData);
-      console.log('Registration response:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error('Registration error in service:', error);
-      throw error;
-    }
+    const response = await api.post('/auth/register/', userData);
+    return response.data;
   },
 
   // Get current user
@@ -258,8 +179,6 @@ export const departmentService = {
     try {
       const params = tenantId ? { tenant: tenantId } : {};
       
-      console.log('Fetching departments with params:', params);
-      
       // Try these endpoints in order
       const endpoints = [
         '/departments/',
@@ -271,9 +190,7 @@ export const departmentService = {
       
       for (const endpoint of endpoints) {
         try {
-          console.log(`Trying to fetch departments from: ${endpoint}`);
           const response = await api.get(endpoint, { params });
-          console.log(`Success with ${endpoint}:`, response.data);
           
           // Ensure we return an array
           if (Array.isArray(response.data)) {
@@ -284,17 +201,14 @@ export const departmentService = {
               return response.data.results;
             } else {
               // Try to convert object to array if possible
-              console.warn('Converting department object to array:', response.data);
               return Object.values(response.data);
             }
           }
           
           // If none of the above, return empty array
-          console.warn('Could not parse department data as array, returning empty array');
           return [];
           
         } catch (error) {
-          console.log(`Failed with ${endpoint}:`, error.response?.status || error.message);
           lastError = error;
           // Only continue if it's a 404
           if (error.response && error.response.status !== 404) {
@@ -306,7 +220,6 @@ export const departmentService = {
       // If we get here, all endpoints failed
       throw lastError;
     } catch (error) {
-      console.error('All department endpoints failed:', error);
       throw error;
     }
   },
@@ -351,8 +264,6 @@ export const branchService = {
     try {
       const params = tenantId ? { tenant: tenantId } : {};
       
-      console.log('Fetching branches with params:', params);
-      
       // Try these endpoints in order
       const endpoints = [
         '/branches/',
@@ -364,9 +275,7 @@ export const branchService = {
       
       for (const endpoint of endpoints) {
         try {
-          console.log(`Trying to fetch branches from: ${endpoint}`);
           const response = await api.get(endpoint, { params });
-          console.log(`Success with ${endpoint}:`, response.data);
           
           // Ensure we return an array
           if (Array.isArray(response.data)) {
@@ -377,17 +286,14 @@ export const branchService = {
               return response.data.results;
             } else {
               // Try to convert object to array if possible
-              console.warn('Converting branch object to array:', response.data);
               return Object.values(response.data);
             }
           }
           
           // If none of the above, return empty array
-          console.warn('Could not parse branch data as array, returning empty array');
           return [];
           
         } catch (error) {
-          console.log(`Failed with ${endpoint}:`, error.response?.status || error.message);
           lastError = error;
           // Only continue if it's a 404
           if (error.response && error.response.status !== 404) {
@@ -399,7 +305,6 @@ export const branchService = {
       // If we get here, all endpoints failed
       throw lastError;
     } catch (error) {
-      console.error('All branch endpoints failed:', error);
       throw error;
     }
   },
@@ -410,7 +315,6 @@ export const branchService = {
       const response = await api.get(`/users/branches/${id}/`);
       return response.data;
     } catch (error) {
-      console.error(`Error fetching branch ${id}:`, error);
       throw error;
     }
   },

@@ -101,10 +101,9 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       try {
         if (userStr) {
           userObj = JSON.parse(userStr);
-          console.log('Full user object from localStorage:', userObj);
         }
       } catch (err) {
-        console.error('Error parsing user from localStorage:', err);
+        // Silently handle error
       }
       
       // Check if industry is available in the user object - this appears to be the key we need based on the screenshot
@@ -113,24 +112,8 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       const userData = userObj?.userData || {};
       const userDataIndustry = (userData && userData.industry) ? userData.industry : '';
       
-      console.log('User industry from direct localStorage key:', directIndustry);
-      console.log('User industry from user object:', userIndustry);
-      console.log('User industry from userData object:', userDataIndustry);
-      
       // Use the first available industry value
       const effectiveIndustry = userDataIndustry || userIndustry || directIndustry || '';
-      console.log('Effective industry being used:', effectiveIndustry);
-      
-      // Also log all localStorage keys for debugging
-      console.log('All localStorage keys:');
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        try {
-          console.log(`${key}: ${localStorage.getItem(key)}`);
-        } catch (e) {
-          console.log(`Error reading localStorage key ${key}:`, e);
-        }
-      }
       
       // Default lead types for any industry
       const commonLeadTypes = [
@@ -144,11 +127,9 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       
       // Convert to lowercase and remove quotes for comparison
       const normalizedIndustry = effectiveIndustry ? effectiveIndustry.toLowerCase().replace(/"/g, '') : '';
-      console.log('Normalized industry for comparison:', normalizedIndustry);
       
       switch(normalizedIndustry) {
         case 'hajj_umrah':
-          console.log('Loading hajj_umrah lead types');
           leadTypes = [
             { value: 'hajj_package', label: 'Hajj Package' },
             { value: 'custom_umrah', label: 'Custom Umrah' },
@@ -158,7 +139,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
           ];
           break;
         case 'immigration':
-          console.log('Loading immigration lead types');
           leadTypes = [
             { value: 'visit_visa', label: 'Visit Visa' },
             { value: 'skilled_immigration', label: 'Skilled Immigration' },
@@ -169,14 +149,12 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
           ];
           break;
         case 'travel_tourism':
-          console.log('Loading travel_tourism lead types');
           leadTypes = [
             { value: 'travel_package', label: 'Travel Package' },
             ...commonLeadTypes
           ];
           break;
         default:
-          console.log(`Unknown industry: "${effectiveIndustry}". Defaulting to hajj_umrah lead types`);
           // Default to hajj_umrah if no industry is specified
           leadTypes = [
             { value: 'hajj_package', label: 'Hajj Package' },
@@ -420,26 +398,19 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
           endpoint = 'study/';
           break;
         default:
-          console.warn(`No endpoint defined for lead type: ${leadType}`);
           setProductOptions([]);
           return;
       }
       
-      console.log(`Fetching product options from endpoint: ${endpoint}`);
-      
       const response = await api.get(endpoint);
-      console.log(`Product options response:`, response.data);
       
       const options = response.data.map(item => ({
         value: item.id,
         label: item.name || item.title || item.program_name || item.package_name || `ID: ${item.id}`
       }));
       
-      console.log(`Processed ${options.length} product options:`, options);
-      
       setProductOptions(options);
     } catch (error) {
-      console.error(`Error fetching product options:`, error);
       setProductOptions([]);
     }
   };
@@ -452,12 +423,8 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         const tenantId = localStorage.getItem('tenant_id');
         
         if (!tenantId) {
-          console.error('No tenant ID found in localStorage');
           return;
         }
-        
-        // Log the API call for debugging
-        console.log(`Fetching users for tenant: ${tenantId}`);
         
         try {
           // Updated path to include auth/ prefix
@@ -467,16 +434,12 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
             }
           });
           
-          console.log('API Response:', response);
-          
           // Process response data
           let usersArray = Array.isArray(response.data) 
             ? response.data
             : (response.data?.results && Array.isArray(response.data.results))
               ? response.data.results
               : [];
-          
-          console.log(`Fetched ${usersArray.length} users`);
           
           // Group users by department
           const usersByDepartment = {};
@@ -617,12 +580,8 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         const tenantId = localStorage.getItem('tenant_id');
         
         if (!tenantId) {
-          console.error('No tenant ID found in localStorage');
           return;
         }
-        
-        // Log the API call for debugging
-        console.log(`Fetching branches for tenant: ${tenantId}`);
         
         try {
           // Fetch branches for the current tenant
@@ -632,8 +591,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
             }
           });
           
-          console.log('Branches API Response:', response);
-          
           // Process response data
           let branchesArray = Array.isArray(response.data) 
             ? response.data
@@ -641,21 +598,16 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
               ? response.data.results
               : [];
           
-          console.log(`Fetched ${branchesArray.length} branches:`, branchesArray);
-          
           // Create branch options
           const options = branchesArray.map(branch => ({
             value: branch.id,
             label: branch.name
           }));
           
-          console.log('Branch options created:', options);
           setBranchOptions(options);
           
           // Set branch field value explicitly in edit mode
           if (isEditMode && initialData.branch) {
-            console.log('Edit mode - setting branch value explicitly:', initialData.branch);
-            
             // First set form's field value
             form.setFieldsValue({ branch: initialData.branch });
             
@@ -664,21 +616,10 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
               ...prev,
               branch: initialData.branch
             }));
-            
-            // Debug check
-            setTimeout(() => {
-              console.log('Branch value after setting:', {
-                formField: form.getFieldValue('branch'),
-                formValues: formValues.branch
-              });
-            }, 100);
           }
         } catch (error) {
-          console.error('Error fetching branches:', error);
-          
           // Try fallback method
           try {
-            console.log('Trying to fetch all branches as fallback...');
             const response = await api.get('/auth/branches/');
             
             let allBranches = Array.isArray(response.data) 
@@ -686,8 +627,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
               : (response.data?.results && Array.isArray(response.data.results))
                 ? response.data.results
                 : [];
-            
-            console.log('All branches:', allBranches);
             
             // Filter branches by tenant_id manually
             const filteredBranches = allBranches.filter(branch => 
@@ -697,29 +636,23 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
               branch.tenant_id === tenantId
             );
             
-            console.log(`Filtered ${filteredBranches.length} branches from ${allBranches.length} total:`, filteredBranches);
-            
             // Convert to options format
             const options = filteredBranches.map(branch => ({
               value: branch.id,
               label: branch.name
             }));
             
-            console.log('Branch options created (fallback):', options);
             setBranchOptions(options);
             
             // If we're in edit mode, set the branch value explicitly
             if (isEditMode && initialData.branch) {
-              console.log('Edit mode - setting branch value (fallback):', initialData.branch);
               form.setFieldsValue({ branch: initialData.branch });
             }
           } catch (fallbackError) {
-            console.error('All branch fetch attempts failed:', fallbackError);
             message.error('Failed to load branches');
           }
         }
       } catch (error) {
-        console.error('Error in fetchBranches:', error);
         message.error('Failed to load branches');
       }
     };
@@ -818,11 +751,8 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     try {
       // Make sure we have a valid leadId
       if (!leadId) {
-        console.error('No lead ID provided for fetching documents');
         return;
       }
-      
-      console.log(`Fetching documents for lead: ${leadId}`);
       
       // Use the lead ID to filter documents
       const response = await api.get(`/lead-documents/?lead=${leadId}`);
@@ -834,12 +764,9 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
           ? response.data.results
           : [];
       
-      console.log(`Retrieved ${documentsArray.length} documents for lead ${leadId}`);
-      
       // Set the documents state
       setDocuments(documentsArray);
     } catch (error) {
-      console.error('Error fetching documents:', error);
       message.error('Failed to load documents');
     }
   };
@@ -851,7 +778,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       const response = await api.get(`/leads/${leadId}/activities/`);
       setActivities(response.data);
     } catch (error) {
-      console.error('Error fetching lead activities:', error);
       message.error('Failed to load lead activities');
     } finally {
       setLoadingActivities(false);
@@ -914,8 +840,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       setNotes(notes.filter(note => note.id !== noteId));
       message.success('Note deleted successfully');
     } catch (error) {
-      console.error('Error deleting note:', error);
-      console.error('Error details:', error.response?.data);
       message.error('Failed to delete note');
     }
   };
@@ -930,7 +854,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       const tenantId = user.tenant_id;
       
       if (!tenantId) {
-        console.error('Tenant ID not found in localStorage');
         message.error('Tenant information not available. Please log in again.');
         onError('Tenant information not available');
         return;
@@ -956,7 +879,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       message.success('Document uploaded successfully');
       onSuccess(response.data);
     } catch (error) {
-      console.error('Error uploading document:', error);
       message.error('Failed to upload document');
       onError('Upload failed');
     }
@@ -969,7 +891,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       setDocuments(documents.filter(doc => doc.id !== documentId));
       message.success('Document deleted successfully');
     } catch (error) {
-      console.error('Error deleting document:', error);
       message.error('Failed to delete document');
     }
   };
@@ -992,7 +913,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       message.success('Activity added successfully');
       return true;
     } catch (error) {
-      console.error('Error adding activity:', error);
       message.error('Failed to add activity');
       return false;
     }
@@ -1021,9 +941,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     
     // Clear selected package details
     setSelectedPackageDetails(null);
-    
-    // Log the change for debugging
-    console.log(`Lead type changed to: ${value}`);
   };
   
   // Add a new function to fetch package details when a package is selected
@@ -1093,32 +1010,12 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
           break;
           
         default:
-          console.warn(`No endpoint defined for lead type: ${leadType}`);
           return;
       }
       
-      console.log(`Fetching package details from endpoint: ${endpoint}`);
-      
       const response = await api.get(endpoint);
-      console.log(`Package details response:`, response.data);
-      
-      // For Umrah packages, check if hotels array exists
-      if (leadType === 'readymade_umrah' && response.data) {
-        if (response.data.hotels && Array.isArray(response.data.hotels)) {
-          console.log(`Umrah package has ${response.data.hotels.length} hotels`);
-          // Log each hotel for debugging
-          response.data.hotels.forEach((hotel, index) => {
-            console.log(`Hotel ${index + 1}:`, hotel);
-          });
-        } else {
-          console.log('No hotels found in Umrah package response');
-        }
-      }
-      
       setSelectedPackageDetails(response.data);
-      console.log(`Selected package details set successfully`);
     } catch (error) {
-      console.error(`Error fetching package details:`, error);
       message.error(`Failed to load package details`);
       setSelectedPackageDetails(null);
     }
@@ -1142,36 +1039,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     return true;
   };
   
-  // Add this function to help debug field name mismatches
-  const checkFieldNameMatches = () => {
-    console.log('Checking field name matches...');
-    
-    // Expected field names from your Lead model
-    const expectedFields = [
-      'name', 'email', 'phone', 'whatsapp', 'lead_type', 'source', 
-      'status', 'lead_activity_status', 'last_contacted', 'next_follow_up', 
-      'assigned_to', 'tenant', 'created_by', 'hajj_package', 'query_for'
-    ];
-    
-    // Get actual field names from the form
-    const formFields = Object.keys(form.getFieldsValue());
-    
-    console.log('Expected fields:', expectedFields);
-    console.log('Form fields:', formFields);
-    
-    // Check for missing fields
-    const missingFields = expectedFields.filter(field => !formFields.includes(field));
-    if (missingFields.length > 0) {
-      console.warn('Missing fields in form:', missingFields);
-    }
-    
-    // Check for extra fields
-    const extraFields = formFields.filter(field => !expectedFields.includes(field));
-    if (extraFields.length > 0) {
-      console.warn('Extra fields in form:', extraFields);
-    }
-  };
-  
   // Add a ref for the StudyForm component
   const studyFormRef = useRef(null);
   
@@ -1186,26 +1053,13 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       if (formValues.lead_type === 'study_visa' && studyFormRef.current) {
         try {
           // Try to save study data first using the ref
-          console.log("Attempting to save study data via ref before submission");
           await studyFormRef.current.saveStudyData();
-          console.log("Study data saved before lead submission");
         } catch (error) {
-          console.error("Error saving study data during lead submission:", error);
           message.error("Failed to save study details. Please try again.");
           setLoading(false);
           return; // Stop the submission if study data fails to save
         }
       }
-      
-      // Get the form values directly - use the existing formValues state instead of redefining
-      console.log('Direct form values:', form.getFieldsValue(true));
-      
-      // Log critical values for troubleshooting
-      console.log('Critical values before submission:', {
-        branch: formValues.branch,
-        department: formValues.department,
-        lead_type: formValues.lead_type
-      });
       
       // Check if dates are dayjs objects and convert them to ISO strings
       const isDayjsObject = (obj) => obj && typeof obj === 'object' && typeof obj.isValid === 'function';
@@ -1289,24 +1143,18 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         custom_fields: null
       };
       
-      console.log('Final lead data to submit:', leadData);
-      
       // Make API call based on edit mode
       if (isEditMode) {
         const response = await api.put(`/leads/${initialData.id}/`, leadData);
-        console.log('Update response:', response.data);
         message.success('Lead updated successfully');
       } else {
         const response = await api.post('/leads/', leadData);
-        console.log('Create response:', response.data);
         message.success('Lead created successfully');
       }
       
       if (onSuccess) onSuccess();
       else navigate('/dashboard/leads');
     } catch (error) {
-      console.error('Form submission error:', error);
-      
       // Error handling
       message.error('Failed to save lead. Please check the form and try again.');
     } finally {
@@ -1394,7 +1242,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         setCurrentUser(response.data);
         localStorage.setItem('user_id', response.data.id);
       } catch (error) {
-        console.error('Error fetching current user:', error);
+        // Silently handle error
       }
     };
     
@@ -1403,15 +1251,12 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     }
   }, []);
   
-  // Add this function to the component
+  // Test API connection function - removed console logs
   const testApiConnection = async () => {
     try {
-      console.log('Testing API connection...');
       const response = await api.get('/leads/');
-      console.log('API connection test successful:', response.data);
       return true;
     } catch (error) {
-      console.error('API connection test failed:', error);
       return false;
     }
   };
@@ -1420,15 +1265,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   useEffect(() => {
     testApiConnection();
   }, []);
-  
-  // Add this function to the component
-  const checkFormValues = () => {
-    const values = form.getFieldsValue(true);
-    console.log('Current form values:', values);
-    console.log('Name field value:', form.getFieldValue('name'));
-    console.log('Phone field value:', form.getFieldValue('phone'));
-    console.log('Form state values:', formValues);
-  };
   
   // Add this useEffect to fetch notes when the Notes tab is activated
   useEffect(() => {
@@ -1447,7 +1283,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       const tenantId = user.tenant_id;
       
       if (!tenantId) {
-        console.error('Tenant ID not found in localStorage');
         message.error('Tenant information not available. Please log in again.');
         setSubmittingDocuments(false);
         return;
@@ -1494,7 +1329,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       
       message.success('Documents uploaded successfully');
     } catch (error) {
-      console.error('Error uploading documents:', error);
       message.error('Failed to upload documents');
     } finally {
       setSubmittingDocuments(false);
@@ -1510,8 +1344,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     if (tabParam) {
       setActiveTab(tabParam);
     }
-    
-    // ... rest of your existing useEffect code
   }, []);
   
   // Function to update branch when a user is assigned
@@ -1519,8 +1351,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     try {
       // Only proceed if we have a valid user ID
       if (!userId) return;
-      
-      console.log(`User assigned. Checking branch for user ID: ${userId}`);
       
       // Update the assigned_to field
       handleInputChange('assigned_to', userId);
@@ -1532,7 +1362,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         
         // If user has a branch assigned, update the branch field
         if (userData.branch) {
-          console.log(`Setting branch to ${userData.branch} based on assigned user`);
           form.setFieldValue('branch', userData.branch);
           setFormValues(prev => ({
             ...prev,
@@ -1540,11 +1369,10 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
           }));
         }
       } catch (error) {
-        console.error('Error fetching user branch:', error);
         // Don't show an error message to the user as this is a background operation
       }
     } catch (error) {
-      console.error('Error in handleUserAssignment:', error);
+      // Silently handle errors
     }
   };
   
@@ -1553,11 +1381,8 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     const fetchFlightDetails = async () => {
       if (isEditMode && leadType === 'flight' && initialData.id) {
         try {
-          console.log('Attempting to fetch flight data for lead:', initialData.id);
-          
           // First, check if flight data is already in initialData
           if (initialData.flight) {
-            console.log('Flight data found in initialData:', initialData.flight);
             // Process flight data
             const flightData = typeof initialData.flight === 'string' 
               ? JSON.parse(initialData.flight) 
@@ -1599,21 +1424,15 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
             setFormValues(updatedValues);
             // Set form fields
             form.setFieldsValue(updatedValues);
-            
-            console.log('Updated form with flight data:', updatedValues);
           } else {
             // Fetch flight data from the API
-            console.log('No flight data in initialData, fetching from API');
             try {
               const response = await api.get(`/flights/`, {
                 params: { lead_inquiry: initialData.id }
               });
               
-              console.log('API flight response:', response.data);
-              
               if (response.data.results && response.data.results.length > 0) {
                 const flightData = response.data.results[0];
-                console.log('Fetched flight data:', flightData);
                 
                 // Also fetch passenger details and cost details
                 const passengersResponse = await api.get(`/passengers/`, {
@@ -1622,9 +1441,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
                 const costResponse = await api.get(`/cost-details/`, {
                   params: { flight_inquiry: flightData.id }
                 });
-                
-                console.log('Passenger details:', passengersResponse.data);
-                console.log('Cost details:', costResponse.data);
                 
                 const passengerDetails = passengersResponse.data.results || [];
                 const costDetails = costResponse.data.results && costResponse.data.results.length > 0 
@@ -1665,17 +1481,12 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
                 setFormValues(updatedValues);
                 // Set form fields
                 form.setFieldsValue(updatedValues);
-                
-                console.log('Updated form with flight data from API:', updatedValues);
-              } else {
-                console.log('No flight data found in API response');
               }
             } catch (apiError) {
-              console.error('Error fetching flight data from API:', apiError);
+              // Silently handle error
             }
           }
         } catch (error) {
-          console.error('Error processing flight details:', error);
           message.error('Failed to load flight details');
         }
       }
@@ -1684,12 +1495,8 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     fetchFlightDetails();
   }, [isEditMode, leadType, initialData.id]);
   
-  // Debug - log initial data for troubleshooting
+  // Set initial values explicitly for edit mode
   useEffect(() => {
-    console.log('LeadForm initialData:', initialData);
-    console.log('Form values initialized to:', formValues);
-    
-    // Set initial values explicitly for edit mode
     if (isEditMode) {
       // Set basic fields
       form.setFieldsValue({
@@ -1716,7 +1523,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         });
       }
     }
-  }, [form, initialData, isEditMode, formValues]);
+  }, [form, initialData, isEditMode]);
   
   return (
     <Box>
@@ -1737,7 +1544,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
             ...initialData
           }}
           onValuesChange={(changedValues, allValues) => {
-            console.log('Form values changed:', changedValues);
             setFormValues(prev => ({
               ...prev,
               ...changedValues
@@ -1769,8 +1575,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
                         const value = e.target.value;
                         form.setFieldsValue({ name: value });
                         setFormValues(prev => ({ ...prev, name: value }));
-                        console.log('Name changed to:', value);
-                        console.log('Form field value after change:', form.getFieldValue('name'));
                       }}
                     />
                   </Form.Item>
@@ -1788,8 +1592,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
                         const value = e.target.value;
                         form.setFieldsValue({ email: value });
                         setFormValues(prev => ({ ...prev, email: value }));
-                        console.log('Email changed to:', value);
-                        console.log('Form field value after change:', form.getFieldValue('email'));
                       }}
                     />
                   </Form.Item>
@@ -1808,8 +1610,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
                         const value = e.target.value;
                         form.setFieldsValue({ phone: value });
                         setFormValues(prev => ({ ...prev, phone: value }));
-                        console.log('Phone changed to:', value);
-                        console.log('Form field value after change:', form.getFieldValue('phone'));
                       }}
                     />
                   </Form.Item>
@@ -1827,8 +1627,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
                         const value = e.target.value;
                         form.setFieldsValue({ whatsapp: value });
                         setFormValues(prev => ({ ...prev, whatsapp: value }));
-                        console.log('WhatsApp changed to:', value);
-                        console.log('Form field value after change:', form.getFieldValue('whatsapp'));
                       }}
                     />
                   </Form.Item>
@@ -1911,7 +1709,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
                           ...prev,
                           last_contacted: date
                         }));
-                        console.log('Last contacted changed to:', date);
                       }}
                     />
                   </Form.Item>
@@ -1931,7 +1728,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
                           ...prev,
                           next_follow_up: date
                         }));
-                        console.log('Next follow-up changed to:', date);
                       }}
                     />
                   </Form.Item>
@@ -1963,7 +1759,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
                       value={formValues.branch || initialData.branch}
                       onChange={(value) => {
                         handleInputChange('branch', value);
-                        console.log(`Branch changed to: ${value}`);
                       }}
                     />
                   </Form.Item>
@@ -1990,7 +1785,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
                       flight_class: formValues.flight_class || ''
                     }}
                     onSuccess={(data) => {
-                      console.log('Flight details saved:', data);
                       message.success('Flight details saved successfully!');
                       if (data && data.id) {
                         handleInputChange('flight_details', data.id);
@@ -2297,17 +2091,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
               )}
             </FormSection>
           )}
-          
-          <Box sx={{ mb: 2, textAlign: 'right' }}>
-            <Button 
-              variant="outlined" 
-              color="primary" 
-              onClick={checkFormValues}
-              sx={{ mr: 2 }}
-            >
-              Check Form Values
-            </Button>
-          </Box>
           
           <FormActions
             loading={loading}

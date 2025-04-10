@@ -11,7 +11,6 @@ const enforceTenantIsolation = (params = {}) => {
   const tenantId = localStorage.getItem('tenant_id');
   
   if (!tenantId) {
-    console.error('No tenant ID found for analytics query');
     throw new Error('Tenant ID is required for data access');
   }
   
@@ -32,7 +31,6 @@ const applyRoleBasedFilters = (params = {}) => {
   const userRole = getUserRole();
   
   if (!user || !userRole) {
-    console.error('User information missing for role-based filtering');
     throw new Error('User information is required for data access');
   }
   
@@ -48,8 +46,6 @@ const applyRoleBasedFilters = (params = {}) => {
       // Department head can see data for their department
       if (user.department_id) {
         updatedParams.department_id = user.department_id;
-      } else {
-        console.warn('Department head without department_id');
       }
       break;
       
@@ -73,7 +69,6 @@ const applyRoleBasedFilters = (params = {}) => {
     default:
       // For unknown roles, restrict to user's own data as a safety measure
       updatedParams.user_id = user.id;
-      console.warn(`Unknown role ${userRole}, applying default restriction`);
   }
   
   return updatedParams;
@@ -142,7 +137,6 @@ const analyticsService = {
       const response = await api.get('/analytics/dashboard-stats', { params: secureParams });
       return response.data;
     } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
       throw error;
     }
   },
@@ -153,9 +147,7 @@ const analyticsService = {
    */
   getFilterOptions: async () => {
     try {
-      console.log('Fetching filter options');
       const secureParams = buildSecureQuery();
-      console.log('Filter options secure params:', secureParams);
       
       // Try multiple URL formats to find the one that works
       const urls = [
@@ -169,13 +161,10 @@ const analyticsService = {
       
       for (const url of urls) {
         try {
-          console.log(`Trying to fetch filter options from: ${url}`);
           const response = await api.get(url, { params: secureParams });
-          console.log(`Filter options response from ${url}:`, response.data);
           data = response.data;
           break; // Success, exit the loop
         } catch (error) {
-          console.error(`Error fetching filter options from ${url}:`, error);
           lastError = error;
           // Continue trying other URLs
         }
@@ -187,7 +176,6 @@ const analyticsService = {
       }
       
       // Otherwise, get branches, departments, and users separately using service functions
-      console.log('Trying to fetch filter options using individual service calls');
       
       const tenantId = secureParams.tenant_id;
       
@@ -195,18 +183,14 @@ const analyticsService = {
       let branches = [];
       try {
         branches = await branchService.getBranches(tenantId);
-        console.log('Branches from service:', branches);
       } catch (error) {
-        console.error('Error fetching branches:', error);
       }
       
       // Get departments
       let departments = [];
       try {
         departments = await departmentService.getDepartments(tenantId);
-        console.log('Departments from service:', departments);
       } catch (error) {
-        console.error('Error fetching departments:', error);
       }
       
       // Get users
@@ -214,7 +198,6 @@ const analyticsService = {
       try {
         const userResponse = await api.get('/auth/users/', { params: secureParams });
         users = userResponse.data.results || userResponse.data || [];
-        console.log('Users from service:', users);
         
         // Format users to match the expected structure
         users = users.map(user => ({
@@ -222,7 +205,6 @@ const analyticsService = {
           name: `${user.first_name} ${user.last_name}`.trim() || user.email
         }));
       } catch (error) {
-        console.error('Error fetching users:', error);
       }
       
       // Return the assembled filter options
@@ -232,13 +214,9 @@ const analyticsService = {
         users
       };
       
-      console.log('Assembled filter options:', filterOptions);
       return filterOptions;
       
     } catch (error) {
-      console.error('Error fetching filter options:', error);
-      console.error('Error details:', error.response?.data || error.message || error);
-      
       // Return empty data structure instead of throwing
       return {
         branches: [],
@@ -259,7 +237,6 @@ const analyticsService = {
       const response = await api.get('/analytics/lead-analytics', { params: secureParams });
       return response.data;
     } catch (error) {
-      console.error('Error fetching lead analytics:', error);
       throw error;
     }
   },
@@ -291,15 +268,10 @@ const analyticsService = {
       if (activityStatus) params.activity_status = activityStatus;
       if (search) params.search = search;
       
-      console.log('API request to /analytics/lead-analytics with params:', params);
-      
       const response = await api.get('/analytics/lead-analytics', { params });
-      console.log('Lead analytics API response:', response.status, response.statusText);
       
       return response.data;
     } catch (error) {
-      console.error('Error fetching leads table data:', error);
-      console.error('Error details:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -311,14 +283,10 @@ const analyticsService = {
    */
   getUserPerformance: async (filters = {}) => {
     try {
-      console.log('Fetching user performance data with filters:', filters);
       const secureParams = buildSecureQuery(filters);
       const response = await api.get('/analytics/user-performance', { params: secureParams });
-      console.log('User performance response:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Error fetching user performance:', error);
-      console.error('Error details:', error.response?.data || error.message || error);
       throw error;
     }
   },
@@ -334,7 +302,6 @@ const analyticsService = {
       const response = await api.get('/analytics/sales-analytics', { params: secureParams });
       return response.data;
     } catch (error) {
-      console.error('Error fetching sales analytics:', error);
       throw error;
     }
   },
@@ -350,7 +317,6 @@ const analyticsService = {
       const response = await api.get('/analytics/conversion-funnel', { params: secureParams });
       return response.data;
     } catch (error) {
-      console.error('Error fetching conversion funnel:', error);
       throw error;
     }
   },
@@ -362,24 +328,18 @@ const analyticsService = {
    */
   getMarketingAnalytics: async (filters = {}) => {
     try {
-      console.log('Fetching marketing analytics with filters:', filters);
       const secureParams = buildSecureQuery(filters);
       
       // Try the new marketing-analytics endpoint first
       try {
         const response = await api.get('/analytics/marketing-analytics', { params: secureParams });
-        console.log('Marketing analytics response:', response.data);
         return response.data;
       } catch (error) {
-        console.error('Error fetching from marketing-analytics endpoint:', error);
-        console.error('Falling back to sales-analytics endpoint');
-        
         // Fallback to sales-analytics endpoint for compatibility
         const response = await api.get('/analytics/sales-analytics', { params: secureParams });
         return response.data;
       }
     } catch (error) {
-      console.error('Error fetching marketing analytics:', error);
       throw error;
     }
   }

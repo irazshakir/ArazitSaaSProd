@@ -2,92 +2,118 @@
  * Authentication utility functions for token management
  */
 
-// Get JWT token from localStorage
-export const getToken = () => {
+// Get token from localStorage
+const getToken = () => {
   return localStorage.getItem('token');
 };
 
-// Set JWT token in localStorage
-export const setToken = (token) => {
+// Set token to localStorage
+const setToken = (token) => {
   localStorage.setItem('token', token);
 };
 
-// Remove JWT token from localStorage
-export const removeToken = () => {
+// Remove token from localStorage
+const removeToken = () => {
   localStorage.removeItem('token');
+  localStorage.removeItem('userData');
+};
+
+// Set userData to localStorage
+const setUserData = (userData) => {
+  const stringifiedData = JSON.stringify(userData);
+  localStorage.setItem('userData', stringifiedData);
+};
+
+// Get userData from localStorage
+const getUserData = () => {
+  try {
+    const userData = localStorage.getItem('userData');
+    return userData ? JSON.parse(userData) : null;
+  } catch (error) {
+    return null;
+  }
 };
 
 // Check if user is authenticated
-export const isAuthenticated = () => {
+const isAuthenticated = () => {
   const token = getToken();
-  // Add extra debugging
-  console.log('isAuthenticated check:', {
-    token: token,
-    directCheck: localStorage.getItem('token')
-  });
   return !!token;
 };
 
-// More robust authentication check that checks multiple possible token locations
-export const ensureAuthenticated = () => {
-  // Check for token in all possible storage locations
-  const token = localStorage.getItem('token') || 
-                localStorage.getItem('access_token');
+// More robust authentication check - checks if token exists and is not expired
+const ensureAuthenticated = () => {
+  const token = getToken();
+  if (!token) return false;
   
-  // Log what we found for debugging
-  console.log('ensureAuthenticated check:', {
-    token: token,
-    allStorage: {
-      token: localStorage.getItem('token'),
-      access_token: localStorage.getItem('access_token'),
-      user: localStorage.getItem('user')
-    }
-  });
-  
-  return !!token;
+  // Check if token is expired
+  return !isTokenExpired(token);
+};
+
+// Check if user has admin role
+const isAdmin = () => {
+  const userData = getUserData();
+  return userData && userData.role === 'admin';
+};
+
+// Check if user has specific role
+const hasRole = (role) => {
+  const userData = getUserData();
+  return userData && userData.role === role;
+};
+
+// Utility function to check if a token is expired
+const isTokenExpired = (token) => {
+  try {
+    if (!token) return true;
+    const tokenData = JSON.parse(atob(token.split('.')[1]));
+    const expirationTime = tokenData.exp * 1000; // Convert to milliseconds
+    return Date.now() > expirationTime;
+  } catch (error) {
+    return true;
+  }
+};
+
+// Check if current token is expired
+const isCurrentTokenExpired = () => {
+  const token = getToken();
+  return isTokenExpired(token);
 };
 
 // Get user data from localStorage
-export const getUser = () => {
+const getUser = () => {
   const userData = localStorage.getItem('user');
   return userData ? JSON.parse(userData) : null;
 };
 
 // Set user data in localStorage
-export const setUser = (user) => {
+const setUser = (user) => {
   localStorage.setItem('user', JSON.stringify(user));
 };
 
 // Remove user data from localStorage
-export const removeUser = () => {
+const removeUser = () => {
   localStorage.removeItem('user');
 };
 
 // Get user industry from localStorage
-export const getUserIndustry = () => {
+const getUserIndustry = () => {
   const user = getUser();
   return user?.industry || null;
 };
 
 // Get user role from localStorage
-export const getUserRole = () => {
+const getUserRole = () => {
   return localStorage.getItem('user_role');
 };
 
-// Check if user has specific role
-export const hasRole = (requiredRole) => {
-  const userRole = getUserRole();
-  return userRole === requiredRole;
-};
-
 // Check if user has any of the specified roles
-export const hasAnyRole = (roles) => {
+const hasAnyRole = (roles) => {
   const userRole = getUserRole();
   return roles.includes(userRole);
 };
 
 // Enhanced logout to clear role
-export const logout = () => {
+const logout = () => {
   removeToken();
   removeUser();
   localStorage.removeItem('tenant_id');
@@ -96,7 +122,7 @@ export const logout = () => {
 };
 
 // In your login success handler function
-export const handleLoginSuccess = (userData, token) => {
+const handleLoginSuccess = (userData, token) => {
   localStorage.setItem('token', token);
   localStorage.setItem('user', JSON.stringify(userData));
   
@@ -108,13 +134,32 @@ export const handleLoginSuccess = (userData, token) => {
   // Store department_id - make sure this is set
   if (userData.department_id) {
     localStorage.setItem('department_id', userData.department_id);
-    console.log('Stored department_id in localStorage:', userData.department_id);
-  } else {
-    console.warn('No department_id available in user data');
   }
   
   // Store role
   if (userData.role) {
     localStorage.setItem('role', userData.role);
   }
+};
+
+export {
+  getToken,
+  setToken,
+  removeToken,
+  setUserData,
+  getUserData,
+  isAuthenticated,
+  ensureAuthenticated,
+  isAdmin,
+  hasRole,
+  isTokenExpired,
+  isCurrentTokenExpired,
+  getUser,
+  setUser,
+  removeUser,
+  getUserIndustry,
+  getUserRole,
+  hasAnyRole,
+  logout,
+  handleLoginSuccess
 }; 

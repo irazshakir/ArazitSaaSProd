@@ -30,18 +30,14 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
   const forceUpdateAssignedTo = (value) => {
     if (value === undefined || value === null) return;
     
-    console.log(`Force updating assigned_to to ${value} (${typeof value})`);
-    
     // Convert to string to ensure consistent type comparison
     const stringValue = String(value);
     
     // Log all available user IDs for comparison
     const allIds = users.map(u => String(u.id));
-    console.log('Available user IDs (as strings):', allIds);
     
     // Check if the value exists in our user list
     const userExists = allIds.includes(stringValue);
-    console.log(`User ID ${stringValue} exists in options: ${userExists}`);
     
     if (userExists) {
       // Direct DOM manipulation as a last resort
@@ -60,10 +56,7 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
           if (assignedToField) {
             assignedToField.value = value;
           }
-          
-          console.log('Forced assigned_to update complete');
         } catch (e) {
-          console.error('Error forcing assigned_to update:', e);
         }
       }, 500);
     }
@@ -72,7 +65,6 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
   // Reset form when active chat changes
   useEffect(() => {
     if (activeChat?.id && activeChat.id !== activeChatId) {
-      console.log('Active chat changed, resetting form and fetching new lead data');
       setActiveChatId(activeChat.id);
       setExistingLead(null);
       form.resetFields();
@@ -94,7 +86,6 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
   useEffect(() => {
     const checkExistingLead = async () => {
       if (!activeChat?.id || activeChat.id !== activeChatId) {
-        console.log('No active chat available or chat ID mismatch');
         return;
       }
 
@@ -103,7 +94,6 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
         
         // Get tenant ID from localStorage
         const tenantId = localStorage.getItem('tenant_id');
-        console.log('Using tenant ID for lead:', tenantId);
         
         if (!tenantId) {
           message.error('Tenant information is missing');
@@ -113,8 +103,6 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
         
         // First explicitly create/update lead from this chat to ensure we have one
         try {
-          console.log(`Creating/updating lead for contact ${activeChat.id} with tenant ${tenantId}`);
-          
           const createLeadResponse = await api.post(`/api/waba/create-lead/${activeChat.id}/`, {
             tenant_id: tenantId
           }, {
@@ -124,26 +112,18 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
           });
           
           if (createLeadResponse.status === 200) {
-            console.log('Lead created/updated:', createLeadResponse.data);
-            
             if (createLeadResponse.data.lead) {
               const leadData = createLeadResponse.data.lead;
               setExistingLead(leadData);
-              
-              // Debug assigned_to value
-              console.log('DEBUG - Lead data from API:', leadData);
               
               // Extract assigned_to from various possible sources
               let assignedToId = null;
               if (leadData.assigned_to_details && leadData.assigned_to_details.id) {
                 assignedToId = leadData.assigned_to_details.id;
-                console.log('DEBUG - Using assigned_to_details.id:', assignedToId);
               } else if (leadData.assigned_to_id !== undefined) {
                 assignedToId = leadData.assigned_to_id;
-                console.log('DEBUG - Using assigned_to_id:', assignedToId);
               } else if (leadData.assigned_to !== undefined) {
                 assignedToId = leadData.assigned_to;
-                console.log('DEBUG - Using assigned_to:', assignedToId);
               }
               
               // Populate form with lead data
@@ -164,7 +144,6 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
                 next_follow_up: leadData.next_follow_up ? dayjs(leadData.next_follow_up) : null
               };
               
-              console.log('Setting form data with assigned_to:', assignedToId);
               form.setFieldsValue(formData);
               
               setLoading(false);
@@ -172,7 +151,6 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
             }
           }
         } catch (createLeadError) {
-          console.error('Error creating/updating lead:', createLeadError);
         }
         
         // If the explicit creation failed, try to get existing lead
@@ -182,12 +160,8 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
           });
           
           if (whatsAppLeadResponse.status === 200) {
-            console.log('Found WhatsApp lead:', whatsAppLeadResponse.data);
             const leadData = whatsAppLeadResponse.data; // Define leadData for this scope
             setExistingLead(leadData);
-            
-            // Debug assigned_to value
-            console.log('DEBUG - WhatsApp lead data:', leadData);
             
             // Extract assigned_to value from various possible sources
             let assignedTo = null;
@@ -195,15 +169,12 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
             // Check for assigned_to_details (which contains the actual user object)
             if (leadData.assigned_to_details && leadData.assigned_to_details.id) {
               assignedTo = leadData.assigned_to_details.id;
-              console.log('DEBUG - Using assigned_to_details.id:', assignedTo);
             } 
             // Fallback to direct properties
             else if (leadData.assigned_to_id !== undefined) {
               assignedTo = leadData.assigned_to_id;
-              console.log('DEBUG - Using assigned_to_id:', assignedTo);
             } else if (leadData.assigned_to !== undefined) {
               assignedTo = leadData.assigned_to;
-              console.log('DEBUG - Using assigned_to:', assignedTo);
             }
 
             // Populate form with existing lead data
@@ -224,23 +195,18 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
               next_follow_up: leadData.next_follow_up ? dayjs(leadData.next_follow_up) : null
             };
 
-            console.log('Setting form data with assigned_to:', assignedTo);
             form.setFieldsValue(formData);
             
             setLoading(false);
           }
         } catch (whatsAppError) {
-          console.log('No WhatsApp lead found, falling back to phone search:', whatsAppError);
         }
         
         // Fall back to searching by phone number
         if (!activeChat?.phone) {
-          console.log('No phone number available in active chat');
           setLoading(false);
           return;
         }
-
-        console.log('Checking for lead with phone number:', activeChat.phone);
 
         // Use the same endpoint as leadsIndex
         const response = await api.get('/leads/', {
@@ -249,8 +215,6 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
             tenant: tenantId
           }
         });
-
-        console.log('Lead search response:', response.data);
 
         // Check if we found a lead with this phone number
         let lead = null;
@@ -261,27 +225,20 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
         }
 
         if (lead) {
-          console.log('Found existing lead:', lead);
           setExistingLead(lead);
 
-          // Debug assigned_to value
-          console.log('DEBUG - Lead from phone search:', lead);
-          
           // Extract assigned_to value from various possible sources
           let assignedTo = null;
           
           // Check for assigned_to_details (which contains the actual user object)
           if (lead.assigned_to_details && lead.assigned_to_details.id) {
             assignedTo = lead.assigned_to_details.id;
-            console.log('DEBUG - Using assigned_to_details.id:', assignedTo);
           } 
           // Fallback to direct properties
           else if (lead.assigned_to_id !== undefined) {
             assignedTo = lead.assigned_to_id;
-            console.log('DEBUG - Using assigned_to_id:', assignedTo);
           } else if (lead.assigned_to !== undefined) {
             assignedTo = lead.assigned_to;
-            console.log('DEBUG - Using assigned_to:', assignedTo);
           }
 
           // Populate form with existing lead data
@@ -302,12 +259,10 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
             next_follow_up: lead.next_follow_up ? dayjs(lead.next_follow_up) : null
           };
 
-          console.log('Setting form data with assigned_to:', assignedTo);
           form.setFieldsValue(formData);
           
           setLoading(false);
         } else {
-          console.log('No existing lead found, will create new');
           // Reset form for new lead - do not set assigned_to to avoid NaN
           form.setFieldsValue({
             name: activeChat.name || '',
@@ -321,7 +276,6 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
           });
         }
       } catch (error) {
-        console.error('Error checking for existing lead:', error);
         message.error('Failed to check lead information');
       } finally {
         setLoading(false);
@@ -336,23 +290,17 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
   // Add a new useEffect to handle existing lead changes
   useEffect(() => {
     if (existingLead && users.length > 0) {
-      console.log('Existing lead changed, updating assigned_to');
-      
       // Extract assigned_to from various possible sources
       let assignedToId = null;
       if (existingLead.assigned_to_details && existingLead.assigned_to_details.id) {
         assignedToId = existingLead.assigned_to_details.id;
-        console.log('From effect - Using assigned_to_details.id:', assignedToId);
       } else if (existingLead.assigned_to_id !== undefined) {
         assignedToId = existingLead.assigned_to_id;
-        console.log('From effect - Using assigned_to_id:', assignedToId);
       } else if (existingLead.assigned_to !== undefined) {
         assignedToId = existingLead.assigned_to;
-        console.log('From effect - Using assigned_to:', assignedToId);
       }
       
       if (assignedToId) {
-        console.log(`Found assigned_to value: ${assignedToId}`);
         // Try to set it multiple ways
         form.setFieldValue('assigned_to', assignedToId);
         
@@ -374,7 +322,6 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
       const tenantId = localStorage.getItem('tenant_id');
 
       if (!tenantId) {
-        console.warn('No tenant ID found in local storage');
         setLoading(false);
         return;
       }
@@ -397,7 +344,6 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
             userData = response.data.results;
           }
         } catch (error) {
-          console.log('Auth users endpoint failed, trying direct users endpoint');
           const response = await api.get('users/', {
             params: {
               tenant: tenantId,
@@ -412,9 +358,6 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
           }
         }
 
-        // Log the full user data to check its structure
-        console.log('DEBUG - Full user data:', userData);
-        
         // Organize users by department
         const usersByDepartment = userData.reduce((acc, user) => {
           const deptName = user.department_name || 'No Department';
@@ -425,30 +368,21 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
           return acc;
         }, {});
 
-        console.log('Users organized by department:', usersByDepartment);
-        
-        // Map IDs to help with debugging
-        const userIds = userData.map(u => u.id);
-        console.log('All available user IDs:', userIds);
-        
         setDepartmentUsers(usersByDepartment);
         setUsers(userData);
         
         // After users are loaded, explicitly get and set the assigned_to value again
         const currentAssignedTo = form.getFieldValue('assigned_to');
-        console.log('Current assigned_to after loading users:', currentAssignedTo);
         
         if (currentAssignedTo !== undefined && currentAssignedTo !== null) {
           // This uses a longer timeout to ensure users are fully rendered
           setTimeout(() => {
-            console.log('Setting assigned_to explicitly after users loaded:', currentAssignedTo);
             form.setFieldValue('assigned_to', currentAssignedTo);
           }, 500);
         }
         
         setLoading(false);
       } catch (error) {
-        console.error('Failed to load users:', error);
         message.error('Failed to load users');
         setLoading(false);
       }
@@ -460,8 +394,6 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
   // Add this new effect to force data refresh when the drawer is opened
   useEffect(() => {
     if (isOpen && activeChat?.id) {
-      console.log('ChatDetails: Drawer opened, forcing data refresh for chat ID:', activeChat.id);
-      
       // Reset state and form
       setActiveChatId(null);
       setExistingLead(null);
@@ -551,20 +483,16 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
         // Use the same endpoint as leadEdit
         try {
           response = await api.put(`/leads/${existingLead.id}/`, leadData);
-          console.log('Lead updated:', response.data);
           message.success('Lead updated successfully');
         } catch (error) {
-          console.error('Error updating lead:', error);
           throw new Error('Failed to update lead');
         }
       } else {
         // Use the same endpoint as leadCreate
         try {
           response = await api.post('/leads/', leadData);
-          console.log('Lead created:', response.data);
           message.success('Lead created successfully');
         } catch (error) {
-          console.error('Error creating lead:', error);
           throw new Error('Failed to create lead');
         }
       }
@@ -573,7 +501,6 @@ const ChatDetails = ({ activeChat, isOpen, onClose }) => {
       onClose();
 
     } catch (error) {
-      console.error('Error submitting lead:', error);
       message.error(error.message || 'Failed to process lead');
     } finally {
       setSubmitting(false);

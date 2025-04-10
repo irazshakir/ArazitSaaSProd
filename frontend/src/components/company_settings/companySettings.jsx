@@ -19,21 +19,17 @@ const CompanySettings = () => {
     const fetchCompanySettings = async () => {
       try {
         if (!tenant_id) {
-          console.error('No tenant ID found in localStorage');
           setLoading(false);
           return;
         }
 
-        console.log('Fetching company settings for tenant:', tenant_id);
         const response = await api.get(`/company-settings/?tenant_id=${tenant_id}`);
-        console.log('API response:', response.data);
         
         // Check if we have results in the response
         // The API might return an object with results property or directly an array
         const results = response.data.results || response.data;
         
         if (results && (Array.isArray(results) && results.length > 0)) {
-          console.log('Company settings found:', results[0]);
           const settings = results[0];
           setCompanyData(settings);
           form.setFieldsValue(settings);
@@ -44,11 +40,9 @@ const CompanySettings = () => {
           setEditMode(false);
         } else {
           // If no data exists, go straight to edit mode
-          console.log('No company settings found for this tenant');
           setEditMode(true);
         }
       } catch (error) {
-        console.error('Error fetching company settings:', error);
       } finally {
         setLoading(false);
       }
@@ -64,12 +58,10 @@ const CompanySettings = () => {
   const onFinish = async (values) => {
     try {
       if (!tenant_id) {
-        console.error('Tenant ID is missing');
         return;
       }
 
       setSubmitting(true);
-      console.log('Form values:', values);
 
       // Create FormData object to handle file uploads
       const formData = new FormData();
@@ -96,7 +88,6 @@ const CompanySettings = () => {
       
       if (companyData) {
         // Update existing settings
-        console.log('Updating existing settings for tenant_id:', tenant_id);
         response = await api.patch(
           `/company-settings/${tenant_id}/`,
           formData,
@@ -108,7 +99,6 @@ const CompanySettings = () => {
         );
       } else {
         // Create new settings
-        console.log('Creating new company settings for tenant_id:', tenant_id);
         response = await api.post(
           `/company-settings/`,
           formData,
@@ -120,12 +110,9 @@ const CompanySettings = () => {
         );
       }
 
-      console.log('Response:', response);
-      
       // Update local state with response data - handle different response formats
       if (response?.data) {
         const responseData = response.data.results?.[0] || response.data;
-        console.log('Setting company data from response:', responseData);
         setCompanyData(responseData);
         form.setFieldsValue(responseData);
         if (responseData.logo) {
@@ -137,12 +124,9 @@ const CompanySettings = () => {
       setEditMode(false);
 
     } catch (error) {
-      console.error('Error saving company settings:', error.response || error);
-      
       // Try creating if update fails with 404
       if (error.response?.status === 404 && companyData) {
         try {
-          console.log('Got 404, trying to create instead of update');
           const createResponse = await api.post(
             `/company-settings/`,
             formData,
@@ -155,7 +139,6 @@ const CompanySettings = () => {
           
           if (createResponse?.data) {
             const responseData = createResponse.data.results?.[0] || createResponse.data;
-            console.log('Setting company data from error recovery response:', responseData);
             setCompanyData(responseData);
             form.setFieldsValue(responseData);
             if (responseData.logo) {
@@ -164,7 +147,6 @@ const CompanySettings = () => {
             setEditMode(false);
           }
         } catch (createError) {
-          console.error('Error creating company settings:', createError);
         }
       }
     } finally {
@@ -179,7 +161,6 @@ const CompanySettings = () => {
     beforeUpload: (file) => {
       const isImage = file.type.startsWith('image/');
       if (!isImage) {
-        console.error('You can only upload image files!');
         return false;
       }
       

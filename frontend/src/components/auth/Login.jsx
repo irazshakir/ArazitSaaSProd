@@ -46,43 +46,12 @@ const Login = () => {
     try {
       const response = await authService.login(formData.email, formData.password);
       
-      // Log the user data for debugging
-      console.log('Login response:', response);
-      console.log('User data:', response.user);
-      
-      // Add more detailed logging of user properties
-      if (response.user) {
-        console.log('User ID:', response.user.id);
-        console.log('Tenant properties:');
-        console.log('- tenant_id:', response.user.tenant_id);
-        console.log('- tenant:', response.user.tenant);
-        console.log('- tenant_users:', response.user.tenant_users);
-        console.log('- department_id:', response.user.department);
-        
-        // If tenant_users exists, log the first one's tenant property
-        if (response.user.tenant_users && response.user.tenant_users.length > 0) {
-          console.log('- First tenant_user.tenant:', response.user.tenant_users[0].tenant);
-        }
-      }
-      
       // Store auth tokens
-      console.log('Storing authentication tokens:', {
-        token: response.token,
-        refreshToken: response.refreshToken
-      });
-      
       localStorage.setItem('token', response.token);
       localStorage.setItem('refreshToken', response.refreshToken);
       
       // Also store as access_token for compatibility with some systems
       localStorage.setItem('access_token', response.token);
-      
-      // Verify tokens were stored correctly
-      console.log('Verifying stored tokens:', {
-        token: localStorage.getItem('token'),
-        access_token: localStorage.getItem('access_token'),
-        refreshToken: localStorage.getItem('refreshToken')
-      });
       
       // Process user data to ensure we have tenant and department info
       const userData = response.user;
@@ -93,7 +62,6 @@ const Login = () => {
         
         // Store role separately for easy access
         if (userData.role) {
-          console.log('Storing user role:', userData.role);
           localStorage.setItem('user_role', userData.role);
         }
         
@@ -105,11 +73,6 @@ const Login = () => {
         if (userData.department_name) {
           localStorage.setItem('department_name', userData.department_name);
         }
-        
-        console.log('User data stored with department info:', {
-          department_id: userData.department,
-          department_name: userData.department_name
-        });
         
         // Try to ensure we have tenant ID information
         let tenantId = null;
@@ -123,7 +86,6 @@ const Login = () => {
         }
         
         if (tenantId) {
-          console.log('Storing tenant_id in localStorage:', tenantId);
           localStorage.setItem('tenant_id', tenantId);
           
           // Also store in sessionStorage for redundancy
@@ -133,11 +95,8 @@ const Login = () => {
           const currentTenant = { id: tenantId, name: userData.tenant_name || 'Default Tenant' };
           sessionStorage.setItem('current_tenant', JSON.stringify(currentTenant));
         } else {
-          console.warn('No tenant information found in user data');
-          
           // Attempt to explicitly fetch user details including tenant_id
           try {
-            console.log('Attempting to fetch user details directly...');
             const userDetailsResponse = await fetch(`http://localhost:8000/api/auth/me/`, {
               headers: {
                 'Authorization': `Bearer ${response.token}`
@@ -146,18 +105,14 @@ const Login = () => {
             
             if (userDetailsResponse.ok) {
               const userDetailsData = await userDetailsResponse.json();
-              console.log('User details response:', userDetailsData);
               
               if (userDetailsData.tenant_id) {
-                console.log('Found tenant_id in user details:', userDetailsData.tenant_id);
                 localStorage.setItem('tenant_id', userDetailsData.tenant_id);
                 sessionStorage.setItem('tenant_id', userDetailsData.tenant_id);
               }
-            } else {
-              console.error('Failed to fetch user details:', userDetailsResponse.status);
             }
           } catch (error) {
-            console.error('Error fetching user details:', error);
+            // Handle error silently
           }
         }
       }
@@ -165,7 +120,6 @@ const Login = () => {
       navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.detail || 'Login failed. Please check your credentials.');
-      console.error('Login error:', err);
     } finally {
       setIsLoading(false);
     }

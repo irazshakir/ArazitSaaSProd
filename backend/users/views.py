@@ -174,34 +174,6 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         """Create a new user for the current tenant."""
-        print("\n===== DETAILED FILE UPLOAD DEBUG =====")
-        print("REQUEST CONTENT TYPE:", request.content_type)
-        print("REQUEST FILES:", request.FILES.keys())
-        
-        if 'profile_picture' in request.FILES:
-            file = request.FILES['profile_picture']
-            print("PROFILE PICTURE FOUND!!")
-            print(f"- File name: {file.name}")
-            print(f"- File size: {file.size} bytes")
-            print(f"- File content type: {file.content_type}")
-        else:
-            print("NO PROFILE PICTURE IN request.FILES!")
-            
-            # Check alternative keys that might be used
-            for key in request.FILES.keys():
-                print(f"- Found file with key: {key}")
-                file = request.FILES[key]
-                print(f"  • File name: {file.name}")
-                print(f"  • File size: {file.size} bytes")
-        
-        print("DATA KEYS:", request.data.keys())
-        print("=========================")
-        
-        # Collect serializer class information for debugging
-        serializer_class = self.get_serializer_class()
-        print("SERIALIZER CLASS:", serializer_class.__name__)
-        print("SERIALIZER FIELDS:", serializer_class.Meta.fields if hasattr(serializer_class, 'Meta') else "Unknown")
-        
         # Get tenant_id from request data or from the authenticated user
         tenant_id = request.data.get('tenant_id', request.user.tenant_id)
         
@@ -217,35 +189,18 @@ class UserViewSet(viewsets.ModelViewSet):
                     id=department_id
                 )
                 data['department_id'] = department.id
-                print(f"Department found and assigned: {department.name} (ID: {department.id})")
             except Department.DoesNotExist:
-                print(f"Department with ID {department_id} not found")
                 raise serializers.ValidationError({"department": "Department not found."})
         
-        print("MODIFIED DATA FOR SERIALIZER:")
-        for key, value in data.items():
-            if key == 'profile_picture' and hasattr(value, 'name'):
-                print(f"- {key}: <File: {value.name}, {value.size} bytes>")
-            else:
-                print(f"- {key}: {value}")
-        
         # Check serializer initialization and validation
-        print("INITIALIZING SERIALIZER...")
         serializer = self.get_serializer(data=data)
-        print("VALIDATING SERIALIZER...")
         is_valid = serializer.is_valid(raise_exception=False)
         
         if not is_valid:
-            print("SERIALIZER VALIDATION ERRORS:", serializer.errors)
             if 'profile_picture' in serializer.errors:
-                print("PROFILE PICTURE ERRORS:", serializer.errors['profile_picture'])
-            serializer.is_valid(raise_exception=True)  # Raise exception now
+                serializer.is_valid(raise_exception=True)  # Raise exception now
         else:
-            print("SERIALIZER IS VALID")
-        
-        print("PERFORMING CREATE...")
-        self.perform_create(serializer)
-        print("CREATE PERFORMED SUCCESSFULLY")
+            self.perform_create(serializer)
         
         headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)

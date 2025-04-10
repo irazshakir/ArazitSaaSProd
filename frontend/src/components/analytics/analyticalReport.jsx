@@ -87,9 +87,6 @@ const AnalyticalReport = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
-  // Add console log to debug component rendering
-  console.log('AnalyticalReport component rendering');
-
   // Filter state
   const [branches, setBranches] = useState([]);
   const [selectedBranch, setSelectedBranch] = useState('');
@@ -161,7 +158,6 @@ const AnalyticalReport = () => {
           navigate('/login');
         }
       } catch (error) {
-        console.error('Error fetching user data:', error);
         navigate('/login');
       } finally {
         setIsLoading(false);
@@ -175,28 +171,20 @@ const AnalyticalReport = () => {
   useEffect(() => {
     const fetchFilterOptions = async () => {
       if (!user) {
-        console.log("No user found, skipping filter options fetch");
         return;
       }
       
       setIsLoadingFilters(true);
-      console.log("Starting to fetch filter options, user:", user);
       
       try {
         // Log tenant_id from localStorage
         const tenantId = localStorage.getItem('tenant_id');
-        console.log("Tenant ID from localStorage:", tenantId);
         
         // Fetch filter options from API
-        console.log("Calling analyticsService.getFilterOptions()");
         const filterOptions = await analyticsService.getFilterOptions();
-        console.log('Filter options from API (RAW):', filterOptions);
-        
-        // CRITICAL: Remove dummy data - ensure we're using API data
         
         // Set branches
         if (filterOptions.branches && filterOptions.branches.length > 0) {
-          console.log("Setting branches from API:", filterOptions.branches);
           setBranches(filterOptions.branches);
           // If user has a branch, select it by default
           if (user && user.branch_id) {
@@ -210,13 +198,11 @@ const AnalyticalReport = () => {
             }
           }
         } else {
-          console.log("No branches returned from API");
           setBranches([]);
         }
         
         // Set departments
         if (filterOptions.departments && filterOptions.departments.length > 0) {
-          console.log("Setting departments from API:", filterOptions.departments);
           setDepartments(filterOptions.departments);
           // If user has a department, select it by default
           if (user && user.department_id) {
@@ -230,13 +216,11 @@ const AnalyticalReport = () => {
             }
           }
         } else {
-          console.log("No departments returned from API");
           setDepartments([]);
         }
         
         // Set users
         if (filterOptions.users && filterOptions.users.length > 0) {
-          console.log("Setting users from API:", filterOptions.users);
           setUsers(filterOptions.users);
           // Select the current user by default
           if (user && user.id) {
@@ -250,15 +234,10 @@ const AnalyticalReport = () => {
             }
           }
         } else {
-          console.log("No users returned from API");
           setUsers([]);
         }
       } catch (error) {
-        console.error('Error fetching filter options:', error);
-        console.error('Error details:', error.response?.data || error.message || error);
-        
-        // DO NOT use dummy data anymore - just use empty arrays
-        console.log("Using empty arrays instead of dummy data");
+        // Use empty arrays instead of dummy data
         setBranches([]);
         setDepartments([]);
         setUsers([]);
@@ -282,19 +261,16 @@ const AnalyticalReport = () => {
 
   // Handle filter changes
   const handleBranchChange = (event) => {
-    console.log('Branch changed to:', event.target.value);
     setSelectedBranch(event.target.value);
     // Analytics data will be updated when applyFilters is called
   };
   
   const handleDepartmentChange = (event) => {
-    console.log('Department changed to:', event.target.value);
     setSelectedDepartment(event.target.value);
     // Analytics data will be updated when applyFilters is called
   };
   
   const handleUserChange = (event) => {
-    console.log('User changed to:', event.target.value);
     setSelectedUser(event.target.value);
     // Analytics data will be updated when applyFilters is called
   };
@@ -344,20 +320,14 @@ const AnalyticalReport = () => {
       if (selectedDepartment) filters.department_id = selectedDepartment;
       if (selectedUser) filters.user_id = selectedUser;
       
-      console.log('Fetching user performance with filters:', filters);
-      
       const data = await analyticsService.getUserPerformance(filters);
       
       if (data && data.userPerformance) {
-        console.log('User performance data received:', data.userPerformance);
         setUserPerformanceData(data.userPerformance);
       } else {
-        console.log('No user performance data returned');
         setUserPerformanceData([]);
       }
     } catch (error) {
-      console.error('Error fetching user performance data:', error);
-      
       // Extract the specific error message
       let errorMessage = 'Failed to load user performance data.';
       if (error.response?.data?.error) {
@@ -368,11 +338,6 @@ const AnalyticalReport = () => {
       
       setError(errorMessage);
       setUserPerformanceData([]);
-      
-      // Try to provide more helpful debug info
-      if (error.toString().includes('LeadEvent is not defined')) {
-        console.error('The LeadEvent model is not properly imported in the backend views.py file.');
-      }
     } finally {
       setIsLoadingAnalytics(false);
     }
@@ -394,19 +359,15 @@ const AnalyticalReport = () => {
       if (selectedDepartment) filters.department_id = selectedDepartment;
       if (selectedUser) filters.user_id = selectedUser;
       
-      console.log('Fetching marketing analytics with filters:', filters);
-      
       const data = await analyticsService.getMarketingAnalytics(filters);
       
       if (data && data.marketingData) {
-        console.log('Marketing data received:', data.marketingData);
         setMarketingData(data.marketingData);
         
         if (data.totals) {
           setMarketingTotals(data.totals);
         }
       } else {
-        console.log('No marketing data returned');
         setMarketingData([]);
         setMarketingTotals({
           source: 'Total',
@@ -418,8 +379,6 @@ const AnalyticalReport = () => {
         });
       }
     } catch (error) {
-      console.error('Error fetching marketing data:', error);
-      
       // Extract the specific error message
       let errorMessage = 'Failed to load marketing analytics data.';
       if (error.response?.data?.error) {
@@ -469,14 +428,11 @@ const AnalyticalReport = () => {
         filters.user_id = user;
       }
       
-      console.log('Applying analytics filters:', filters);
-      
       // Fetch analytics data based on active tab
       try {
         if (rangeType === 'leadAnalytics') {
           // Fetch lead analytics data
           const data = await analyticsService.getLeadAnalytics(filters);
-          console.log('Lead analytics data received:', data);
           
           if (data) {
             setStats(data.stats);
@@ -495,7 +451,6 @@ const AnalyticalReport = () => {
         } else {
           // Fetch lead analytics data for other tabs (fallback)
           const data = await analyticsService.getLeadAnalytics(filters);
-          console.log('Analytics data received:', data);
           
           if (data) {
             setStats(data.stats);
@@ -507,7 +462,6 @@ const AnalyticalReport = () => {
           }
         }
       } catch (error) {
-        console.error('Error fetching analytics data:', error);
         // Clear the data
         setStats({
           newInquiries: 0,
@@ -524,7 +478,6 @@ const AnalyticalReport = () => {
         setMarketingData([]);
       }
     } catch (error) {
-      console.error('Error applying filters:', error);
       setError(error.message || 'Failed to apply filters');
     } finally {
       setIsLoadingAnalytics(false);
@@ -574,15 +527,6 @@ const AnalyticalReport = () => {
   
   const handleExport = () => {
     // Implement export functionality - this will depend on your backend API
-    console.log('Exporting report with filters:', {
-      branch: selectedBranch,
-      department: selectedDepartment,
-      user: selectedUser,
-      dateFrom: format(dateFrom, 'yyyy-MM-dd'),
-      dateTo: format(dateTo, 'yyyy-MM-dd')
-    });
-    
-    // Implement your export logic here
     // Example: window.open(`/api/analytics/export?branch=${selectedBranch}&department=${selectedDepartment}...`);
   };
 
@@ -622,11 +566,8 @@ const AnalyticalReport = () => {
       if (selectedDepartment) combinedOptions.department_id = selectedDepartment;
       if (selectedUser) combinedOptions.user_id = selectedUser;
       
-      console.log('Fetching lead analytics with options:', combinedOptions);
-      
       // Fetch data
       const data = await analyticsService.getLeadsTableData(combinedOptions);
-      console.log('Lead analytics response:', data);
       
       // Update table data
       if (data && data.leadsTable) {
@@ -654,7 +595,6 @@ const AnalyticalReport = () => {
         if (data.leadSourceData) setLeadSourceData(data.leadSourceData);
       }
     } catch (error) {
-      console.error('Error fetching leads data:', error.response?.data || error.message || error);
       setError('Failed to load leads data. ' + (error.response?.data?.error || error.message || 'Unknown error'));
     } finally {
       setLeadsTableLoading(false);

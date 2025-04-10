@@ -95,7 +95,6 @@ const Dashboard = () => {
           navigate('/login');
         }
       } catch (error) {
-        console.error('Error fetching user data:', error);
         navigate('/login');
       } finally {
         setIsLoading(false);
@@ -132,16 +131,12 @@ const Dashboard = () => {
         // Fetch analytics data
         const analyticsData = await analyticsService.getDashboardStats(filters);
         
-        console.log('Analytics data received:', analyticsData);
-        
         if (analyticsData) {
           setDashboardData(analyticsData);
         } else {
-          console.error('No analytics data returned');
           setAnalyticsError('Failed to load analytics data');
         }
       } catch (error) {
-        console.error('Error fetching analytics data:', error);
         setAnalyticsError(error.message || 'Failed to load analytics data');
       } finally {
         setIsLoadingAnalytics(false);

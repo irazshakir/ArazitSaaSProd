@@ -93,7 +93,6 @@ const BranchesIndex = () => {
       await fetchBranches();
       setLoading(false);
     } catch (error) {
-      console.error('Error refreshing branches:', error);
       setLoading(false);
     }
   };
@@ -105,8 +104,6 @@ const BranchesIndex = () => {
       let endpoint = 'branches/';
       const params = { tenant: tenantId };
       
-      console.log('API request parameters:', params);
-      
       // Try 3 different API endpoints in sequence
       let response = null;
       let errorMessages = [];
@@ -114,26 +111,20 @@ const BranchesIndex = () => {
       // Try main endpoint first
       try {
         response = await api.get(endpoint, { params });
-        console.log('Main API response success:', response);
       } catch (error) {
         errorMessages.push(`Main endpoint error: ${error.message}`);
-        console.log('Main API endpoint failed, trying fallback');
         
         // Try auth endpoint next
         try {
           response = await api.get(`auth/${endpoint}`, { params });
-          console.log('Auth API response success:', response);
         } catch (error2) {
           errorMessages.push(`Auth endpoint error: ${error2.message}`);
-          console.log('Auth API endpoint failed, trying without params');
           
           // Try without params as last resort
           try {
             response = await api.get(endpoint);
-            console.log('API without params success:', response);
           } catch (error3) {
             errorMessages.push(`No params endpoint error: ${error3.message}`);
-            console.error('All API attempts failed');
             throw new Error(`All API attempts failed: ${errorMessages.join(', ')}`);
           }
         }
@@ -150,8 +141,6 @@ const BranchesIndex = () => {
           ? response.data.results
           : [];
       
-      console.log(`Fetched ${branchesArray.length} branches:`, branchesArray);
-      
       // Transform data for UI representation
       const formattedData = branchesArray.map(branch => ({
         ...branch,
@@ -159,15 +148,10 @@ const BranchesIndex = () => {
         is_active: branch.is_active !== undefined ? branch.is_active : true
       }));
       
-      console.log('Formatted branches data:', formattedData);
-      
       setBranches(formattedData);
       setFilteredBranches(formattedData);
       
     } catch (error) {
-      console.error('Error fetching branches:', error);
-      console.error('Error details:', error.response?.data);
-      
       // Show error message
       message.error('Failed to load branches. Please try again.');
       
@@ -296,29 +280,23 @@ const BranchesIndex = () => {
       // Try main endpoint first
       try {
         await api.delete(`branches/${branch.id}/`);
-        console.log('Main API delete success');
         deleteSuccessful = true;
       } catch (error) {
         errorMessages.push(`Main endpoint error: ${error.message}`);
-        console.log('Main API endpoint failed, trying fallback');
         
         // Try auth endpoint next
         try {
           await api.delete(`auth/branches/${branch.id}/`);
-          console.log('Auth API delete success');
           deleteSuccessful = true;
         } catch (error2) {
           errorMessages.push(`Auth endpoint error: ${error2.message}`);
-          console.log('Auth API endpoint failed, trying users endpoint');
           
           // Try users endpoint as last resort
           try {
             await api.delete(`users/branches/${branch.id}/`);
-            console.log('Users API delete success');
             deleteSuccessful = true;
           } catch (error3) {
             errorMessages.push(`Users endpoint error: ${error3.message}`);
-            console.error('All API attempts failed');
           }
         }
       }
@@ -345,7 +323,6 @@ const BranchesIndex = () => {
       message.destroy();
       
       // Show error message
-      console.error('Error deleting branch:', error);
       message.error('Failed to delete branch. Please try again.');
     }
   };

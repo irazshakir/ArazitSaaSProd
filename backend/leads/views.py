@@ -66,9 +66,6 @@ class LeadViewSet(viewsets.ModelViewSet):
             # Department head sees all leads in their department
             if user.department_id:
                 queryset = queryset.filter(department_id=user.department_id)
-            else:
-                # Log warning about missing department
-                print(f"WARNING: Department head user {user.id} has no department_id")
             
         elif user.role == 'manager':
             # Manager sees leads for their teams
@@ -217,20 +214,10 @@ class LeadViewSet(viewsets.ModelViewSet):
             # IMPORTANT: Always update department when assigning to a new user
             if user.department_id:
                 lead.department = user.department
-                
-                # Debug logging
-                print(f"Updating lead {lead.id} department from {previous_department.id if previous_department else None} to {user.department.id}")
-            else:
-                print(f"WARNING: User {user.id} has no department_id, lead department not updated")
             
             # IMPORTANT: Always update branch when assigning to a new user
             if user.branch_id:
                 lead.branch = user.branch
-                
-                # Debug logging
-                print(f"Updating lead {lead.id} branch from {previous_branch.id if previous_branch else None} to {user.branch.id}")
-            else:
-                print(f"WARNING: User {user.id} has no branch_id, lead branch not updated")
             
             lead.save()
             
@@ -592,16 +579,8 @@ class LeadViewSet(viewsets.ModelViewSet):
         # The get_queryset method already contains the role-based filtering
         queryset = self.get_queryset()
         
-        # Debug logging
-        print(f"by_role endpoint called by user {request.user.id} with role {request.user.role}")
-        print(f"Department ID from user: {request.user.department_id}")
-        
         # Apply additional filters from query params
         queryset = self.filter_queryset(queryset)
-        
-        # Log the lead count
-        lead_count = queryset.count()
-        print(f"Returning {lead_count} leads for user {request.user.email}")
         
         # Get page if pagination is enabled
         page = self.paginate_queryset(queryset)
@@ -634,7 +613,6 @@ class LeadViewSet(viewsets.ModelViewSet):
                     
                     # Update the lead's department to match the new user's department
                     request.data['department'] = str(new_user.department_id)
-                    print(f"Updating department from {old_department.id if old_department else None} to {new_user.department_id}")
                     
                     # Add a note about the reassignment and department change
                     note_text = f"Lead reassigned to {new_user.get_full_name() or new_user.email} and moved to {new_user.department.name} department"
@@ -645,7 +623,6 @@ class LeadViewSet(viewsets.ModelViewSet):
                         
                         # Update the lead's branch to match the new user's branch
                         request.data['branch'] = str(new_user.branch_id)
-                        print(f"Updating branch from {old_branch.id if old_branch else None} to {new_user.branch_id}")
                         
                         # Add branch information to the note
                         note_text += f" and assigned to {new_user.branch.name} branch"
@@ -675,12 +652,10 @@ class LeadViewSet(viewsets.ModelViewSet):
         if assigned_to:
             if hasattr(assigned_to, 'department') and assigned_to.department and not serializer.validated_data.get('department'):
                 serializer.validated_data['department'] = assigned_to.department
-                print(f"Setting department to match assigned user in perform_update: {assigned_to.department.id}")
             
             # Also make sure branch matches
             if hasattr(assigned_to, 'branch') and assigned_to.branch and not serializer.validated_data.get('branch'):
                 serializer.validated_data['branch'] = assigned_to.branch
-                print(f"Setting branch to match assigned user in perform_update: {assigned_to.branch.id}")
         
         serializer.save()
 

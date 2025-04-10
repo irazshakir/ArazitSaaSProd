@@ -52,50 +52,19 @@ class BaseAnalyticsView(APIView):
         department_id = request.query_params.get('department_id')
         user_id = request.query_params.get('user_id')
         
-        print(f"User filter params - branch_id: {branch_id}, department_id: {department_id}, user_id: {user_id}")
-        
-        # Debug query params
-        print(f"All query params: {request.query_params}")
-        
         # Add filters based on request parameters
         if branch_id:
             queryset = queryset.filter(branch_id=branch_id)
-            print(f"Applied branch filter: {branch_id}, remaining records: {queryset.count()}")
             
         if department_id:
             queryset = queryset.filter(department_id=department_id)
-            print(f"Applied department filter: {department_id}, remaining records: {queryset.count()}")
             
         if user_id:
-            # Debug check what field to use for filtering by user
-            print(f"Checking which field to use for user filtering - user_id: {user_id}")
-            
-            # Try to get a lead to check available fields
-            sample_lead = queryset.first()
-            if sample_lead:
-                print(f"Sample lead fields: {dir(sample_lead)}")
-                print(f"Sample lead created_by: {getattr(sample_lead, 'created_by', None)}")
-                print(f"Sample lead created_by_id: {getattr(sample_lead, 'created_by_id', None)}")
-                print(f"Sample lead assigned_to: {getattr(sample_lead, 'assigned_to', None)}")
-                print(f"Sample lead assigned_to_id: {getattr(sample_lead, 'assigned_to_id', None)}")
-            
-            # Try both fields to see which one works
-            # Check leads assigned to the user
-            if hasattr(Lead, 'assigned_to_id'):
-                assigned_count = queryset.filter(assigned_to_id=user_id).count()
-                print(f"Leads assigned to user {user_id}: {assigned_count}")
-                
-            # Check leads created by the user
-            created_count = queryset.filter(created_by_id=user_id).count()
-            print(f"Leads created by user {user_id}: {created_count}")
-            
             # Filter by both assigned_to and created_by
             if hasattr(Lead, 'assigned_to_id'):
                 queryset = queryset.filter(Q(created_by_id=user_id) | Q(assigned_to_id=user_id))
-                print(f"Applied user filter using both created_by_id and assigned_to_id: {user_id}, remaining records: {queryset.count()}")
             else:
                 queryset = queryset.filter(created_by_id=user_id)
-                print(f"Applied user filter using only created_by_id: {user_id}, remaining records: {queryset.count()}")
         
         # Add additional filters based on user role
         if role == 'admin':
@@ -314,15 +283,10 @@ class LeadAnalyticsView(BaseAnalyticsView):
     """
     def get(self, request):
         try:
-            # Print debug info
-            print(f"Lead Analytics request with params: {request.query_params}")
-            
             # Get leads with proper filtering
             try:
                 leads_queryset = self.get_filtered_queryset(request, Lead.objects.all())
-                print(f"Retrieved {leads_queryset.count()} leads")
             except Exception as e:
-                print(f"Error in get_filtered_queryset: {e}")
                 return Response(
                     {"error": f"Error filtering queryset: {str(e)}"},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -384,12 +348,9 @@ class LeadAnalyticsView(BaseAnalyticsView):
                         }
                         leads_data.append(lead_data)
                     except Exception as e:
-                        print(f"Error serializing lead {lead.id}: {e}")
-                        print(f"Lead attributes: {dir(lead)}")  # Print all attributes of the lead object
-                
-                print(f"Processed {len(leads_data)} leads for the table")
+                        # Silently continue to next lead
+                        pass
             except Exception as e:
-                print(f"Error in pagination and lead serialization: {e}")
                 return Response(
                     {"error": f"Error in pagination: {str(e)}"},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -460,10 +421,7 @@ class LeadAnalyticsView(BaseAnalyticsView):
                         'count': type_item['count'],
                         'percentage': round(percentage, 1)
                     })
-                
-                print(f"Processed analytics data with {len(lead_sources_with_percentage)} sources, {len(status_with_percentage)} statuses, and {len(types_with_percentage)} types")
             except Exception as e:
-                print(f"Error in analytics processing: {e}")
                 return Response(
                     {"error": f"Error in analytics processing: {str(e)}"},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -483,10 +441,7 @@ class LeadAnalyticsView(BaseAnalyticsView):
                         Q(next_follow_up__lt=timezone.now())
                     ).count()
                 }
-                
-                print(f"Calculated stats: {stats}")
             except Exception as e:
-                print(f"Error in stats calculation: {e}")
                 return Response(
                     {"error": f"Error calculating stats: {str(e)}"},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -496,10 +451,7 @@ class LeadAnalyticsView(BaseAnalyticsView):
             try:
                 statuses = Lead.STATUS_CHOICES
                 activity_statuses = Lead.ACTIVITY_STATUS_CHOICES
-                
-                print(f"Retrieved {len(statuses)} status options and {len(activity_statuses)} activity status options")
             except Exception as e:
-                print(f"Error getting filter options: {e}")
                 return Response(
                     {"error": f"Error getting filter options: {str(e)}"},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -530,17 +482,14 @@ class LeadAnalyticsView(BaseAnalyticsView):
                     }
                 }
                 
-                print("Successfully prepared analytics data")
                 return Response(analytics_data)
             except Exception as e:
-                print(f"Error preparing response: {e}")
                 return Response(
                     {"error": f"Error preparing response: {str(e)}"},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR
                 )
             
         except Exception as e:
-            print(f"Unhandled exception in LeadAnalyticsView: {e}")
             return Response(
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -552,9 +501,6 @@ class UserPerformanceView(BaseAnalyticsView):
     """
     def get(self, request):
         try:
-            # Print debug info
-            print(f"User Performance request with params: {request.query_params}")
-            
             # Get tenant_id
             tenant_id = self.get_tenant_id(request)
             
@@ -596,8 +542,6 @@ class UserPerformanceView(BaseAnalyticsView):
             date_from = request.query_params.get('date_from')
             date_to = request.query_params.get('date_to')
             
-            print(f"Filtering data from {date_from} to {date_to}")
-            
             if date_from:
                 try:
                     date_from = datetime.datetime.strptime(date_from, '%Y-%m-%d')
@@ -637,13 +581,8 @@ class UserPerformanceView(BaseAnalyticsView):
                     
                     if date_to:
                         event_queryset = event_queryset.filter(timestamp__lt=date_to)
-                    
-                    print(f"Found {event_queryset.count()} won events for tenant {tenant_id}")
-            except Exception as e:
-                print(f"Error accessing LeadEvent model: {e}")
+            except Exception:
                 event_queryset = None
-            
-            print(f"Processing performance data for {users_queryset.count()} users")
             
             # Calculate performance for each user
             user_performance = []
@@ -653,8 +592,7 @@ class UserPerformanceView(BaseAnalyticsView):
                     # 1. Count assigned leads for this user within date range
                     try:
                         assigned_leads = leads_queryset.filter(assigned_to=user).count()
-                    except Exception as e:
-                        print(f"Error counting assigned leads for user {user.id}: {e}")
+                    except Exception:
                         assigned_leads = 0
                     
                     # 2. Count won leads (sales) for this user
@@ -664,8 +602,7 @@ class UserPerformanceView(BaseAnalyticsView):
                             assigned_to=user,
                             status=Lead.STATUS_WON
                         ).count()
-                    except Exception as e:
-                        print(f"Error counting won leads for user {user.id}: {e}")
+                    except Exception:
                         won_leads_count = 0
                     
                     # If we have access to LeadEvent, use it to get more accurate data
@@ -679,10 +616,7 @@ class UserPerformanceView(BaseAnalyticsView):
                             won_leads_events = event_queryset.filter(
                                 lead_id__in=user_lead_ids
                             ).count()
-                            
-                            print(f"User {user.id}: Found {won_leads_events} won events from {len(user_lead_ids)} assigned leads")
-                        except Exception as e:
-                            print(f"Error processing lead events for user {user.id}: {e}")
+                        except Exception:
                             won_leads_events = 0
                     
                     # Use the higher count between status-based and event-based counts
@@ -705,20 +639,18 @@ class UserPerformanceView(BaseAnalyticsView):
                     }
                     
                     user_performance.append(user_data)
-                except Exception as e:
-                    print(f"Error processing performance data for user {user.id}: {e}")
+                except Exception:
+                    # Skip this user if there's an error
+                    pass
             
             # Sort by sales count in descending order
             user_performance.sort(key=lambda x: x['sales'], reverse=True)
-            
-            print(f"Returning performance data for {len(user_performance)} users")
             
             return Response({
                 'userPerformance': user_performance
             })
             
         except Exception as e:
-            print(f"Error in UserPerformanceView: {str(e)}")
             return Response(
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -880,20 +812,17 @@ class MarketingAnalyticsView(BaseAnalyticsView):
             
             # Get all unique lead sources
             lead_sources = leads_queryset.values_list('source', flat=True).distinct()
-            print(f"Unique lead sources found in data: {lead_sources}")
             
             # Ensure all standard lead sources are included even if no leads have those sources yet
             standard_sources = [
                 choice[0] for choice in Lead.SOURCE_CHOICES if choice[0]
             ]
-            print(f"Standard sources from SOURCE_CHOICES: {standard_sources}")
             
             # Add any missing standard sources to ensure they appear in the report
             for source in standard_sources:
                 if source not in lead_sources:
                     lead_sources = list(lead_sources)
                     lead_sources.append(source)
-                    print(f"Added missing standard source: {source}")
             
             # Prepare result data
             marketing_data = []
@@ -926,10 +855,7 @@ class MarketingAnalyticsView(BaseAnalyticsView):
                         event_queryset = event_queryset.filter(timestamp__lt=date_to)
                     except ValueError:
                         pass
-                
-                print(f"Found {event_queryset.count()} won events for marketing analytics")
-            except Exception as e:
-                print(f"Error setting up LeadEvent queryset: {e}")
+            except Exception:
                 event_queryset = None
             
             # Process each lead source
@@ -984,9 +910,9 @@ class MarketingAnalyticsView(BaseAnalyticsView):
                         'conversion_ratio': round(conversion_ratio, 1)
                     })
                     
-                except Exception as e:
-                    print(f"Error processing source {source}: {e}")
+                except Exception:
                     # Continue with next source instead of failing completely
+                    pass
             
             # Sort by created count in descending order
             marketing_data.sort(key=lambda x: x['created'], reverse=True)
@@ -1020,7 +946,6 @@ class MarketingAnalyticsView(BaseAnalyticsView):
             # Add any missing standard sources with zero counts
             for source_display in standard_source_display:
                 if source_display not in marketing_data_sources:
-                    print(f"Adding zero entry for standard source: {source_display}")
                     marketing_data.append({
                         'source': source_display,
                         'created': 0,
@@ -1077,7 +1002,6 @@ class MarketingAnalyticsView(BaseAnalyticsView):
             return Response(serializer.data)
             
         except Exception as e:
-            print(f"Error in MarketingAnalyticsView: {str(e)}")
             return Response(
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -1097,84 +1021,33 @@ class FilterOptionsView(BaseAnalyticsView):
         
     def get(self, request):
         try:
-            print(f"FilterOptionsView called with params: {request.query_params}")
-            
             tenant_id = self.get_tenant_id(request)
             if not tenant_id:
-                print("No tenant_id found")
                 return Response(
                     {"error": "Tenant ID is required"},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
-            print(f"Using tenant_id: {tenant_id}")
-            
-            # Debug User model
-            try:
-                print(f"User model fields: {[f.name for f in User._meta.fields]}")
-                all_users = User.objects.all()
-                print(f"Total users in database: {all_users.count()}")
-                tenant_users = User.objects.filter(tenant_id=tenant_id)
-                print(f"Users for tenant {tenant_id}: {tenant_users.count()}")
-            except Exception as e:
-                print(f"Error accessing User model: {e}")
-            
-            # Debug Branch model
-            try:
-                print(f"Branch model fields: {[f.name for f in Branch._meta.fields]}")
-                all_branches = Branch.objects.all()
-                print(f"Total branches in database: {all_branches.count()}")
-                tenant_branches = Branch.objects.filter(tenant_id=tenant_id)
-                print(f"Branches for tenant {tenant_id}: {tenant_branches.count()}")
-            except Exception as e:
-                print(f"Error accessing Branch model: {e}")
-            
-            # Debug Department model
-            try:
-                print(f"Department model fields: {[f.name for f in Department._meta.fields]}")
-                all_departments = Department.objects.all()
-                print(f"Total departments in database: {all_departments.count()}")
-                tenant_departments = Department.objects.filter(tenant_id=tenant_id)
-                print(f"Departments for tenant {tenant_id}: {tenant_departments.count()}")
-            except Exception as e:
-                print(f"Error accessing Department model: {e}")
-            
             try:
                 # Get branches for this tenant
                 branches = Branch.objects.filter(tenant_id=tenant_id)
-                print(f"Found {branches.count()} branches")
                 branch_data = [{'id': str(branch.id), 'name': branch.name} for branch in branches]
-                print(f"Branch data: {branch_data}")
             except Exception as e:
-                print(f"Error fetching branches: {e}")
                 branch_data = []
             
             try:
                 # Get departments for this tenant
                 departments = Department.objects.filter(tenant_id=tenant_id)
-                print(f"Found {departments.count()} departments")
                 department_data = [{'id': str(dept.id), 'name': dept.name} for dept in departments]
-                print(f"Department data: {department_data}")
             except Exception as e:
-                print(f"Error fetching departments: {e}")
                 department_data = []
             
             try:
                 # Get users for this tenant
                 users = User.objects.filter(tenant_id=tenant_id)
-                print(f"Found {users.count()} users for tenant {tenant_id}")
                 
-                # Check if any users are found
-                if users.count() == 0:
-                    sample_user = User.objects.first()
-                    if sample_user:
-                        print(f"Sample user tenant_id: {sample_user.tenant_id}, Requested tenant_id: {tenant_id}")
-                    else:
-                        print("No users exist in the database")
-                        
                 # Apply role-based filtering to users
                 user_role = request.user.role
-                print(f"User role: {user_role}")
                 
                 if user_role == 'department_head':
                     users = users.filter(department_id=request.user.department_id)
@@ -1190,11 +1063,8 @@ class FilterOptionsView(BaseAnalyticsView):
                     # Regular users can only see themselves
                     users = users.filter(id=request.user.id)
                 
-                print(f"After role filtering, found {users.count()} users")
                 user_data = [{'id': str(user.id), 'name': f"{user.first_name} {user.last_name}".strip() or user.email} for user in users]
-                print(f"User data: {user_data}")
             except Exception as e:
-                print(f"Error fetching users: {e}")
                 user_data = []
             
             # Return all filter options
@@ -1204,11 +1074,9 @@ class FilterOptionsView(BaseAnalyticsView):
                 'users': user_data
             }
             
-            print(f"Returning filter options: {len(branch_data)} branches, {len(department_data)} departments, {len(user_data)} users")
             return Response(data)
             
         except Exception as e:
-            print(f"Unhandled error in FilterOptionsView: {e}")
             return Response(
                 {"error": str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR

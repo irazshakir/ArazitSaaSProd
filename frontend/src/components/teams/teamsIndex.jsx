@@ -45,10 +45,7 @@ const TeamsIndex = () => {
       setUser(userData);
       setUserRole(userRole);
       setTenantId(tenantId);
-      
-      console.log('User data loaded:', { userData, userRole, tenantId });
     } catch (error) {
-      console.error('Error parsing user data:', error);
       message.error('Error loading user data. Please log in again.');
       navigate('/login');
     }
@@ -124,28 +121,6 @@ const TeamsIndex = () => {
     }
   ];
 
-  // Add this debugging function
-  const debugApiResponse = (response) => {
-    console.group('API Response Debugging');
-    console.log('Raw response:', response);
-    
-    // Check for different ways the data might be structured
-    if (Array.isArray(response.data)) {
-      console.log('Data is an array with length:', response.data.length);
-    } else if (response.data && response.data.results && Array.isArray(response.data.results)) {
-      console.log('Data has results array with length:', response.data.results.length);
-    } else if (response.data) {
-      console.log('Data structure:', Object.keys(response.data));
-      if (typeof response.data === 'object') {
-        console.log('Data object entries:', Object.entries(response.data).slice(0, 3)); // Show first 3 entries
-      }
-    }
-    
-    // Check for status code
-    console.log('Response status:', response.status);
-    console.groupEnd();
-  };
-
   // Define fetchTeams with the correct API endpoint path (without double /api/)
   const fetchTeams = async () => {
     try {
@@ -157,40 +132,28 @@ const TeamsIndex = () => {
       switch(userRole) {
         case 'admin':
           // Admin sees all teams for the tenant
-          console.log('Admin role: Fetching all teams for tenant', tenantId);
           break;
         case 'department_head':
           // Department head sees all teams in their department
           if (user.department) {
             params.department = user.department;
-            console.log('Department Head role: Fetching teams for department', user.department, user.department_name);
-          } else {
-            console.log('Department Head with no department: Fetching all teams for tenant', tenantId);
           }
           break;
         case 'manager':
           // Manager sees all teams they manage and teams in their department
           if (user.department) {
             params.department = user.department;
-            console.log('Manager role: Fetching teams for department', user.department, user.department_name);
-          } else {
-            console.log('Manager with no department: Fetching all teams for tenant', tenantId);
           }
           break;
         case 'team_lead':
           // Team lead sees teams they lead
           params.team_lead = user.id;
-          console.log('Team Lead role: Fetching teams for team lead', user.id);
           break;
         default:
           // Other roles see teams they're part of
           params.member = user.id;
-          console.log('Agent role: Fetching teams for member', user.id);
           break;
       }
-      
-      console.log('API request parameters:', params);
-      console.log('Sending request to endpoint:', endpoint);
       
       const response = await api.get(endpoint, { 
         params: { 
@@ -199,57 +162,26 @@ const TeamsIndex = () => {
         }
       });
       
-      // Use our debugging function
-      debugApiResponse(response);
-      
       // Process response data
       let teamsArray = [];
       
       if (Array.isArray(response.data)) {
         teamsArray = response.data;
-        console.log('Data is directly an array');
       } else if (response.data?.results && Array.isArray(response.data.results)) {
         teamsArray = response.data.results;
-        console.log('Data is in results property');
       } else if (response.data && typeof response.data === 'object') {
         // Try to extract from object
-        console.log('Trying to extract teams from object');
         const possibleArrays = Object.values(response.data).filter(val => Array.isArray(val));
         if (possibleArrays.length > 0) {
           teamsArray = possibleArrays[0];
-          console.log('Found possible teams array with length:', teamsArray.length);
         } else {
           // Last resort: treat the object itself as an array of teams
           teamsArray = Object.values(response.data);
-          console.log('Using object values as teams array');
         }
       }
-      
-      console.log(`Found ${teamsArray.length} teams:`, teamsArray.slice(0, 2)); // Show first 2 teams
       
       if (teamsArray.length === 0) {
-        console.warn('No teams found in the response');
         message.info('No teams found. Try creating a new team.');
-      }
-      
-      // More detailed debugging for team structure
-      if (teamsArray.length > 0) {
-        console.group('Team Structure Debug');
-        const sampleTeam = teamsArray[0];
-        console.log('Team ID:', sampleTeam.id);
-        console.log('Team Name:', sampleTeam.name);
-        
-        console.log('Department:', sampleTeam.department);
-        if (typeof sampleTeam.department === 'object') {
-          console.log('Department Structure:', Object.keys(sampleTeam.department));
-        }
-        
-        console.log('Branch:', sampleTeam.branch);
-        if (typeof sampleTeam.branch === 'object') {
-          console.log('Branch Structure:', Object.keys(sampleTeam.branch));
-        }
-        
-        console.groupEnd();
       }
       
       // First set the basic formatted data
@@ -262,10 +194,6 @@ const TeamsIndex = () => {
       fetchDepartmentAndBranchDetails(teamsArray);
       
     } catch (error) {
-      console.error('Error fetching teams:', error);
-      console.error('Response data:', error.response?.data);
-      console.error('Response status:', error.response?.status);
-      console.error('Response headers:', error.response?.headers);
       message.error('Failed to load teams. Please try again.');
     }
   };
@@ -288,9 +216,6 @@ const TeamsIndex = () => {
           // If we have department lookup data available from fetchDepartments
           const departmentId = team.department;
           
-          // Log for debugging
-          console.log(`Looking up department name for ID: ${departmentId}`);
-          
           // Instead of returning a generic "Department" placeholder, use the ID with a note
           return `${departmentId.substring(0, 8)}...`;
         }
@@ -312,9 +237,6 @@ const TeamsIndex = () => {
         if (typeof team.branch === 'string') {
           // If we have branch lookup data available from fetchBranches
           const branchId = team.branch;
-          
-          // Log for debugging
-          console.log(`Looking up branch name for ID: ${branchId}`);
           
           // Instead of returning a generic "Branch" placeholder, use the ID with a note
           return `${branchId.substring(0, 8)}...`;
@@ -339,8 +261,6 @@ const TeamsIndex = () => {
   // Function to refresh teams
   const refreshTeams = async () => {
     try {
-      setLoading(true);
-      
       // Fetch branches and departments first (to fill the filter options)
       await fetchBranches();
       
@@ -349,7 +269,6 @@ const TeamsIndex = () => {
       
       setLoading(false);
     } catch (error) {
-      console.error('Error refreshing teams:', error);
       setLoading(false);
     }
   };
@@ -381,7 +300,6 @@ const TeamsIndex = () => {
         });
       }
     } catch (error) {
-      console.error('Error fetching branches:', error);
       // Fallback to alternative endpoint if the first one fails
       try {
         const response = await api.get('/branches/', { params: { tenant: tenantId } });
@@ -407,7 +325,6 @@ const TeamsIndex = () => {
           });
         }
       } catch (fallbackError) {
-        console.error('Error fetching branches with fallback endpoint:', fallbackError);
       }
     }
   };
@@ -420,7 +337,6 @@ const TeamsIndex = () => {
       
       if (response.data && (Array.isArray(response.data) || Array.isArray(response.data.results))) {
         const departmentsArray = Array.isArray(response.data) ? response.data : response.data.results;
-        console.log('Fetched departments:', departmentsArray);
         
         // Store the departments for reference
         return departmentsArray;
@@ -432,14 +348,11 @@ const TeamsIndex = () => {
       if (fallbackResponse.data && (Array.isArray(fallbackResponse.data) || Array.isArray(fallbackResponse.data.results))) {
         const departmentsArray = Array.isArray(fallbackResponse.data) ? 
           fallbackResponse.data : fallbackResponse.data.results;
-        console.log('Fetched departments from fallback:', departmentsArray);
         return departmentsArray;
       }
       
       return [];
     } catch (error) {
-      console.error('Error fetching departments:', error);
-      
       // Try fallback endpoint
       try {
         const fallbackResponse = await api.get('/departments/', { params: { tenant: tenantId } });
@@ -447,11 +360,9 @@ const TeamsIndex = () => {
         if (fallbackResponse.data && (Array.isArray(fallbackResponse.data) || Array.isArray(fallbackResponse.data.results))) {
           const departmentsArray = Array.isArray(fallbackResponse.data) ? 
             fallbackResponse.data : fallbackResponse.data.results;
-          console.log('Fetched departments from fallback:', departmentsArray);
           return departmentsArray;
         }
       } catch (fallbackError) {
-        console.error('Error fetching departments with fallback endpoint:', fallbackError);
       }
       return [];
     }
@@ -469,9 +380,6 @@ const TeamsIndex = () => {
         typeof team.branch === 'string' ? team.branch : 
         (team.branch?.id || null)).filter(Boolean))];
       
-      console.log("Unique department IDs:", departmentIds);
-      console.log("Unique branch IDs:", branchIds);
-      
       // Create maps to store the name lookups
       const departmentMap = {};
       const branchMap = {};
@@ -484,10 +392,7 @@ const TeamsIndex = () => {
         departmentsData.forEach(dept => {
           departmentMap[dept.id] = dept.name;
         });
-        
-        console.log("Department map:", departmentMap);
       } catch (error) {
-        console.error("Failed to fetch department details:", error);
       }
       
       // Fetch branches using our updated function
@@ -507,11 +412,7 @@ const TeamsIndex = () => {
         branchesData.forEach(branch => {
           branchMap[branch.id] = branch.name;
         });
-        
-        console.log("Branch map:", branchMap);
       } catch (error) {
-        console.error("Failed to fetch branch details:", error);
-        
         // Try fallback endpoint
         try {
           const fallbackResponse = await api.get('/branches/', { 
@@ -529,10 +430,7 @@ const TeamsIndex = () => {
           branchesData.forEach(branch => {
             branchMap[branch.id] = branch.name;
           });
-          
-          console.log("Branch map from fallback:", branchMap);
         } catch (fallbackError) {
-          console.error("Failed to fetch branch details with fallback:", fallbackError);
         }
       }
       
@@ -588,7 +486,6 @@ const TeamsIndex = () => {
       setFilteredTeams(updatedTeams);
       
     } catch (error) {
-      console.error("Error in fetchDepartmentAndBranchDetails:", error);
     }
   };
 

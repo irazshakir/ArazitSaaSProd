@@ -15,24 +15,16 @@ class OnCloudAPIClient:
         # If tenant_id is provided, try to get tenant-specific settings
         if tenant_id:
             try:
-                print(f"[DEBUG] Attempting to fetch WABA settings for tenant_id: {tenant_id}")
                 waba_settings = WABASettings.objects.get(tenant_id=tenant_id, is_active=True)
-                print(f"[DEBUG] Found WABA settings for tenant_id: {tenant_id}")
-                print(f"[DEBUG] API URL: {waba_settings.api_url}")
-                print(f"[DEBUG] Email: {waba_settings.email}")
-                print(f"[DEBUG] Password length: {len(waba_settings.password) if waba_settings.password else 0}")
-                print(f"[DEBUG] Is active: {waba_settings.is_active}")
                 
                 self.base_url = waba_settings.api_url.rstrip('/')
                 self.email = waba_settings.email
                 self.password = waba_settings.password
             except WABASettings.DoesNotExist:
                 # No tenant-specific settings found
-                print(f"[DEBUG] No WABA settings found for tenant_id: {tenant_id}")
                 raise Exception("No WhatsApp API settings configured for this tenant")
         else:
             # No tenant_id provided
-            print("[DEBUG] No tenant_id provided to OnCloudAPIClient")
             raise Exception("Tenant ID is required to access WhatsApp API")
         
     def _get_access_token(self):
@@ -45,14 +37,10 @@ class OnCloudAPIClient:
         # Check if token exists in cache
         cached_token = cache.get(cache_key)
         if cached_token:
-            print(f"[DEBUG] Using cached token for tenant_id: {self.tenant_id}")
             return cached_token
 
         # If no cached token, authenticate and get new token
         login_url = f"{self.base_url}/api/login"
-        print(f"[DEBUG] Attempting to authenticate with URL: {login_url}")
-        print(f"[DEBUG] Using email: {self.email}")
-        print(f"[DEBUG] Password length: {len(self.password) if self.password else 0}")
         
         # Try different authentication formats
         auth_attempts = [
@@ -91,25 +79,7 @@ class OnCloudAPIClient:
         last_error = None
         for i, attempt in enumerate(auth_attempts, 1):
             try:
-                print(f"\n[DEBUG] Authentication attempt {i}")
-                print(f"[DEBUG] Request URL: {login_url}")
-                print(f"[DEBUG] Request headers: {attempt.get('headers', {})}")
-                
-                if 'files' in attempt:
-                    print("[DEBUG] Request files:")
-                    for key, value in attempt['files'].items():
-                        print(f"  {key}: {value[1] if isinstance(value, tuple) else value}")
-                
-                if 'json' in attempt:
-                    print(f"[DEBUG] Request JSON data: {attempt['json']}")
-                
-                if 'data' in attempt:
-                    print(f"[DEBUG] Request form data: {attempt['data']}")
-                
                 response = requests.post(login_url, **attempt)
-                print(f"[DEBUG] Response status code: {response.status_code}")
-                print(f"[DEBUG] Response headers: {dict(response.headers)}")
-                print(f"[DEBUG] Response body: {response.text}")
                 
                 response_data = response.json()
                 
@@ -118,15 +88,12 @@ class OnCloudAPIClient:
                     if token:
                         # Cache the token for 23 hours
                         cache.set(cache_key, token, 23 * 60 * 60)
-                        print(f"[DEBUG] Successfully obtained and cached token for tenant_id: {self.tenant_id}")
                         return token
                 
                 last_error = response_data
             except Exception as e:
-                print(f"[DEBUG] Authentication attempt {i} failed: {str(e)}")
                 last_error = str(e)
         
-        print(f"[DEBUG] All authentication attempts failed. Last error: {last_error}")
         raise Exception(f"Authentication failed: {last_error}")
     
     def test_connection(self):
@@ -178,11 +145,7 @@ class OnCloudAPIClient:
             }
             
             # Make POST request
-            print(f"Fetching messages for contact {contact_id}")  # Debug log
             response = requests.post(messages_url, json=data)
-            
-            print(f"Response status code: {response.status_code}")  # Debug log
-            print(f"Response body: {response.text}")  # Debug log
             
             if response.status_code != 200:
                 raise Exception(f"Failed to fetch messages: {response.text}")
@@ -195,7 +158,6 @@ class OnCloudAPIClient:
             return messages_data
             
         except Exception as e:
-            print(f"Messages fetch error: {str(e)}")
             raise
 
     def get_templates(self):
@@ -207,15 +169,10 @@ class OnCloudAPIClient:
             templates_url = "https://apps.oncloudapi.com/api/wpbox/getTemplates"
             
             # Make GET request with token as query parameter
-            print(f"Fetching templates with URL: {templates_url}")
             response = requests.get(
                 templates_url,
                 params={'token': token}
             )
-            
-            print(f"Response status code: {response.status_code}")
-            print(f"Response headers: {response.headers}")
-            print(f"Response body: {response.text}")
             
             if response.status_code != 200:
                 raise Exception(f"Failed to fetch templates: {response.text}")
@@ -228,7 +185,6 @@ class OnCloudAPIClient:
             return templates_data
             
         except Exception as e:
-            print(f"Template fetch error: {str(e)}")
             raise
 
     def send_template_message(self, data):
@@ -263,14 +219,10 @@ class OnCloudAPIClient:
                 raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
             
             # Send POST request
-            print(f"Sending template message: {message_data}")  # Debug log
             response = requests.post(
                 send_url,
                 json=message_data
             )
-            
-            print(f"Response status: {response.status_code}")  # Debug log
-            print(f"Response body: {response.text}")  # Debug log
             
             if response.status_code != 200:
                 raise Exception(f"Failed to send template message: {response.text}")
@@ -278,7 +230,6 @@ class OnCloudAPIClient:
             return response.json()
             
         except Exception as e:
-            print(f"Template message send error: {str(e)}")
             raise
 
     def get_groups(self, show_contacts=False):
@@ -299,11 +250,7 @@ class OnCloudAPIClient:
             }
             
             # Make GET request
-            print(f"Fetching groups with URL: {groups_url}")  # Debug log
             response = requests.get(groups_url, params=params)
-            
-            print(f"Response status code: {response.status_code}")  # Debug log
-            print(f"Response body: {response.text}")  # Debug log
             
             if response.status_code != 200:
                 raise Exception(f"Failed to fetch groups: {response.text}")
@@ -316,7 +263,6 @@ class OnCloudAPIClient:
             return groups_data
             
         except Exception as e:
-            print(f"Groups fetch error: {str(e)}")
             raise
 
     def get_contacts(self):
@@ -336,11 +282,7 @@ class OnCloudAPIClient:
             }
             
             # Make GET request
-            print(f"Fetching contacts with URL: {contacts_url}")  # Debug log
             response = requests.get(contacts_url, params=params)
-            
-            print(f"Response status code: {response.status_code}")  # Debug log
-            print(f"Response body: {response.text}")  # Debug log
             
             if response.status_code != 200:
                 raise Exception(f"Failed to fetch contacts: {response.text}")
@@ -353,7 +295,6 @@ class OnCloudAPIClient:
             return contacts_data
             
         except Exception as e:
-            print(f"Contacts fetch error: {str(e)}")
             raise
 
     def get_single_contact(self, phone=None, contact_id=None):
@@ -389,11 +330,7 @@ class OnCloudAPIClient:
                 params['contact_id'] = contact_id
             
             # Make GET request
-            print(f"Fetching single contact with URL: {contact_url}")  # Debug log
             response = requests.get(contact_url, params=params)
-            
-            print(f"Response status code: {response.status_code}")  # Debug log
-            print(f"Response body: {response.text}")  # Debug log
             
             if response.status_code != 200:
                 raise Exception(f"Failed to fetch contact: {response.text}")
@@ -406,7 +343,6 @@ class OnCloudAPIClient:
             return contact_data
             
         except Exception as e:
-            print(f"Single contact fetch error: {str(e)}")
             raise
 
     def send_message(self, data):
@@ -448,14 +384,10 @@ class OnCloudAPIClient:
                 raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
             
             # Send POST request
-            print(f"Sending message: {message_data}")  # Debug log
             response = requests.post(
                 send_url,
                 json=message_data
             )
-            
-            print(f"Response status: {response.status_code}")  # Debug log
-            print(f"Response body: {response.text}")  # Debug log
             
             if response.status_code != 200:
                 raise Exception(f"Failed to send message: {response.text}")
@@ -463,7 +395,6 @@ class OnCloudAPIClient:
             return response.json()
             
         except Exception as e:
-            print(f"Message send error: {str(e)}")
             raise
 
     def send_image_message(self, data):
@@ -499,14 +430,10 @@ class OnCloudAPIClient:
                 raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
             
             # Send POST request
-            print(f"Sending image message to: {data.get('phone')}")  # Debug log
             response = requests.post(
                 send_url,
                 files=files
             )
-            
-            print(f"Response status: {response.status_code}")  # Debug log
-            print(f"Response body: {response.text}")  # Debug log
             
             if response.status_code != 200:
                 raise Exception(f"Failed to send image message: {response.text}")
@@ -514,7 +441,6 @@ class OnCloudAPIClient:
             return response.json()
             
         except Exception as e:
-            print(f"Image message send error: {str(e)}")
             raise
 
     def get_conversations(self):
@@ -534,15 +460,11 @@ class OnCloudAPIClient:
             }
             
             # Make POST request
-            print(f"Fetching conversations with URL: {conversations_url}")  # Debug log
             response = requests.post(
                 conversations_url,
                 json=data,
                 params={'mobile_api': 'true'}
             )
-            
-            print(f"Response status code: {response.status_code}")  # Debug log
-            print(f"Response body: {response.text}")  # Debug log
             
             if response.status_code != 200:
                 raise Exception(f"Failed to fetch conversations: {response.text}")
@@ -555,7 +477,6 @@ class OnCloudAPIClient:
             return conversations_data
             
         except Exception as e:
-            print(f"Conversations fetch error: {str(e)}")
             raise
 
     def send_message_via_contact(self, data):
@@ -594,14 +515,10 @@ class OnCloudAPIClient:
                 raise ValueError("Both phone and message are required fields")
             
             # Send POST request
-            print(f"Sending message: {message_data}")  # Debug log
             response = requests.post(
                 send_url,
                 json=message_data
             )
-            
-            print(f"Response status: {response.status_code}")  # Debug log
-            print(f"Response body: {response.text}")  # Debug log
             
             if response.status_code != 200:
                 raise Exception(f"Failed to send message: {response.text}")
@@ -613,5 +530,4 @@ class OnCloudAPIClient:
             return response_data
             
         except Exception as e:
-            print(f"Message send error: {str(e)}")
             raise

@@ -32,7 +32,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
 
   useEffect(() => {
     if (activeChat?.id && activeChat.id !== currentChatId) {
-      console.log('Chatbox: Active chat changed to', activeChat.id);
       setCurrentChatId(activeChat.id);
       setMessages([]);
       setError(null);
@@ -50,7 +49,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
 
   useEffect(() => {
     if (lastRefreshTime > lastProcessedRefreshTime.current && currentChatId && !parentNoApiConfigured) {
-      console.log('ChatBox: Refresh triggered by lastRefreshTime update');
       lastProcessedRefreshTime.current = lastRefreshTime;
       fetchMessages(true);
     }
@@ -112,7 +110,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
       const contentType = response.headers.get('content-type');
       if (contentType && !contentType.includes('application/json')) {
         // Got HTML instead of JSON, likely due to missing API configuration
-        console.error('Received non-JSON response');
         setNoApiConfigured(true);
         setError(null);
         setLoading(false);
@@ -147,14 +144,11 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
         JSON.stringify(messages.map(m => m.id)) !== JSON.stringify(transformedMessages.map(m => m.id));
       
       if (messagesChanged) {
-        console.log('ChatBox: Messages have changed, updating state');
         setMessages(transformedMessages);
       }
       
       setError(null);
     } catch (err) {
-      console.error('Error fetching messages:', err);
-      
       // Check if it's a JSON parsing error (likely HTML response)
       if (err instanceof SyntaxError && err.message.includes('JSON')) {
         setNoApiConfigured(true);
@@ -192,9 +186,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
       const tenantId = localStorage.getItem('tenant_id');
       const token = localStorage.getItem('token');
       
-      console.log('[DEBUG] Using tenant ID from localStorage:', tenantId);
-      console.log('[DEBUG] Using token from localStorage:', token ? 'Token exists' : 'No token found');
-
       if (selectedImage) {
         const formData = new FormData();
         formData.append('phone', activeChat.phone);
@@ -315,7 +306,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
         setTimeout(() => refreshData(), 1000);
       }
     } catch (error) {
-      console.error('Error sending message:', error);
       setError(error.message || 'Failed to send message');
       setTimeout(() => setError(null), 3000);
     } finally {

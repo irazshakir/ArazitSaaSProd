@@ -38,7 +38,6 @@ const ChatList = ({ activeChat, setActiveChat, refreshData, lastRefreshTime, has
   useEffect(() => {
     // Only refresh if the refresh time has changed and is newer than the last processed time
     if (lastRefreshTime && lastRefreshTime > lastProcessedRefreshTime.current) {
-      console.log('ChatList: Refresh triggered by lastRefreshTime update');
       lastProcessedRefreshTime.current = lastRefreshTime;
       fetchConversations(true);
     }
@@ -48,7 +47,6 @@ const ChatList = ({ activeChat, setActiveChat, refreshData, lastRefreshTime, has
   useEffect(() => {
     if (activeChat?.id && activeChat.id !== selectedChatId) {
       setSelectedChatId(activeChat.id);
-      console.log('ChatList: Active chat updated to', activeChat.id);
     }
   }, [activeChat?.id, selectedChatId]);
 
@@ -88,7 +86,6 @@ const ChatList = ({ activeChat, setActiveChat, refreshData, lastRefreshTime, has
       const contentType = response.headers.get('content-type');
       if (contentType && !contentType.includes('application/json')) {
         // Got HTML instead of JSON, likely due to missing API configuration
-        console.error('Received non-JSON response');
         setNoApiConfigured(true);
         setError(null);
         setLoading(false);
@@ -133,7 +130,6 @@ const ChatList = ({ activeChat, setActiveChat, refreshData, lastRefreshTime, has
           const firstChat = transformedChats[0];
           setSelectedChatId(firstChat.id);
           setActiveChat(firstChat);
-          console.log('ChatList: Setting first chat as active:', firstChat.id);
         } else if (selectedChatId) {
           // If there's a selected chat, make sure it's updated
           const updatedSelectedChat = transformedChats.find(chat => chat.id === selectedChatId);
@@ -145,7 +141,6 @@ const ChatList = ({ activeChat, setActiveChat, refreshData, lastRefreshTime, has
       
       setError(null);
     } catch (err) {
-      console.error('Error fetching conversations:', err);
       if (!silentCheck) {
         // Check if it's a JSON parsing error (likely HTML response)
         if (err instanceof SyntaxError && err.message.includes('JSON')) {
@@ -199,8 +194,6 @@ const ChatList = ({ activeChat, setActiveChat, refreshData, lastRefreshTime, has
 
   // Handle chat selection
   const handleChatSelect = (chat) => {
-    console.log('ChatList: Selected chat:', chat.id);
-    
     // Only update if different chat is selected
     if (chat.id !== selectedChatId) {
       setSelectedChatId(chat.id);

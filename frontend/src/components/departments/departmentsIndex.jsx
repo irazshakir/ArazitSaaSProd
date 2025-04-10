@@ -20,6 +20,12 @@ const DepartmentsIndex = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState({});
   const [tenantId, setTenantId] = useState(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [refreshData, setRefreshData] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+  const [error, setError] = useState(null);
 
   // Get tenant ID from localStorage
   useEffect(() => {
@@ -101,69 +107,29 @@ const DepartmentsIndex = () => {
   // Fetch departments data from API
   const fetchDepartments = async () => {
     try {
-      // Try multiple possible department API endpoints
-      const endpoints = [
-        'departments/',
-        'users/departments/',
-        'auth/departments/'
-      ];
-      
-      const params = { tenant: tenantId };
-      console.log('API request parameters:', params);
-      
-      let response = null;
-      let errorMessages = [];
-      
-      // Try each endpoint until one works
-      for (const endpoint of endpoints) {
-        try {
-          console.log(`Trying endpoint: ${endpoint}`);
-          response = await api.get(endpoint, { params });
-          console.log(`Success with endpoint ${endpoint}!`, response.data);
-          break; // Exit loop if successful
-        } catch (error) {
-          const message = `${endpoint} error: ${error.message}`;
-          errorMessages.push(message);
-          console.log(message);
-          // Continue to next endpoint
+      setLoading(true);
+      const response = await api.get('departments/', {
+        params: {
+          page: page,
+          page_size: pageSize,
+          search: searchTerm
         }
+      });
+      
+      if (response.data && response.data.results) {
+        // Format departments with branch names
+        const formattedDepartments = response.data.results.map(dept => ({
+          ...dept,
+          branch_name: dept.branch ? dept.branch.name : 'No Branch'
+        }));
+        
+        setDepartments(formattedDepartments);
+        setTotalCount(response.data.count || 0);
       }
-      
-      if (!response) {
-        throw new Error(`All endpoints failed: ${errorMessages.join(', ')}`);
-      }
-      
-      // Process response data
-      let departmentsArray = Array.isArray(response.data) 
-        ? response.data
-        : (response.data?.results && Array.isArray(response.data.results))
-          ? response.data.results
-          : [];
-      
-      console.log(`Fetched ${departmentsArray.length} departments:`, departmentsArray);
-      
-      // Transform data for UI representation
-      const formattedData = departmentsArray.map(department => ({
-        ...department,
-        id: department.id,
-        is_active: department.is_active !== undefined ? department.is_active : true
-      }));
-      
-      console.log('Formatted departments data:', formattedData);
-      
-      setDepartments(formattedData);
-      setFilteredDepartments(formattedData);
-      
     } catch (error) {
-      console.error('Error fetching departments:', error);
-      console.error('Error details:', error.response?.data);
-      
-      // Show error message
-      message.error('Failed to load departments. Please try again.');
-      
-      // Set empty state
-      setDepartments([]);
-      setFilteredDepartments([]);
+      setError('Failed to fetch departments');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -321,6 +287,15 @@ const DepartmentsIndex = () => {
       // Show error message
       message.error('Failed to delete department. Please try again.');
     }
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+  };
+
+  const handleDeleteSuccess = () => {
+    setRefreshData(prev => !prev);
+    message.success('Department deleted successfully');
   };
 
   return (

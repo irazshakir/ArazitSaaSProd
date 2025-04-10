@@ -24,8 +24,6 @@ const LeadEdit = () => {
         setLoading(true);
         const response = await api.get(`/leads/${id}/`);
         
-        console.log('Lead data from API:', response.data);
-        
         // Process study visa data if present
         let processedData = {
           ...response.data,
@@ -39,7 +37,6 @@ const LeadEdit = () => {
         setLeadData(processedData);
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching lead data:', error);
         setError('Failed to load lead details. Please try again.');
         setLoading(false);
       }

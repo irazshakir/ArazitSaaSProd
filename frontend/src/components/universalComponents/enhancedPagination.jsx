@@ -30,13 +30,9 @@ const EnhancedPagination = ({
   const startItem = totalItems === 0 ? 0 : (validPage - 1) * rowsPerPage + 1;
   const endItem = Math.min(validPage * rowsPerPage, totalItems);
   
-  console.log(`EnhancedPagination: totalItems=${totalItems}, page=${validPage}, rowsPerPage=${rowsPerPage}, totalPages=${totalPages}`);
-  console.log(`EnhancedPagination: Showing items ${startItem}-${endItem} of ${totalItems}`);
-  
   // Handle page change
   const handlePageChange = (event, newPage) => {
     if (newPage >= 1 && newPage <= totalPages) {
-      console.log(`EnhancedPagination: Page changed to ${newPage}`);
       onPageChange(event, newPage);
     }
   };
@@ -44,7 +40,6 @@ const EnhancedPagination = ({
   // Handle rows per page change
   const handleRowsPerPageChange = (event) => {
     const newRowsPerPage = parseInt(event.target.value, 10);
-    console.log(`EnhancedPagination: Rows per page changed to ${newRowsPerPage}`);
     onRowsPerPageChange(newRowsPerPage);
   };
   

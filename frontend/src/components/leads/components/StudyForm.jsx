@@ -4,15 +4,10 @@ import { Form, Input, DatePicker, Select, InputNumber, Row, Col, Divider, Switch
 import dayjs from 'dayjs';
 import api from '../../../services/api';
 
-console.log('StudyForm.jsx module loaded');
-
 const { Option } = Select;
 const { TextArea } = Input;
 
 const StudyForm = forwardRef(function StudyForm({ form, formValues, handleInputChange, initialData, onSave }, ref) {
-  console.log("StudyForm received formValues:", formValues);
-  console.log("StudyForm received initialData:", initialData);
-  
   const [loading, setLoading] = useState(false);
   const [existingStudy, setExistingStudy] = useState(null);
   
@@ -29,29 +24,22 @@ const StudyForm = forwardRef(function StudyForm({ form, formValues, handleInputC
       
       // Make sure lead_inquiry is properly set
       if (!studyData.lead_inquiry) {
-        console.error("No lead_id provided for study data");
         message.error("Missing lead ID. Please save the lead first.");
         throw new Error("Missing lead ID");
       }
-      
-      console.log("Submitting study data:", studyData);
       
       let response;
       if (existingStudy) {
         // Remove id field to avoid conflicts in PUT request
         const { id, ...dataWithoutId } = studyData;
         
-        console.log(`Updating existing study with ID ${existingStudy.id}`, dataWithoutId);
-        
         // Update existing study
         response = await api.put(`/study/${existingStudy.id}/`, dataWithoutId);
       } else {
         // Create new study
-        console.log("Creating new study with data:", studyData);
         response = await api.post('/study/create-for-lead/', studyData);
       }
       
-      console.log("Study data saved:", response.data);
       message.success("Study details saved successfully");
       setExistingStudy(response.data);
       
@@ -67,8 +55,6 @@ const StudyForm = forwardRef(function StudyForm({ form, formValues, handleInputC
       
       return response.data;
     } catch (error) {
-      console.error("Error saving study data:", error);
-      console.error("Error details:", error.response?.data);
       message.error(`Failed to save study details: ${error.response?.data?.detail || error.message}`);
       throw error;
     } finally {
@@ -88,7 +74,6 @@ const StudyForm = forwardRef(function StudyForm({ form, formValues, handleInputC
         try {
           setLoading(true);
           const response = await api.get(`/study/for-lead/?lead_id=${initialData.lead_id}`);
-          console.log("Fetched study data:", response.data);
           setExistingStudy(response.data);
           
           // Initialize form with existing data
@@ -123,7 +108,6 @@ const StudyForm = forwardRef(function StudyForm({ form, formValues, handleInputC
             });
           }
         } catch (error) {
-          console.error("Error fetching study data:", error);
           if (error.response && error.response.status !== 404) {
             message.error("Failed to load study details");
           }

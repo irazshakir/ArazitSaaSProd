@@ -136,7 +136,6 @@ const TableList = ({
     if (!pagination) return sortedData;
     const startIndex = (page - 1) * localRowsPerPage;
     const endIndex = startIndex + localRowsPerPage;
-    console.log(`TableList pagination: Showing items ${startIndex + 1} to ${Math.min(endIndex, sortedData.length)} of ${sortedData.length} total items`);
     return sortedData.slice(startIndex, endIndex);
   }, [sortedData, page, localRowsPerPage, pagination]);
 
@@ -225,7 +224,6 @@ const TableList = ({
 
   return (
     <Box sx={{ width: '100%' }}>
-      {console.log(`TableList received ${data.length} items, displaying ${paginatedData.length} after pagination`)}
       <Paper 
         elevation={0} 
         sx={{ 

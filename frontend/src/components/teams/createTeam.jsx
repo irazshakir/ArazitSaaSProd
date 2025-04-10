@@ -76,7 +76,6 @@ const CreateTeam = () => {
         loadInitialOptions(tenantId);
       }
     } catch (error) {
-      console.error('Error loading user data:', error);
       message.error('Error loading user data. Please log in again.');
       navigate('/login');
     }
@@ -86,36 +85,23 @@ const CreateTeam = () => {
   const loadInitialOptions = async (tenantId) => {
     setLoading(true);
     try {
-      console.log('Fetching data for tenant ID:', tenantId);
-      
       // Use the service functions that have built-in fallbacks
       try {
-        console.log('Fetching branches using branchService...');
         const branchesData = await branchService.getBranches(tenantId);
-        console.log('Branches data received:', branchesData);
         setBranchOptions(branchesData || []);
       } catch (branchError) {
-        console.error('Error fetching branches:', branchError);
         message.error('Failed to load branches. Please try again later.');
         setBranchOptions([]);
       }
       
       try {
-        console.log('Fetching departments using departmentService...');
         const departmentsData = await departmentService.getDepartments(tenantId);
-        console.log('Departments data received:', departmentsData);
         setDepartmentOptions(departmentsData || []);
       } catch (deptError) {
-        console.error('Error fetching departments:', deptError);
         message.error('Failed to load departments. Please try again later.');
         setDepartmentOptions([]);
       }
       
-    } catch (error) {
-      console.error('Error in data fetching process:', error);
-      message.error('Failed to fetch organization data');
-      setBranchOptions([]);
-      setDepartmentOptions([]);
     } finally {
       setLoading(false);
     }
@@ -124,8 +110,6 @@ const CreateTeam = () => {
   // Simplified function to fetch all active users for the tenant
   const fetchAllUsers = async () => {
     try {
-      console.log('Fetching all active users for tenant:', tenantId);
-      
       // Simple params - just tenant and active status
       const params = { 
         tenant: tenantId,
@@ -138,7 +122,6 @@ const CreateTeam = () => {
       
       for (const endpoint of endpoints) {
         try {
-          console.log(`Trying endpoint ${endpoint}...`);
           const response = await api.get(endpoint, { params });
           
           if (Array.isArray(response.data)) {
@@ -152,15 +135,12 @@ const CreateTeam = () => {
             break;
           }
         } catch (error) {
-          console.log(`Failed with ${endpoint}:`, error.message);
           // Continue to next endpoint
         }
       }
       
-      console.log(`Found ${userData.length} active users`);
       return userData;
     } catch (error) {
-      console.error('Error fetching users:', error);
       message.error('Failed to load users');
       return [];
     }
@@ -174,7 +154,6 @@ const CreateTeam = () => {
         setMemberOptions(allUsers);
         setTeamLeadOptions(allUsers);
       }).catch(error => {
-        console.error('Error loading users:', error);
       });
     }
   }, [formData.branch, formData.department, tenantId]);
@@ -186,7 +165,6 @@ const CreateTeam = () => {
       
       try {
         setLoading(true);
-        console.log('Loading all users...');
         
         // Just get all users for the tenant
         const allUsers = await fetchAllUsers();
@@ -199,7 +177,6 @@ const CreateTeam = () => {
         
         setLoading(false);
       } catch (error) {
-        console.error('Error loading users:', error);
         setDepartmentHeadOptions([]);
         setManagerOptions([]);
         setLoading(false);
@@ -239,7 +216,6 @@ const CreateTeam = () => {
       }
       setLoading(false);
     }).catch(error => {
-      console.error('Error fetching users for dialog:', error);
       setLoading(false);
     });
     
@@ -484,8 +460,6 @@ const CreateTeam = () => {
         department_head: formData.department_head || null
       };
       
-      console.log('Submitting team data:', teamData);
-      
       const teamResponse = await api.post('teams/', teamData);
       const teamId = teamResponse.data.id;
       
@@ -532,14 +506,11 @@ const CreateTeam = () => {
       navigate(`/dashboard/teams/${teamId}`);
     } catch (error) {
       setSubmitting(false);
-      console.error('Error creating team:', error);
       
       // Handle API validation errors more clearly
       if (error.response?.data) {
         const apiErrors = error.response.data;
         const formattedErrors = {};
-        
-        console.log('API returned errors:', apiErrors);
         
         Object.keys(apiErrors).forEach(key => {
           formattedErrors[key] = Array.isArray(apiErrors[key]) 
@@ -570,11 +541,9 @@ const CreateTeam = () => {
   
   // Add this to your component to track state changes
   useEffect(() => {
-    console.log('Department head options updated:', departmentHeadOptions);
   }, [departmentHeadOptions]);
 
   useEffect(() => {
-    console.log('Manager options updated:', managerOptions);
   }, [managerOptions]);
   
   if (loading && !branchOptions.length && !departmentOptions.length) {

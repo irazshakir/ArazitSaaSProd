@@ -14,7 +14,6 @@ const DashboardLayout = () => {
 
   useEffect(() => {
     if (!ensureAuthenticated()) {
-      console.error("Authentication failed in DashboardLayout. Token missing.");
       navigate('/login');
       return;
     }
@@ -36,13 +35,7 @@ const DashboardLayout = () => {
         if (!storedRole && parsedUser.role) {
           localStorage.setItem('user_role', parsedUser.role);
         }
-        
-        console.log("Dashboard Layout - User authenticated:", {
-          user: parsedUser,
-          role: effectiveRole
-        });
       } catch (error) {
-        console.error("Invalid user data in localStorage", error);
         navigate('/login');
         return;
       }

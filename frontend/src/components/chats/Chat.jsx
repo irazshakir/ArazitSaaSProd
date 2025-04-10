@@ -182,7 +182,6 @@ const Chat = () => {
 
   // Function to refresh the chat data with silent option
   const refreshData = async (forceFull = false) => {
-    console.log('Checking for new chats/messages...');
     setIsRefreshing(true);
     setNoApiConfigured(false); // Reset API configuration status
     
@@ -207,7 +206,6 @@ const Chat = () => {
       // Check if content type is not JSON (e.g. HTML error page)
       const contentType = response.headers.get('content-type');
       if (contentType && !contentType.includes('application/json')) {
-        console.error('Received non-JSON response:', await response.text());
         setChats([]);
         setNoApiConfigured(true); // Set API not configured
         setIsRefreshing(false);
@@ -237,7 +235,6 @@ const Chat = () => {
         const { hasChanges } = checkForChatChanges(chats, transformedChats);
         
         if (hasChanges || forceFull) {
-          console.log('New or updated chats detected, updating state');
           setChats(transformedChats);
           
           // If active chat exists, find and update it
@@ -267,7 +264,6 @@ const Chat = () => {
       
       setLastRefreshTime(Date.now());
     } catch (error) {
-      console.error('Error refreshing data:', error);
       
       // Handle the case where a JSON parsing error occurs (likely HTML response)
       if (error instanceof SyntaxError && error.message.includes('JSON')) {
@@ -335,7 +331,6 @@ const Chat = () => {
       // We don't need to do anything with the response here
       // The Chatbox component will handle showing the messages
     } catch (error) {
-      console.error('Error fetching messages:', error);
     }
   };
 
@@ -362,7 +357,6 @@ const Chat = () => {
 
   // Function to handle chat selection from ChatList
   const handleChatSelect = (chat) => {
-    console.log('Selected chat:', chat);
     
     // Only update if it's a different chat
     if (chat.id !== activeChat?.id) {

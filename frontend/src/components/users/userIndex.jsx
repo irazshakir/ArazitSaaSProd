@@ -145,14 +145,10 @@ const UserIndex = () => {
           return;
         }
         
-        console.log('Fetching users for tenant:', tenantId);
-        
         // Use the correct endpoint with auth prefix
         const response = await api.get('auth/users/', {
           params: { tenant: tenantId }
         });
-        
-        console.log('User data response:', response);
         
         // Check if response.data is directly an array or has a results property
         let usersArray = Array.isArray(response.data) 
@@ -174,12 +170,9 @@ const UserIndex = () => {
         setFilteredUsers(formattedData);
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching users:', error);
-        
         // Try alternative endpoint if the first one fails with 404
         if (error.response && error.response.status === 404) {
           try {
-            console.log('Trying alternative endpoint...');
             const response = await api.get('users/', {
               params: { tenant: tenantId }
             });
@@ -201,7 +194,6 @@ const UserIndex = () => {
             setUsers(formattedData);
             setFilteredUsers(formattedData);
           } catch (secondError) {
-            console.error('Alternative endpoint also failed:', secondError);
             message.error('Failed to load users. Please try again.');
           }
         } else {
@@ -356,8 +348,6 @@ const UserIndex = () => {
       setUsers(updatedUsers);
       setFilteredUsers(filteredUsers.filter(item => item.id !== user.id));
     } catch (error) {
-      console.error('Error deleting user:', error);
-      
       // Try alternative endpoint
       if (error.response && error.response.status === 404) {
         try {

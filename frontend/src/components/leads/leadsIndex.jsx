@@ -51,17 +51,7 @@ const LeadsIndex = () => {
       setUserRole(userRole);
       setTenantId(tenantId);
       setDepartmentId(departmentId);
-      
-      // Log both sources for debugging
-      console.log('User data loaded:', { 
-        userData, 
-        userRole, 
-        tenantId, 
-        departmentId,
-        departmentIdFromLocalStorage: localStorage.getItem('department_id')
-      });
     } catch (error) {
-      console.error('Error parsing user data:', error);
       message.error('Error loading user data. Please log in again.');
       navigate('/login');
     }
@@ -219,7 +209,6 @@ const LeadsIndex = () => {
             apiParams.page_size = 100; // Request 100 leads for admin users
           }
           
-          console.log('Fetching leads with params:', apiParams);
           const response = await api.get('leads/by-role/', { params: apiParams });
           
           // Process response data
@@ -228,8 +217,6 @@ const LeadsIndex = () => {
             : (response.data?.results && Array.isArray(response.data.results))
               ? response.data.results
               : [];
-          
-          console.log(`Fetched ${leadsArray.length} leads based on role ${userRole}`);
           
           // Extract all assigned user IDs - check multiple possible field names
           const userIds = new Set();
@@ -257,7 +244,7 @@ const LeadsIndex = () => {
                     userMap[userId] = userName;
                   }
                 } catch (userError) {
-                  console.error(`Error fetching user with ID ${userId}:`, userError);
+                  // Silently ignore user fetch errors
                 }
               }
               
@@ -281,7 +268,7 @@ const LeadsIndex = () => {
                 });
               }
             } catch (error) {
-              console.error('Error fetching user data:', error);
+              // Silently ignore user fetch errors
             }
           }
           
@@ -358,13 +345,10 @@ const LeadsIndex = () => {
             };
           });
           
-          console.log(`Formatted ${formattedData.length} leads with user names`);
           setLeads(formattedData);
           setFilteredLeads(formattedData);
           setLoading(false);
         } catch (error) {
-          console.error('Error fetching leads:', error);
-          console.error('Error details:', error.response?.data);
           setLoading(false);
           message.error('Failed to load leads. Please try again.');
         }
@@ -415,7 +399,6 @@ const LeadsIndex = () => {
       results = results.filter(lead => filters.lead_activity_status.includes(lead.lead_activity_status));
     }
     
-    console.log(`After filtering: ${results.length} leads remain`);
     setFilteredLeads(results);
   };
 
@@ -551,7 +534,6 @@ const LeadsIndex = () => {
           apiParams.page_size = 100; // Request 100 leads for admin users
         }
         
-        console.log('Refreshing leads with params:', apiParams);
         const response = await api.get('leads/by-role/', { params: apiParams });
         
         // Process response data
@@ -560,8 +542,6 @@ const LeadsIndex = () => {
           : (response.data?.results && Array.isArray(response.data.results))
             ? response.data.results
             : [];
-        
-        console.log(`Refreshed ${leadsArray.length} leads based on role ${userRole}`);
         
         // Extract all assigned user IDs - check multiple possible field names
         const userIds = new Set();
@@ -589,7 +569,7 @@ const LeadsIndex = () => {
                   userMap[userId] = userName;
                 }
               } catch (userError) {
-                console.error(`Error fetching user with ID ${userId}:`, userError);
+                // Silently ignore user fetch errors
               }
             }
             
@@ -613,7 +593,7 @@ const LeadsIndex = () => {
               });
             }
           } catch (error) {
-            console.error('Error fetching user data:', error);
+            // Silently ignore user fetch errors
           }
         }
         
@@ -694,7 +674,6 @@ const LeadsIndex = () => {
         setFilteredLeads(formattedData);
         setLoading(false);
       } catch (error) {
-        console.error('Error refreshing leads:', error);
         setLoading(false);
         message.error('Failed to refresh leads. Please try again.');
       }
@@ -755,22 +734,19 @@ const LeadsIndex = () => {
                 dense={false} 
               />
             ) : (
-              <>
-                {console.log(`Rendering TableList with ${filteredLeads.length} leads`)}
-                <TableList
-                  columns={columns}
-                  data={filteredLeads}
-                  loading={false}
-                  onRowClick={handleViewLead}
-                  onEditClick={handleEditLead}
-                  onDeleteClick={handleDeleteLead}
-                  pagination={true}
-                  rowsPerPage={10}
-                  rowsPerPageOptions={[5, 10, 25, 50, 100]}
-                  defaultSortField="created_at"
-                  defaultSortDirection="desc"
-                />
-              </>
+              <TableList
+                columns={columns}
+                data={filteredLeads}
+                loading={false}
+                onRowClick={handleViewLead}
+                onEditClick={handleEditLead}
+                onDeleteClick={handleDeleteLead}
+                pagination={true}
+                rowsPerPage={10}
+                rowsPerPageOptions={[5, 10, 25, 50, 100]}
+                defaultSortField="created_at"
+                defaultSortDirection="desc"
+              />
             )}
           </Paper>
         </Grid>

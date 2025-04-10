@@ -18,17 +18,9 @@ class DataAccessService {
       this.departmentId = userData.department_id;
       this.userId = userData.id;
     } catch (error) {
-      console.error('Error parsing user data:', error);
       this.departmentId = localStorage.getItem('department_id');
       this.userId = null;
     }
-    
-    console.log('DataAccessService initialized with:', {
-      role: this.role,
-      tenantId: this.tenantId,
-      departmentId: this.departmentId,
-      userId: this.userId
-    });
     
     // Cache for team structure data
     this.teamCache = {
@@ -46,7 +38,6 @@ class DataAccessService {
       try {
         return JSON.parse(user).id;
       } catch (error) {
-        console.error('Error parsing user from localStorage:', error);
         return null;
       }
     }
@@ -185,7 +176,6 @@ class DataAccessService {
       
       this.teamCache.lastFetched = now;
     } catch (error) {
-      console.error('Error fetching team hierarchy:', error);
       // Reset cache on error
       this.teamCache = {
         teamIds: null,
@@ -202,8 +192,6 @@ class DataAccessService {
     const accessLevel = this.getAccessLevel();
     const params = { tenant_id: this.tenantId };
     
-    console.log('Getting query params for access level:', accessLevel);
-    
     // For hierarchical data, ensure team structure is loaded
     if (accessLevel !== 'individual' && accessLevel !== 'tenant') {
       await this.fetchTeamHierarchy();
@@ -217,7 +205,7 @@ class DataAccessService {
       case 'department':
         // Department head level - filter by department
         if (!this.departmentId) {
-          console.warn('Department head has no department_id set!');
+          // Removed console.warn
         }
         return {
           ...params,
@@ -278,46 +266,23 @@ class DataAccessService {
         return this._filterChats(data, accessLevel);
       // Add more entity types as needed
       default:
-        console.warn(`No filter defined for entity type: ${entityType}`);
         return data;
     }
   }
   
   // Private methods for specific entity filtering
   _filterLeads(leads, accessLevel) {
-    console.log('Filtering leads by access level:', accessLevel);
-    console.log('Department ID being used for filtering:', this.departmentId);
-    
     switch (accessLevel) {
       case 'department':
-        // For department heads, log leads and their departments for debugging
-        if (leads.length > 0) {
-          console.log('Sample lead department values:');
-          leads.slice(0, 3).forEach(lead => {
-            console.log(`Lead ID ${lead.id}: department=${lead.department}, department_id=${lead.department_id}`);
-          });
-        } else {
-          console.log('No leads to filter');
-        }
-        
         return leads.filter(lead => {
           // Try multiple possible department field names
           const leadDept = lead.department || lead.department_id || 
                            (lead.department_details ? lead.department_details.id : null);
           
-          const match = leadDept && (
+          return leadDept && (
             String(leadDept) === String(this.departmentId) || 
             (lead.department_details && String(lead.department_details.id) === String(this.departmentId))
           );
-          
-          // Log more detailed matching information
-          console.log(`Lead ${lead.id} department check:`, {
-            leadDepartment: leadDept,
-            userDepartment: this.departmentId,
-            match: match
-          });
-          
-          return match;
         });
         
       case 'manager_team': {
@@ -414,10 +379,9 @@ class DataAccessService {
         return userData.tenant_id;
       }
     } catch (error) {
-      console.error('Error parsing user data while getting tenant ID:', error);
+      // Removed console.error
     }
     
-    console.warn('No tenant ID found in any storage location');
     return null;
   }
 }

@@ -151,26 +151,22 @@ class ChatMessageView(APIView):
             # Check request body first
             if request.data and 'tenant_id' in request.data:
                 tenant_id = request.data.get('tenant_id')
-                print(f"Using tenant_id from request body: {tenant_id}")
                 
             # If not in body, check headers
             if not tenant_id and 'X-Tenant-ID' in request.headers:
                 tenant_id = request.headers.get('X-Tenant-ID')
-                print(f"Using tenant_id from request headers: {tenant_id}")
                 
             # If not in headers, check query params
             if not tenant_id and 'tenant_id' in request.query_params:
                 tenant_id = request.query_params.get('tenant_id')
-                print(f"Using tenant_id from query params: {tenant_id}")
             
             # Finally check cookies
             if not tenant_id and 'tenant_id' in request.COOKIES:
                 tenant_id = request.COOKIES.get('tenant_id')
-                print(f"Using tenant_id from cookies: {tenant_id}")
             
             # Never use a default tenant
             if not tenant_id:
-                print("WARNING: No tenant_id provided. Will not store messages in database.")
+                pass
             
             messages = client.get_messages(contact_id)
             
@@ -180,7 +176,6 @@ class ChatMessageView(APIView):
             
             return Response(messages, status=status.HTTP_200_OK)
         except Exception as e:
-            print(f"ChatMessageView error: {str(e)}")
             return Response(
                 {"error": str(e)}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -195,14 +190,12 @@ class ChatMessageView(APIView):
             try:
                 tenant = Tenant.objects.get(id=tenant_id)
             except Tenant.DoesNotExist:
-                print(f"ERROR: Tenant with ID {tenant_id} not found")
                 return
             
             # Get or create chat for this contact
             try:
                 chat = Chat.objects.filter(contact_id=contact_id, tenant=tenant).first()
                 if not chat:
-                    print(f"WARNING: Chat not found for contact_id {contact_id}")
                     return
                 
                 # Process each message
@@ -247,16 +240,16 @@ class ChatMessageView(APIView):
                         )
                         
                         if created:
-                            print(f"Stored new message: {message_id}")
+                            pass
                         
                     except Exception as message_error:
-                        print(f"Error storing message {message_id}: {str(message_error)}")
+                        pass
                 
             except Exception as chat_error:
-                print(f"Error processing messages for chat: {str(chat_error)}")
+                pass
                 
         except Exception as e:
-            print(f"Error processing messages: {str(e)}")
+            pass
 
 class ContactView(APIView):
     permission_classes = [AllowAny]  # Allow unauthenticated access for testing
@@ -438,38 +431,32 @@ class ConversationListView(APIView):
             # Check request body first
             if request.data and 'tenant_id' in request.data:
                 tenant_id = request.data.get('tenant_id')
-                print(f"Using tenant_id from request body: {tenant_id}")
                 
             # If not in body, check headers
             if not tenant_id and 'X-Tenant-ID' in request.headers:
                 tenant_id = request.headers.get('X-Tenant-ID')
-                print(f"Using tenant_id from request headers: {tenant_id}")
                 
             # If not in headers, check query params
             if not tenant_id and 'tenant_id' in request.query_params:
                 tenant_id = request.query_params.get('tenant_id')
-                print(f"Using tenant_id from query params: {tenant_id}")
             
             # Finally check cookies
             if not tenant_id and 'tenant_id' in request.COOKIES:
                 tenant_id = request.COOKIES.get('tenant_id')
-                print(f"Using tenant_id from cookies: {tenant_id}")
             
             # IMPORTANT: Never fallback to default/superadmin tenant
             if not tenant_id:
-                print("WARNING: No tenant_id provided. Will not create or update database records.")
+                pass
             
             conversations = client.get_conversations()
             
             # Process each conversation to create/update local records and leads
             if tenant_id and conversations.get('status') == True and 'data' in conversations:
-                print(f"Processing {len(conversations.get('data', []))} conversations for tenant {tenant_id}")
                 for conv_data in conversations.get('data', []):
                     self._process_conversation(conv_data, tenant_id)
             
             return Response(conversations, status=status.HTTP_200_OK)
         except Exception as e:
-            print(f"ConversationListView error: {str(e)}")
             return Response(
                 {"error": str(e)}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -482,18 +469,14 @@ class ConversationListView(APIView):
             
             # Debug log
             contact_id = conv_data.get('id')
-            print(f"Processing conversation for contact_id: {contact_id}")
             
             if not contact_id:
-                print("WARNING: No contact_id found in conversation data")
                 return
             
             # Get the tenant object
             try:
                 tenant = Tenant.objects.get(id=tenant_id)
-                print(f"Found tenant: {tenant.name}")
             except Tenant.DoesNotExist:
-                print(f"ERROR: Tenant with ID {tenant_id} not found")
                 return
                 
             # Find Sales department for this tenant
@@ -508,17 +491,16 @@ class ConversationListView(APIView):
                 ).first()
                 
                 if sales_department:
-                    print(f"Found Sales department with ID: {sales_department.id}")
+                    pass
                 else:
                     # If no sales department, get any department
                     any_department = Department.objects.filter(tenant_id=tenant_id).first()
                     if any_department:
-                        print(f"No Sales department found, using: {any_department.name} (ID: {any_department.id})")
                         sales_department = any_department
                     else:
-                        print("WARNING: No departments found for tenant ID:", tenant_id)
+                        pass
             except Exception as e:
-                print(f"Error finding Sales department: {e}")
+                pass
             
             # Parse timestamp
             last_message_time = None
@@ -540,12 +522,8 @@ class ConversationListView(APIView):
                 )
                 
                 if created:
-                    print(f"Created new chat for contact: {chat.name or chat.phone}")
+                    pass
                 else:
-                    print(f"Updated existing chat for contact: {chat.name or chat.phone}")
-                
-                # If chat exists, update its fields
-                if not created:
                     chat.name = conv_data.get('name', chat.name)
                     chat.phone = conv_data.get('phone', chat.phone)
                     chat.avatar = conv_data.get('avatar', chat.avatar)
@@ -559,37 +537,25 @@ class ConversationListView(APIView):
                     # Import the lead service
                     from .services.lead_service import LeadService
                     
-                    print(f"Creating/finding lead for chat: {chat.name or chat.phone}")
-                    
-                    # Pass the department ID to ensure proper department assignment
-                    dept_id = sales_department.id if sales_department else None
                     lead = LeadService.create_lead_from_contact(
                         conv_data, 
                         tenant_id, 
-                        department_id=dept_id
+                        department_id=sales_department.id if sales_department else None
                     )
                     
                     if lead:
-                        print(f"Lead processed successfully with ID: {lead.id}")
-                        # Store lead ID reference
                         chat.lead_id = lead.id
                         chat.save()
                     else:
-                        print("WARNING: Lead service returned None")
+                        pass
                 except Exception as lead_error:
-                    print(f"Error creating lead: {str(lead_error)}")
-                    import traceback
-                    traceback.print_exc()
+                    pass
             
             except Exception as chat_error:
-                print(f"Error creating/updating chat: {str(chat_error)}")
-                import traceback
-                traceback.print_exc()
+                pass
         
         except Exception as e:
-            print(f"Error processing conversation: {str(e)}")
-            import traceback
-            traceback.print_exc()
+            pass
     
     def _parse_timestamp(self, timestamp_str):
         """Parse timestamp string to datetime object"""
@@ -700,22 +666,18 @@ class CreateLeadFromChatView(APIView):
             # Check request body first
             if request.data and 'tenant_id' in request.data:
                 tenant_id = request.data.get('tenant_id')
-                print(f"Using tenant_id from request body: {tenant_id}")
                 
             # If not in body, check headers
             if not tenant_id and 'X-Tenant-ID' in request.headers:
                 tenant_id = request.headers.get('X-Tenant-ID')
-                print(f"Using tenant_id from request headers: {tenant_id}")
                 
             # If not in headers, check query params
             if not tenant_id and 'tenant_id' in request.query_params:
                 tenant_id = request.query_params.get('tenant_id')
-                print(f"Using tenant_id from query params: {tenant_id}")
             
             # Finally check cookies
             if not tenant_id and 'tenant_id' in request.COOKIES:
                 tenant_id = request.COOKIES.get('tenant_id')
-                print(f"Using tenant_id from cookies: {tenant_id}")
             
             if not tenant_id:
                 return Response(
@@ -727,7 +689,6 @@ class CreateLeadFromChatView(APIView):
             from users.models import Tenant
             try:
                 tenant = Tenant.objects.get(id=tenant_id)
-                print(f"Found tenant: {tenant.name} with ID {tenant_id}")
             except Tenant.DoesNotExist:
                 return Response(
                     {"error": f"Tenant with ID {tenant_id} not found"}, 
@@ -860,25 +821,17 @@ def get_conversations(request):
     try:
         # Get tenant ID from request
         tenant_id = request.data.get('tenant_id') or request.headers.get('X-Tenant-ID')
-        print(f"[DEBUG] get_conversations - Received tenant_id: {tenant_id}")
-        print(f"[DEBUG] get_conversations - Request data: {request.data}")
-        print(f"[DEBUG] get_conversations - Request headers: {request.headers}")
         
         if not tenant_id:
-            print("[DEBUG] get_conversations - No tenant_id provided")
             return Response({
                 'status': 'error',
                 'errMsg': 'Tenant ID is required'
             }, status=400)
             
-        print(f"[DEBUG] get_conversations - Processing conversations for tenant: {tenant_id}")
-            
         # Initialize OnCloud client
         try:
             client = OnCloudAPIClient(tenant_id=tenant_id)
-            print("[DEBUG] get_conversations - Successfully initialized OnCloudAPIClient")
         except Exception as client_error:
-            print(f"[DEBUG] get_conversations - Error initializing OnCloudAPIClient: {str(client_error)}")
             return Response({
                 'status': 'error',
                 'errMsg': str(client_error)
@@ -887,16 +840,13 @@ def get_conversations(request):
         # Fetch conversations
         try:
             conversations = client.get_conversations()
-            print(f"[DEBUG] get_conversations - Successfully fetched conversations: {conversations.get('status')}")
         except Exception as conv_error:
-            print(f"[DEBUG] get_conversations - Error fetching conversations: {str(conv_error)}")
             return Response({
                 'status': 'error',
                 'errMsg': str(conv_error)
             }, status=400)
         
         if conversations.get('status') == 'error':
-            print(f"[DEBUG] get_conversations - API returned error: {conversations.get('message')}")
             return Response({
                 'status': 'error',
                 'errMsg': conversations.get('message', 'Failed to fetch conversations')
@@ -904,7 +854,6 @@ def get_conversations(request):
             
         # Get conversations data
         conversations_data = conversations.get('data', [])
-        print(f"[DEBUG] get_conversations - Found {len(conversations_data)} conversations")
         
         # For each conversation, create a lead if it doesn't exist
         from .services.lead_service import LeadService
@@ -924,17 +873,16 @@ def get_conversations(request):
             ).first()
             
             if sales_department:
-                print(f"[DEBUG] get_conversations - Found Sales department with ID: {sales_department.id}")
+                pass
             else:
                 # If no sales department, get any department
                 any_department = Department.objects.filter(tenant_id=tenant_id).first()
                 if any_department:
-                    print(f"[DEBUG] get_conversations - No Sales department found, using: {any_department.name} (ID: {any_department.id})")
                     sales_department = any_department
                 else:
-                    print("[DEBUG] get_conversations - WARNING: No departments found for tenant ID:", tenant_id)
+                    pass
         except Exception as e:
-            print(f"[DEBUG] get_conversations - Error finding Sales department: {e}")
+            pass
         
         # Process each conversation
         leads_created = 0
@@ -968,7 +916,6 @@ def get_conversations(request):
                         leads_found += 1
                     else:
                         leads_created += 1
-                    print(f"[DEBUG] get_conversations - {'Found' if existing_lead else 'Created'} lead ID {lead.id} for conversation ID {conversation.get('id')}")
                     
                     # Make sure the chat record has the lead_id
                     try:
@@ -976,18 +923,13 @@ def get_conversations(request):
                         if chat and not chat.lead_id:
                             chat.lead_id = lead.id
                             chat.save()
-                            print(f"[DEBUG] get_conversations - Updated chat {chat.id} with lead_id {lead.id}")
                     except Exception as chat_error:
-                        print(f"[DEBUG] get_conversations - Error updating chat: {str(chat_error)}")
+                        pass
                 else:
-                    print(f"[DEBUG] get_conversations - Failed to create lead for conversation ID {conversation.get('id')}")
+                    pass
                     
             except Exception as e:
-                print(f"[DEBUG] get_conversations - Error processing conversation for lead creation: {e}")
-                import traceback
-                traceback.print_exc()
-        
-        print(f"[DEBUG] get_conversations - SUMMARY: Created {leads_created} new leads, found {leads_found} existing leads")
+                pass
         
         return Response({
             'status': 'success',
@@ -1000,8 +942,6 @@ def get_conversations(request):
         })
         
     except Exception as e:
-        import traceback
-        traceback.print_exc()
         return Response({
             'status': 'error',
             'errMsg': str(e)
@@ -1058,8 +998,6 @@ def check_lead_departments(request):
         return Response(response_data)
         
     except Exception as e:
-        import traceback
-        traceback.print_exc()
         return Response({"error": str(e)}, status=500)
 
 class WABASettingsViewSet(viewsets.ModelViewSet):
@@ -1076,7 +1014,6 @@ class WABASettingsViewSet(viewsets.ModelViewSet):
             # Filter by tenant
             return WABASettings.objects.filter(tenant=tenant_user.tenant)
         except Exception as e:
-            print(f"Error getting WABA settings: {str(e)}")
             return WABASettings.objects.none()
 
     def perform_create(self, serializer):

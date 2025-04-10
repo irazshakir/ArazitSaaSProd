@@ -4,13 +4,9 @@ import { Form, Input, DatePicker, Select, InputNumber, Row, Col, Divider } from 
 import { PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
-console.log('FlightForm.jsx module loaded');
-
 const { Option } = Select;
 
 const FlightForm = ({ form, formValues, handleInputChange }) => {
-  console.log("FlightForm received formValues:", formValues);
-  
   // Initialize state from formValues with proper defaults for all fields
   const [passengers, setPassengers] = useState(formValues.passenger_details || []);
   const [costDetails, setCostDetails] = useState({
@@ -25,14 +21,11 @@ const FlightForm = ({ form, formValues, handleInputChange }) => {
 
   // Update local state when formValues change (useful for edit mode)
   useEffect(() => {
-    console.log("FormValues updated in FlightForm:", formValues);
-    
     if (formValues.passenger_details) {
       setPassengers(formValues.passenger_details);
     }
     
     if (formValues.cost_details) {
-      console.log("Updating cost details:", formValues.cost_details);
       // Ensure all needed fields are present with proper type conversion
       const updatedCostDetails = {
         adult_price: Number(formValues.cost_details.adult_price || 0),
@@ -120,9 +113,6 @@ const FlightForm = ({ form, formValues, handleInputChange }) => {
       updatedCostDetails.total_profit = 0;
     }
     
-    console.log("Passenger count updated:", updatedPassengers);
-    console.log("Cost details updated:", updatedCostDetails);
-    
     // Update state and form
     form.setFieldsValue({ 
       passengers: updatedPassengers,
@@ -208,8 +198,6 @@ const FlightForm = ({ form, formValues, handleInputChange }) => {
       updated.total_profit = Number(value) - totalCost;
     }
     
-    console.log("Updated cost details:", updated);
-    
     // Update the state and form values
     setCostDetails(updated);
     form.setFieldsValue({ cost_details: updated });
@@ -229,8 +217,6 @@ const FlightForm = ({ form, formValues, handleInputChange }) => {
     const infantPrice = Number(costDetails.infant_price || 0);
     
     const totalCost = (adultCount * adultPrice) + (childCount * childPrice) + (infantCount * infantPrice);
-    console.log(`Calculated total cost: ${totalCost} (${adultCount}×${adultPrice} + ${childCount}×${childPrice} + ${infantCount}×${infantPrice})`);
-    
     return totalCost;
   };
 
@@ -241,7 +227,6 @@ const FlightForm = ({ form, formValues, handleInputChange }) => {
     const totalSell = costDetails.total_sell !== undefined ? Number(costDetails.total_sell) : totalCost;
     
     const profit = totalSell - totalCost;
-    console.log(`Calculated profit: ${profit} (${totalSell} - ${totalCost})`);
     return profit;
   };
 

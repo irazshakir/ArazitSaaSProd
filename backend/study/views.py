@@ -64,16 +64,11 @@ class StudyViewSet(viewsets.ModelViewSet):
         data = request.data.copy()
         data['lead_inquiry'] = lead_id
         
-        # Print the data for debugging
-        print(f"Creating study with data: {data}")
-        
         serializer = CreateStudySerializer(data=data)
         if serializer.is_valid():
             study = serializer.save()
-            print(f"Study created: {study}")
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
-        print(f"Serializer errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
     @action(detail=False, methods=['get'], url_path='for-lead')

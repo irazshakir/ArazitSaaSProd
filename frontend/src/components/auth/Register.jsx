@@ -95,10 +95,8 @@ const Register = () => {
       // Redirect to dashboard
       navigate('/dashboard');
     } catch (err) {
-      console.error('Registration error:', err);
       // More detailed error handling
       if (err.response) {
-        console.log('Error response data:', err.response.data);
         if (err.response.data.error) {
           setError(err.response.data.error);
         } else {

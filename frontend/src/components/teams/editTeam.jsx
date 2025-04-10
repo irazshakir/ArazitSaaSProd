@@ -72,7 +72,6 @@ const EditTeam = () => {
         loadInitialOptions(tenantId);
       }
     } catch (error) {
-      console.error('Error parsing user data:', error);
       message.error('Error loading user data. Please log in again.');
       navigate('/login');
     }
@@ -88,35 +87,15 @@ const EditTeam = () => {
       try {
         // Try main endpoint first
       const branchesResponse = await api.get('branches/', { params: { tenant: tenantId } });
-        console.log('Main branches API success:', branchesResponse);
         branchesData = Array.isArray(branchesResponse.data) 
           ? branchesResponse.data 
           : branchesResponse.data?.results || [];
       } catch (error) {
-        console.log('Main branches API failed, trying fallback endpoint');
-        
-        try {
-          // Try auth endpoint
-          const branchesResponse = await api.get('auth/branches/', { params: { tenant: tenantId } });
-          console.log('Auth branches API success:', branchesResponse);
-          branchesData = Array.isArray(branchesResponse.data) 
-            ? branchesResponse.data 
-            : branchesResponse.data?.results || [];
-        } catch (error2) {
-          console.log('Auth branches API failed, trying admin endpoint');
-          
-          try {
-            // Try admin endpoint
-            const branchesResponse = await api.get('admin/branches/', { params: { tenant: tenantId } });
-            console.log('Admin branches API success:', branchesResponse);
-            branchesData = Array.isArray(branchesResponse.data) 
-        ? branchesResponse.data 
-        : branchesResponse.data?.results || [];
-          } catch (error3) {
-            console.error('All branches API attempts failed:', error3);
-            message.warning('Failed to load branches. Some options may be unavailable.');
-          }
-        }
+        // Try auth endpoint
+        const branchesResponse = await api.get('auth/branches/', { params: { tenant: tenantId } });
+        branchesData = Array.isArray(branchesResponse.data) 
+          ? branchesResponse.data 
+          : branchesResponse.data?.results || [];
       }
       
       setBranches(branchesData);
@@ -126,35 +105,15 @@ const EditTeam = () => {
       try {
         // Try main endpoint first
         const departmentsResponse = await api.get('departments/', { params: { tenant: tenantId } });
-        console.log('Main departments API success:', departmentsResponse);
         departmentsData = Array.isArray(departmentsResponse.data) 
           ? departmentsResponse.data 
           : departmentsResponse.data?.results || [];
       } catch (error) {
-        console.log('Main departments API failed, trying fallback endpoint');
-        
-        try {
-          // Try auth endpoint
-          const departmentsResponse = await api.get('auth/departments/', { params: { tenant: tenantId } });
-          console.log('Auth departments API success:', departmentsResponse);
-          departmentsData = Array.isArray(departmentsResponse.data) 
-            ? departmentsResponse.data 
-            : departmentsResponse.data?.results || [];
-        } catch (error2) {
-          console.log('Auth departments API failed, trying users endpoint');
-          
-          try {
-            // Try users endpoint
-            const departmentsResponse = await api.get('users/departments/', { params: { tenant: tenantId } });
-            console.log('Users departments API success:', departmentsResponse);
-            departmentsData = Array.isArray(departmentsResponse.data) 
-        ? departmentsResponse.data 
-        : departmentsResponse.data?.results || [];
-          } catch (error3) {
-            console.error('All departments API attempts failed:', error3);
-            message.warning('Failed to load departments. Some options may be unavailable.');
-          }
-        }
+        // Try auth endpoint
+        const departmentsResponse = await api.get('auth/departments/', { params: { tenant: tenantId } });
+        departmentsData = Array.isArray(departmentsResponse.data) 
+          ? departmentsResponse.data 
+          : departmentsResponse.data?.results || [];
       }
       
       setDepartments(departmentsData);
@@ -164,7 +123,6 @@ const EditTeam = () => {
       
       setLoading(false);
     } catch (error) {
-      console.error('Error loading options:', error);
       message.error('Failed to load form options');
       setLoading(false);
     }
@@ -178,36 +136,16 @@ const EditTeam = () => {
       try {
         // Try main endpoint first
       const response = await api.get(`teams/${teamId}/`);
-        console.log('Main teams API success:', response);
         teamData = response.data;
       } catch (error) {
-        console.log('Main teams API failed, trying fallback endpoint');
-        
-        try {
-          // Try auth endpoint
-          const response = await api.get(`auth/teams/${teamId}/`);
-          console.log('Auth teams API success:', response);
-          teamData = response.data;
-        } catch (error2) {
-          console.log('Auth teams API failed, trying admin endpoint');
-          
-          try {
-            // Try admin endpoint
-            const response = await api.get(`admin/teams/${teamId}/`);
-            console.log('Admin teams API success:', response);
-            teamData = response.data;
-          } catch (error3) {
-            console.error('All teams API attempts failed:', error3);
-            throw new Error('Failed to fetch team data');
-          }
-        }
+        // Try auth endpoint
+        const response = await api.get(`auth/teams/${teamId}/`);
+        teamData = response.data;
       }
       
       if (!teamData) {
         throw new Error('No valid response for team data');
       }
-      
-      console.log('Fetched team data:', teamData);
       
       // Update form data with basic team info
       setFormData({
@@ -227,7 +165,6 @@ const EditTeam = () => {
       await fetchTeamHierarchy(teamId);
       
     } catch (error) {
-      console.error('Error fetching team:', error);
       message.error('Failed to load team data');
       
       // Navigate back to teams list if team not found
@@ -245,34 +182,14 @@ const EditTeam = () => {
       try {
         // Attempt to fetch complete hierarchy with main endpoint
       const response = await api.get(`teams/${teamId}/hierarchy/`);
-        console.log('Main hierarchy API success:', response);
         hierarchyData = response.data;
       } catch (error) {
-        console.log('Main hierarchy API failed, trying fallback endpoint');
-        
-        try {
-          // Try auth endpoint
-          const response = await api.get(`auth/teams/${teamId}/hierarchy/`);
-          console.log('Auth hierarchy API success:', response);
-          hierarchyData = response.data;
-        } catch (error2) {
-          console.log('Auth hierarchy API failed, trying admin endpoint');
-          
-          try {
-            // Try admin endpoint
-            const response = await api.get(`admin/teams/${teamId}/hierarchy/`);
-            console.log('Admin hierarchy API success:', response);
-            hierarchyData = response.data;
-          } catch (error3) {
-            console.error('All hierarchy API attempts failed:', error3);
-            // We'll continue with the fallback approach below
-          }
-        }
+        // Try auth endpoint
+        const response = await api.get(`auth/teams/${teamId}/hierarchy/`);
+        hierarchyData = response.data;
       }
       
       if (hierarchyData) {
-      console.log('Team hierarchy data:', hierarchyData);
-      
       // Setup managers array with team leads and members
       if (hierarchyData.managers && Array.isArray(hierarchyData.managers)) {
         // Map the managers data to our structure
@@ -296,125 +213,75 @@ const EditTeam = () => {
       }
       } else {
         // Fallback to fetching individual parts
-        console.log('Falling back to individual API calls for team hierarchy');
+        // First fetch managers with fallback endpoints
+        let managersData = [];
         
         try {
-          // First fetch managers with fallback endpoints
-          let managersData = [];
+          const managersResponse = await api.get(`teams/${teamId}/managers/`);
+          managersData = Array.isArray(managersResponse.data) 
+            ? managersResponse.data 
+            : managersResponse.data?.results || [];
+        } catch (error) {
+          // Try auth endpoint
+          const managersResponse = await api.get(`auth/teams/${teamId}/managers/`);
+          managersData = Array.isArray(managersResponse.data) 
+            ? managersResponse.data 
+            : managersResponse.data?.results || [];
+        }
+      
+      // For each manager, fetch team leads
+      const managersWithLeads = await Promise.all(managersData.map(async (manager) => {
+          let teamLeadsData = [];
           
           try {
-            const managersResponse = await api.get(`teams/${teamId}/managers/`);
-            console.log('Main managers API success:', managersResponse);
-            managersData = Array.isArray(managersResponse.data) 
-              ? managersResponse.data 
-              : managersResponse.data?.results || [];
-    } catch (error) {
-            try {
-              const managersResponse = await api.get(`auth/teams/${teamId}/managers/`);
-              console.log('Auth managers API success:', managersResponse);
-              managersData = Array.isArray(managersResponse.data) 
-                ? managersResponse.data 
-                : managersResponse.data?.results || [];
-            } catch (error2) {
-              try {
-                const managersResponse = await api.get(`admin/teams/${teamId}/managers/`);
-                console.log('Admin managers API success:', managersResponse);
-                managersData = Array.isArray(managersResponse.data) 
-          ? managersResponse.data 
-          : managersResponse.data?.results || [];
-              } catch (error3) {
-                console.error('All managers API attempts failed:', error3);
-                // Continue with empty managers array
-              }
-            }
+            const teamLeadsResponse = await api.get(`team-managers/${manager.id}/team_leads/`);
+            teamLeadsData = Array.isArray(teamLeadsResponse.data) 
+              ? teamLeadsResponse.data 
+              : teamLeadsResponse.data?.results || [];
+          } catch (error) {
+            // Try auth endpoint
+            const teamLeadsResponse = await api.get(`auth/team-managers/${manager.id}/team_leads/`);
+            teamLeadsData = Array.isArray(teamLeadsResponse.data) 
+              ? teamLeadsResponse.data 
+              : teamLeadsResponse.data?.results || [];
           }
         
-        // For each manager, fetch team leads
-        const managersWithLeads = await Promise.all(managersData.map(async (manager) => {
-            let teamLeadsData = [];
+        // For each team lead, fetch members
+        const teamLeadsWithMembers = await Promise.all(teamLeadsData.map(async (teamLead) => {
+            let membersData = [];
             
             try {
-          const teamLeadsResponse = await api.get(`team-managers/${manager.id}/team_leads/`);
-              console.log('Main team leads API success:', teamLeadsResponse);
-              teamLeadsData = Array.isArray(teamLeadsResponse.data) 
-                ? teamLeadsResponse.data 
-                : teamLeadsResponse.data?.results || [];
+              const membersResponse = await api.get(`team-leads/${teamLead.id}/members/`);
+              membersData = Array.isArray(membersResponse.data) 
+                ? membersResponse.data 
+                : membersResponse.data?.results || [];
             } catch (error) {
-              try {
-                const teamLeadsResponse = await api.get(`auth/team-managers/${manager.id}/team_leads/`);
-                console.log('Auth team leads API success:', teamLeadsResponse);
-                teamLeadsData = Array.isArray(teamLeadsResponse.data) 
-                  ? teamLeadsResponse.data 
-                  : teamLeadsResponse.data?.results || [];
-              } catch (error2) {
-                try {
-                  const teamLeadsResponse = await api.get(`admin/team-managers/${manager.id}/team_leads/`);
-                  console.log('Admin team leads API success:', teamLeadsResponse);
-                  teamLeadsData = Array.isArray(teamLeadsResponse.data) 
-          ? teamLeadsResponse.data 
-          : teamLeadsResponse.data?.results || [];
-                } catch (error3) {
-                  console.error('All team leads API attempts failed:', error3);
-                  // Continue with empty team leads array
-                }
-              }
+              // Try auth endpoint
+              const membersResponse = await api.get(`auth/team-leads/${teamLead.id}/members/`);
+              membersData = Array.isArray(membersResponse.data) 
+                ? membersResponse.data 
+                : membersResponse.data?.results || [];
             }
-        
-          // For each team lead, fetch members
-          const teamLeadsWithMembers = await Promise.all(teamLeadsData.map(async (teamLead) => {
-              let membersData = [];
-              
-              try {
-            const membersResponse = await api.get(`team-leads/${teamLead.id}/members/`);
-                console.log('Main members API success:', membersResponse);
-                membersData = Array.isArray(membersResponse.data) 
-                  ? membersResponse.data 
-                  : membersResponse.data?.results || [];
-              } catch (error) {
-                try {
-                  const membersResponse = await api.get(`auth/team-leads/${teamLead.id}/members/`);
-                  console.log('Auth members API success:', membersResponse);
-                  membersData = Array.isArray(membersResponse.data) 
-                    ? membersResponse.data 
-                    : membersResponse.data?.results || [];
-                } catch (error2) {
-                  try {
-                    const membersResponse = await api.get(`admin/team-leads/${teamLead.id}/members/`);
-                    console.log('Admin members API success:', membersResponse);
-                    membersData = Array.isArray(membersResponse.data) 
-              ? membersResponse.data
-              : membersResponse.data?.results || [];
-                  } catch (error3) {
-                    console.error('All members API attempts failed:', error3);
-                    // Continue with empty members array
-                  }
-                }
-              }
-            
-            return {
-              ...teamLead,
-              members: membersData
-            };
-          }));
           
           return {
-            ...manager,
-            team_leads: teamLeadsWithMembers
+            ...teamLead,
+            members: membersData
           };
         }));
         
-        setManagers(managersWithLeads);
-        } catch (fallbackError) {
-          console.error('Error fetching team hierarchy with fallback approach:', fallbackError);
-          message.error('Failed to load team structure');
-        }
+        return {
+          ...manager,
+          team_leads: teamLeadsWithMembers
+        };
+      }));
+      
+      setManagers(managersWithLeads);
       }
         
         // Load available managers, team leads and members for this team
         await fetchAllUsers();
       
-      } catch (error) {
-      console.error('Error in fetchTeamHierarchy:', error);
+    } catch (error) {
       message.error('Failed to load team hierarchy');
     }
   };
@@ -434,50 +301,27 @@ const EditTeam = () => {
           role: 'department_head'
         }
       });
-        console.log('Main department heads API success:', response);
         headsData = Array.isArray(response.data)
         ? response.data
         : response.data?.results || [];
-    } catch (error) {
-        try {
-          // Try auth endpoint
-          const response = await api.get('auth/users/', {
-            params: {
-              tenant: tenantId,
-              branch: branchId,
-              department: departmentId,
-              role: 'department_head'
-            }
-          });
-          console.log('Auth department heads API success:', response);
-          headsData = Array.isArray(response.data)
-            ? response.data
-            : response.data?.results || [];
-        } catch (error2) {
-          try {
-            // Try admin endpoint
-            const response = await api.get('admin/users/', {
-              params: {
-                tenant: tenantId,
-                branch: branchId,
-                department: departmentId,
-                role: 'department_head'
-              }
-            });
-            console.log('Admin department heads API success:', response);
-            headsData = Array.isArray(response.data)
-              ? response.data
-              : response.data?.results || [];
-          } catch (error3) {
-            console.error('All department heads API attempts failed:', error3);
-            // Continue with empty array
+      } catch (error) {
+        // Try auth endpoint
+        const response = await api.get('auth/users/', {
+          params: {
+            tenant: tenantId,
+            branch: branchId,
+            department: departmentId,
+            role: 'department_head'
           }
-        }
+        });
+        headsData = Array.isArray(response.data)
+          ? response.data
+          : response.data?.results || [];
       }
       
       setDepartmentHeads(headsData);
     } catch (error) {
-      console.error('Error loading department heads:', error);
+      message.error('Error loading department heads:');
     }
   };
   
@@ -488,7 +332,6 @@ const EditTeam = () => {
       const { branch, department } = formData;
       
       if (!branch || !department) {
-        console.log('Cannot fetch users without branch and department');
         return;
       }
       
@@ -504,43 +347,22 @@ const EditTeam = () => {
             role: 'manager'
           }
         });
-        console.log('Main managers API success:', managersResponse);
         managersData = Array.isArray(managersResponse.data)
           ? managersResponse.data
           : managersResponse.data?.results || [];
       } catch (error) {
-        try {
-          const managersResponse = await api.get('auth/users/', {
-            params: {
-              tenant: tenantId,
-              branch: branch,
-              department: department,
-              role: 'manager'
-            }
-          });
-          console.log('Auth managers API success:', managersResponse);
-          managersData = Array.isArray(managersResponse.data)
-            ? managersResponse.data
-            : managersResponse.data?.results || [];
-        } catch (error2) {
-          try {
-            const managersResponse = await api.get('admin/users/', {
-              params: {
-                tenant: tenantId,
-                branch: branch,
-                department: department,
-                role: 'manager'
-              }
-            });
-            console.log('Admin managers API success:', managersResponse);
-            managersData = Array.isArray(managersResponse.data)
-              ? managersResponse.data
-              : managersResponse.data?.results || [];
-          } catch (error3) {
-            console.error('All managers API attempts failed:', error3);
-            // Continue with empty array
+        // Try auth endpoint
+        const managersResponse = await api.get('auth/users/', {
+          params: {
+            tenant: tenantId,
+            branch: branch,
+            department: department,
+            role: 'manager'
           }
-        }
+        });
+        managersData = Array.isArray(managersResponse.data)
+          ? managersResponse.data
+          : managersResponse.data?.results || [];
       }
       
       // Filter out managers already assigned to the team
@@ -561,43 +383,22 @@ const EditTeam = () => {
             role: 'team_lead'
           }
         });
-        console.log('Main team leads API success:', teamLeadsResponse);
         teamLeadsData = Array.isArray(teamLeadsResponse.data)
           ? teamLeadsResponse.data
           : teamLeadsResponse.data?.results || [];
       } catch (error) {
-        try {
-          const teamLeadsResponse = await api.get('auth/users/', {
-            params: {
-              tenant: tenantId,
-              branch: branch,
-              department: department,
-              role: 'team_lead'
-            }
-          });
-          console.log('Auth team leads API success:', teamLeadsResponse);
-          teamLeadsData = Array.isArray(teamLeadsResponse.data)
-            ? teamLeadsResponse.data
-            : teamLeadsResponse.data?.results || [];
-        } catch (error2) {
-          try {
-            const teamLeadsResponse = await api.get('admin/users/', {
-              params: {
-                tenant: tenantId,
-                branch: branch,
-                department: department,
-                role: 'team_lead'
-              }
-            });
-            console.log('Admin team leads API success:', teamLeadsResponse);
-            teamLeadsData = Array.isArray(teamLeadsResponse.data)
-              ? teamLeadsResponse.data
-              : teamLeadsResponse.data?.results || [];
-          } catch (error3) {
-            console.error('All team leads API attempts failed:', error3);
-            // Continue with empty array
+        // Try auth endpoint
+        const teamLeadsResponse = await api.get('auth/users/', {
+          params: {
+            tenant: tenantId,
+            branch: branch,
+            department: department,
+            role: 'team_lead'
           }
-        }
+        });
+        teamLeadsData = Array.isArray(teamLeadsResponse.data)
+          ? teamLeadsResponse.data
+          : teamLeadsResponse.data?.results || [];
       }
       
       // We'll filter these when adding to a specific manager
@@ -615,49 +416,27 @@ const EditTeam = () => {
             role__in: 'sales_agent,support_agent,processor' // Multiple roles
           }
         });
-        console.log('Main members API success:', membersResponse);
         membersData = Array.isArray(membersResponse.data)
           ? membersResponse.data
           : membersResponse.data?.results || [];
       } catch (error) {
-        try {
-          const membersResponse = await api.get('auth/users/', {
-            params: {
-              tenant: tenantId,
-              branch: branch,
-              department: department,
-              role__in: 'sales_agent,support_agent,processor' // Multiple roles
-            }
-          });
-          console.log('Auth members API success:', membersResponse);
-          membersData = Array.isArray(membersResponse.data)
-            ? membersResponse.data
-            : membersResponse.data?.results || [];
-        } catch (error2) {
-          try {
-            const membersResponse = await api.get('admin/users/', {
-              params: {
-                tenant: tenantId,
-                branch: branch,
-                department: department,
-                role__in: 'sales_agent,support_agent,processor' // Multiple roles
-              }
-            });
-            console.log('Admin members API success:', membersResponse);
-            membersData = Array.isArray(membersResponse.data)
-              ? membersResponse.data
-              : membersResponse.data?.results || [];
-          } catch (error3) {
-            console.error('All members API attempts failed:', error3);
-            // Continue with empty array
+        // Try auth endpoint
+        const membersResponse = await api.get('auth/users/', {
+          params: {
+            tenant: tenantId,
+            branch: branch,
+            department: department,
+            role__in: 'sales_agent,support_agent,processor' // Multiple roles
           }
-        }
+        });
+        membersData = Array.isArray(membersResponse.data)
+          ? membersResponse.data
+          : membersResponse.data?.results || [];
       }
       
       setAvailableMembers(membersData);
       
     } catch (error) {
-      console.error('Error fetching available users:', error);
       message.error('Failed to load available users');
     }
   };
@@ -976,18 +755,11 @@ const EditTeam = () => {
       // Update the team with fallback endpoints
       try {
         await api.put(`teams/${id}/`, teamData);
-        console.log('Team updated successfully with main endpoint');
       } catch (error) {
-        console.log('Main endpoint failed, trying fallback', error);
-        
         try {
           await api.put(`auth/teams/${id}/`, teamData);
-          console.log('Team updated successfully with auth endpoint');
         } catch (error2) {
-          console.log('Auth endpoint failed, trying admin fallback', error2);
-          
           await api.put(`admin/teams/${id}/`, teamData);
-          console.log('Team updated successfully with admin endpoint');
         }
       }
       
@@ -1010,7 +782,6 @@ const EditTeam = () => {
               const response = await api.get(`admin/teams/${id}/hierarchy/`);
               originalHierarchyData = response.data;
             } catch (error3) {
-              console.error("Couldn't fetch original hierarchy for deletion comparison:", error3);
             }
           }
         }
@@ -1020,7 +791,6 @@ const EditTeam = () => {
           await handleDeletions(originalHierarchyData);
         }
       } catch (deletionError) {
-        console.error("Error handling deletions:", deletionError);
         // Continue anyway to try the additions
       }
       
@@ -1067,17 +837,17 @@ const EditTeam = () => {
                         try {
                           await api.post('team-members/', memberData);
                         } catch (memberError) {
-                          console.error('Failed to add team member:', memberError);
+                          // Failed to add team member
                         }
                       }
                     }
                   } catch (teamLeadError) {
-                    console.error('Failed to add team lead:', teamLeadError);
+                    // Failed to add team lead
                   }
                 }
               }
             } catch (managerError) {
-              console.error('Failed to add team manager:', managerError);
+              // Failed to add team manager
             }
           });
         } else {
@@ -1108,12 +878,12 @@ const EditTeam = () => {
                       try {
                         await api.post('team-members/', memberData);
                       } catch (memberError) {
-                        console.error('Failed to add team member:', memberError);
+                        // Failed to add team member
                       }
                     }
                   }
                 } catch (teamLeadError) {
-                  console.error('Failed to add team lead:', teamLeadError);
+                  // Failed to add team lead
                 }
               });
             } else {
@@ -1130,7 +900,7 @@ const EditTeam = () => {
                     try {
                       await api.post('team-members/', memberData);
                     } catch (memberError) {
-                      console.error('Failed to add team member:', memberError);
+                      // Failed to add team member
                     }
                   });
                 }
@@ -1144,9 +914,7 @@ const EditTeam = () => {
       if (apiCalls.length > 0) {
         try {
           await Promise.allSettled(apiCalls.map(call => call()));
-          console.log('Processed team hierarchy additions');
         } catch (hierarchyError) {
-          console.error('Some team hierarchy updates failed:', hierarchyError);
           // Continue anyway - main team data has been saved
         }
       }
@@ -1160,7 +928,6 @@ const EditTeam = () => {
       
     } catch (error) {
       setSubmitting(false);
-      console.error('Error updating team:', error);
       
       // Handle API validation errors
       if (error.response?.data) {
@@ -1184,147 +951,150 @@ const EditTeam = () => {
   // New function to handle deletions of team members, team leads, and managers
   const handleDeletions = async (originalHierarchy) => {
     try {
-      // Extract the original managers, team leads, and members
-      const originalManagers = originalHierarchy.managers || [];
-      
-      // 1. Handle Member Deletions
-      for (const originalManager of originalManagers) {
-        const currentManager = managers.find(m => m.id === originalManager.id);
+      // Only attempt deletion comparisons if we have original hierarchy data
+      if (originalHierarchy && originalHierarchy.managers) {
+        // Helper function to check if a manager exists in current state
+        const managerExists = (managerId) => {
+          return managers.some(m => m.id === managerId);
+        };
         
-        // If manager still exists, check team leads
-        if (currentManager) {
-          for (const originalTeamLead of (originalManager.team_leads || [])) {
-            const currentTeamLead = currentManager.team_leads.find(tl => tl.id === originalTeamLead.id);
-            
-            // If team lead still exists, check members
-            if (currentTeamLead) {
-              // Find members to delete (in original but not in current)
-              for (const originalMember of (originalTeamLead.members || [])) {
-                const memberExists = currentTeamLead.members.some(m => m.id === originalMember.id);
-                
-                // If member doesn't exist in current team lead, delete it
-                if (!memberExists) {
-                  console.log(`Deleting member: ${originalMember.id}`);
+        // Helper function to check if a team lead exists under a manager
+        const teamLeadExists = (managerId, teamLeadId) => {
+          const manager = managers.find(m => m.id === managerId);
+          if (!manager) return false;
+          
+          const teamLeads = manager.team_leads || [];
+          return teamLeads.some(tl => tl.id === teamLeadId);
+        };
+        
+        // Helper function to check if a member exists under a team lead
+        const memberExists = (teamLeadId, memberId) => {
+          // Find manager containing this team lead
+          let found = false;
+          managers.forEach(manager => {
+            (manager.team_leads || []).forEach(teamLead => {
+              if (teamLead.id === teamLeadId) {
+                // Found the team lead, now check if member exists
+                found = (teamLead.members || []).some(m => m.id === memberId);
+              }
+            });
+          });
+          return found;
+        };
+        
+        // Check for deleted members under existing team leads
+        for (const originalManager of originalHierarchy.managers) {
+          if (managerExists(originalManager.id)) {
+            // Manager still exists, check for deleted team leads and members
+            for (const originalTeamLead of (originalManager.team_leads || [])) {
+              if (teamLeadExists(originalManager.id, originalTeamLead.id)) {
+                // Team lead still exists, check for deleted members
+                for (const originalMember of (originalTeamLead.members || [])) {
+                  if (!memberExists(originalTeamLead.id, originalMember.id)) {
+                    // Member has been deleted, delete it from API
+                    try {
+                      await api.delete(`team-members/${originalMember.id}/`);
+                    } catch (error) {
+                      try {
+                        await api.delete(`auth/team-members/${originalMember.id}/`);
+                      } catch (error2) {
+                        try {
+                          await api.delete(`admin/team-members/${originalMember.id}/`);
+                        } catch (error3) {
+                          // Silent error - tried all endpoints
+                        }
+                      }
+                    }
+                  }
+                }
+              } else {
+                // Team lead was deleted - delete all its members first
+                for (const originalMember of (originalTeamLead.members || [])) {
                   try {
                     await api.delete(`team-members/${originalMember.id}/`);
                   } catch (error) {
-                    console.error(`Failed to delete member ${originalMember.id}:`, error);
-                    // Try fallback endpoints
                     try {
                       await api.delete(`auth/team-members/${originalMember.id}/`);
                     } catch (error2) {
                       try {
                         await api.delete(`admin/team-members/${originalMember.id}/`);
                       } catch (error3) {
-                        console.error(`All deletion attempts failed for member ${originalMember.id}`);
+                        // Silent error - tried all endpoints
                       }
                     }
                   }
                 }
+                
+                // Then delete the team lead itself
+                try {
+                  await api.delete(`team-leads/${originalTeamLead.id}/`);
+                } catch (error) {
+                  try {
+                    await api.delete(`auth/team-leads/${originalTeamLead.id}/`);
+                  } catch (error2) {
+                    try {
+                      await api.delete(`admin/team-leads/${originalTeamLead.id}/`);
+                    } catch (error3) {
+                      // Silent error - tried all endpoints
+                    }
+                  }
+                }
               }
-            } else {
-              // Team lead was deleted - delete all its members first
+            }
+          } else {
+            // Manager was deleted - delete all team leads and members first
+            for (const originalTeamLead of (originalManager.team_leads || [])) {
+              // Delete all members of this team lead
               for (const originalMember of (originalTeamLead.members || [])) {
-                console.log(`Deleting member due to team lead deletion: ${originalMember.id}`);
                 try {
                   await api.delete(`team-members/${originalMember.id}/`);
                 } catch (error) {
-                  console.error(`Failed to delete member ${originalMember.id}:`, error);
-                  // Try fallback endpoints
                   try {
                     await api.delete(`auth/team-members/${originalMember.id}/`);
                   } catch (error2) {
                     try {
                       await api.delete(`admin/team-members/${originalMember.id}/`);
                     } catch (error3) {
-                      console.error(`All deletion attempts failed for member ${originalMember.id}`);
+                      // Silent error - tried all endpoints
                     }
                   }
                 }
               }
               
-              // Then delete the team lead itself
-              console.log(`Deleting team lead: ${originalTeamLead.id}`);
+              // Then delete the team lead
               try {
                 await api.delete(`team-leads/${originalTeamLead.id}/`);
               } catch (error) {
-                console.error(`Failed to delete team lead ${originalTeamLead.id}:`, error);
-                // Try fallback endpoints
                 try {
                   await api.delete(`auth/team-leads/${originalTeamLead.id}/`);
                 } catch (error2) {
                   try {
                     await api.delete(`admin/team-leads/${originalTeamLead.id}/`);
                   } catch (error3) {
-                    console.error(`All deletion attempts failed for team lead ${originalTeamLead.id}`);
-                  }
-                }
-              }
-            }
-          }
-        } else {
-          // Manager was deleted - delete all team leads and members first
-          for (const originalTeamLead of (originalManager.team_leads || [])) {
-            // Delete all members of this team lead
-            for (const originalMember of (originalTeamLead.members || [])) {
-              console.log(`Deleting member due to manager deletion: ${originalMember.id}`);
-              try {
-                await api.delete(`team-members/${originalMember.id}/`);
-              } catch (error) {
-                console.error(`Failed to delete member ${originalMember.id}:`, error);
-                // Try fallback endpoints
-                try {
-                  await api.delete(`auth/team-members/${originalMember.id}/`);
-                } catch (error2) {
-                  try {
-                    await api.delete(`admin/team-members/${originalMember.id}/`);
-                  } catch (error3) {
-                    console.error(`All deletion attempts failed for member ${originalMember.id}`);
+                    // Silent error - tried all endpoints
                   }
                 }
               }
             }
             
-            // Then delete the team lead
-            console.log(`Deleting team lead due to manager deletion: ${originalTeamLead.id}`);
+            // Finally, delete the manager
             try {
-              await api.delete(`team-leads/${originalTeamLead.id}/`);
+              await api.delete(`team-managers/${originalManager.id}/`);
             } catch (error) {
-              console.error(`Failed to delete team lead ${originalTeamLead.id}:`, error);
-              // Try fallback endpoints
               try {
-                await api.delete(`auth/team-leads/${originalTeamLead.id}/`);
+                await api.delete(`auth/team-managers/${originalManager.id}/`);
               } catch (error2) {
                 try {
-                  await api.delete(`admin/team-leads/${originalTeamLead.id}/`);
+                  await api.delete(`admin/team-managers/${originalManager.id}/`);
                 } catch (error3) {
-                  console.error(`All deletion attempts failed for team lead ${originalTeamLead.id}`);
+                  // Silent error - tried all endpoints
                 }
-              }
-            }
-          }
-          
-          // Finally, delete the manager
-          console.log(`Deleting manager: ${originalManager.id}`);
-          try {
-            await api.delete(`team-managers/${originalManager.id}/`);
-          } catch (error) {
-            console.error(`Failed to delete manager ${originalManager.id}:`, error);
-            // Try fallback endpoints
-            try {
-              await api.delete(`auth/team-managers/${originalManager.id}/`);
-            } catch (error2) {
-              try {
-                await api.delete(`admin/team-managers/${originalManager.id}/`);
-              } catch (error3) {
-                console.error(`All deletion attempts failed for manager ${originalManager.id}`);
               }
             }
           }
         }
       }
     } catch (error) {
-      console.error("Error in handleDeletions:", error);
       throw error;
     }
   };
