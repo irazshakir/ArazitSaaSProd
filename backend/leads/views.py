@@ -45,7 +45,7 @@ class LeadViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'email', 'phone', 'whatsapp']
     ordering_fields = ['created_at', 'updated_at', 'last_contacted', 'next_follow_up', 'status']
-    ordering = ['-created_at']
+    # Ordering is now handled by custom logic in get_queryset
     pagination_class = LeadPagination
     
     def get_queryset(self):
@@ -98,6 +98,35 @@ class LeadViewSet(viewsets.ModelViewSet):
         else:
             # Regular users (sales_agent, support_agent, processor) see only their assigned leads
             queryset = queryset.filter(assigned_to=user)
+        
+        # Apply custom ordering for all lead queries:
+        # 1. First show active leads with passed follow-up dates, ordered by earliest first (most overdue)
+        # 2. Then show other active leads with future follow-up dates, also ordered by earliest first
+        # 3. Then active leads with NULL next_follow_up
+        # 4. Finally show inactive leads (lowest priority)
+        from django.db.models import Case, When, Value, IntegerField, F
+        from django.utils import timezone
+        
+        # Get current datetime
+        now = timezone.now().date()
+        
+        # Add custom ordering fields
+        queryset = queryset.annotate(
+            # Priority 1: active leads with passed next_follow_up (highest priority)
+            # Priority 2: active leads with future next_follow_up dates
+            # Priority 3: active leads with NULL next_follow_up
+            # Priority 4: inactive leads (lowest priority)
+            ordering_priority=Case(
+                When(lead_activity_status='active', next_follow_up__lt=now, then=Value(1)),
+                When(lead_activity_status='active', next_follow_up__isnull=False, then=Value(2)),
+                When(lead_activity_status='active', next_follow_up__isnull=True, then=Value(3)),
+                default=Value(4),
+                output_field=IntegerField()
+            )
+        ).order_by(
+            'ordering_priority',  # First by priority group
+            F('next_follow_up').asc(nulls_last=True)  # Then by next_follow_up date (ascending with nulls last)
+        )
         
         return queryset
     
@@ -581,6 +610,8 @@ class LeadViewSet(viewsets.ModelViewSet):
         
         # Apply additional filters from query params
         queryset = self.filter_queryset(queryset)
+        
+        # Note: Custom ordering is already applied in get_queryset
         
         # Get page if pagination is enabled
         page = self.paginate_queryset(queryset)

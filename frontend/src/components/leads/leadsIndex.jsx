@@ -116,12 +116,31 @@ const LeadsIndex = () => {
       )
     },
     { 
-      field: 'created_at', 
-      headerName: 'CREATED', 
+      field: 'next_follow_up', 
+      headerName: 'FOLLOW UP', 
       width: '15%',
       minWidth: 120,
-      sortable: true,
-      render: (value) => value ? new Date(value).toLocaleDateString() : 'N/A'
+      sortable: false,
+      render: (value) => value ? new Date(value).toLocaleDateString() : 'Not scheduled'
+    },
+    { 
+      field: 'lead_activity_status', 
+      headerName: 'ACTIVITY', 
+      width: '15%',
+      minWidth: 100,
+      sortable: false,
+      render: (value) => (
+        <Chip 
+          label={value === 'active' ? 'Active' : 'Inactive'}
+          size="small"
+          sx={{ 
+            borderRadius: '4px',
+            backgroundColor: value === 'active' ? 'rgba(46, 204, 113, 0.2)' : 'rgba(189, 189, 189, 0.2)',
+            color: value === 'active' ? 'rgb(46, 204, 113)' : 'rgb(158, 158, 158)',
+            fontWeight: 500
+          }} 
+        />
+      )
     },
     { 
       field: 'department_name', 
@@ -209,6 +228,7 @@ const LeadsIndex = () => {
             apiParams.page_size = 100; // Request 100 leads for admin users
           }
           
+          // Use the by-role endpoint which now has our custom ordering
           const response = await api.get('leads/by-role/', { params: apiParams });
           
           // Process response data
@@ -296,6 +316,10 @@ const LeadsIndex = () => {
                               lead.status === 'negotiation' ? 'Negotiation' : 
                               lead.status === 'won' ? 'Won' : 
                               lead.status === 'lost' ? 'Lost' : lead.status),
+              // Ensure lead_activity_status is properly formatted
+              lead_activity_status: lead.lead_activity_status || 'active',
+              // Make sure next_follow_up is available
+              next_follow_up: lead.next_follow_up || null,
               // Resolve assigned_to_name with multiple fallback options, prioritizing assigned_to_details
               assigned_to_name: (() => {
                 // First check if assigned_to_details exists and contains name information
@@ -415,12 +439,16 @@ const LeadsIndex = () => {
           return columns.map(col => {
             const value = item[col.field];
             // Format dates
-            if (col.field === 'created_at') {
+            if (col.field === 'next_follow_up') {
               return value ? new Date(value).toLocaleDateString() : '';
             }
             // Format display values
             if (col.field === 'status_display' || col.field === 'lead_type_display') {
               return value || '';
+            }
+            // Format activity status
+            if (col.field === 'lead_activity_status') {
+              return value === 'active' ? 'Active' : 'Inactive';
             }
             return value || '';
           });
@@ -529,6 +557,8 @@ const LeadsIndex = () => {
           tenant: tenantId
         };
         
+        // Note: We don't need to add ordering parameters as the backend now implements custom ordering
+        
         // Add page_size parameter for admin users to get more leads at once
         if (userRole === 'admin') {
           apiParams.page_size = 100; // Request 100 leads for admin users
@@ -621,6 +651,10 @@ const LeadsIndex = () => {
                             lead.status === 'negotiation' ? 'Negotiation' : 
                             lead.status === 'won' ? 'Won' : 
                             lead.status === 'lost' ? 'Lost' : lead.status),
+            // Ensure lead_activity_status is properly formatted
+            lead_activity_status: lead.lead_activity_status || 'active',
+            // Make sure next_follow_up is available
+            next_follow_up: lead.next_follow_up || null,
             // Resolve assigned_to_name with multiple fallback options, prioritizing assigned_to_details
             assigned_to_name: (() => {
               // First check if assigned_to_details exists and contains name information
@@ -670,6 +704,7 @@ const LeadsIndex = () => {
           };
         });
         
+        // No need for client-side ordering as server provides sorted data
         setLeads(formattedData);
         setFilteredLeads(formattedData);
         setLoading(false);
@@ -744,8 +779,8 @@ const LeadsIndex = () => {
                 pagination={true}
                 rowsPerPage={10}
                 rowsPerPageOptions={[5, 10, 25, 50, 100]}
-                defaultSortField="created_at"
-                defaultSortDirection="desc"
+                defaultSortField={null}
+                defaultSortDirection="asc"
               />
             )}
           </Paper>

@@ -21,12 +21,14 @@ import CompanySettings from '../components/company_settings/companySettings';
 import WABASettings from '../components/settings/WABAsettings';
 
 // Hajj & Umrah Pages
+/*
 import HajjPackagesIndex from '../components/hajjPackages/hajjPackagesIndex';
 import HajjPackageCreate from '../components/forms/products/hajjPackages/HajjPackageCreate';
 import HajjPackageEdit from '../components/forms/products/hajjPackages/HajjPackageEdit';
 import UmrahPackageIndex from '../components/umrahPackages/umrahPackageIndex';
 import UmrahPackageCreate from '../components/forms/products/umrahPackages/umrahPackageCreate';
 import UmrahPackageEdit from '../components/forms/products/umrahPackages/umrahPackageEdit';
+*/
 
 // Leads Pages
 import LeadsIndex from '../components/leads/leadsIndex';
@@ -113,6 +115,7 @@ const AppRoutes = () => {
           </Route>
           
           {/* Hajj & Umrah Routes */}
+          {/*
           <Route path="hajj-umrah">
             <Route path="hajj-packages" element={<HajjPackagesIndex />} />
             <Route path="hajj-packages/create" element={<HajjPackageCreate />} />
@@ -121,8 +124,9 @@ const AppRoutes = () => {
             <Route path="umrah-packages" element={<UmrahPackageIndex />} />
             <Route path="umrah-packages/create" element={<UmrahPackageCreate />} />
             <Route path="umrah-packages/:id/edit" element={<UmrahPackageEdit />} />
-            {/* Add other hajj-umrah routes here */}
+            *//* Add other hajj-umrah routes here *//*
           </Route>
+          */}
           
           {/* Branch Management Routes */}
           <Route path="branches" element={<BranchesIndex />} />

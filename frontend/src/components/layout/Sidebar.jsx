@@ -109,10 +109,12 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
   ];
 
   // Social submenu - only for admin
+  /*
   const socialMenuItems = [
     { text: 'Templates', icon: <TemplateIcon />, path: '/templates' },
     { text: 'Bulk Messages', icon: <SendIcon />, path: '/dashboard/social/bulk-messages' },
   ];
+  */
 
   // Accounts menu items - available to all users
   const accountsMenuItems = [
@@ -419,6 +421,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
         )}
 
         {/* Hajj and Umrah Settings - Admin only */}
+        {/* 
         {isAdmin && showHajjUmrahMenu && (
           <>
             <ListItem sx={{ pt: 2, pb: 1 }}>
@@ -499,8 +502,10 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
             </Collapse>
           </>
         )}
+        */}
 
         {/* Immigration Settings - Admin only */}
+        {/*
         {isAdmin && showImmigrationMenu && (
           <>
             <ListItem sx={{ pt: 2, pb: 1 }}>
@@ -581,6 +586,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
             </Collapse>
           </>
         )}
+        */}
       </List>
       <Divider sx={{ mt: 2 }} />
       <Box sx={{ p: 2 }}>
