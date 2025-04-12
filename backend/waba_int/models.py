@@ -1,5 +1,5 @@
 from django.db import models
-from users.models import Tenant
+from users.models import Tenant, User
 from django.core.validators import MinValueValidator, MaxValueValidator
 
 class WABASettings(models.Model):
@@ -40,6 +40,28 @@ class WABASettings(models.Model):
         ]
         return all(required_fields)
 
+class ChatAssignment(models.Model):
+    """Model to store chat assignments to users"""
+    chat_id = models.CharField(max_length=255)
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='chat_assignments')
+    assigned_to = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='assigned_chats')
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        unique_together = ['chat_id', 'tenant']
+        indexes = [
+            models.Index(fields=['chat_id']),
+            models.Index(fields=['tenant']),
+            models.Index(fields=['assigned_to']),
+        ]
+        db_table = 'chat_assignments'
+
+    def __str__(self):
+        return f"Chat {self.chat_id} assigned to {self.assigned_to} ({self.tenant.name})"
+
 class Chat(models.Model):
     """Model to store WhatsApp chat contacts with tenant support"""
     contact_id = models.CharField(max_length=255)
@@ -54,6 +76,9 @@ class Chat(models.Model):
     
     # Multi-tenant support
     tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='whatsapp_chats')
+    
+    # Chat assignment
+    assignment = models.OneToOneField(ChatAssignment, on_delete=models.SET_NULL, null=True, related_name='chat')
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

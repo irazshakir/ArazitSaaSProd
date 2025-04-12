@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from .services.waba_int import OnCloudAPIClient
-from .models import Chat, Message
+from .models import Chat, Message, WABASettings, ChatAssignment
 from .services.lead_service import LeadService
 from rest_framework.decorators import api_view
 from django.utils import timezone
@@ -13,10 +13,11 @@ from django.conf import settings
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
-from .models import WABASettings
 from .serializers import WABASettingsSerializer
 from rest_framework import permissions
 from rest_framework import serializers
+import json
+import os
 
 class GroupView(APIView):
     permission_classes = [AllowAny]  # Allow unauthenticated access for testing
@@ -130,231 +131,157 @@ class ChatListView(APIView):
 
 class ChatMessageView(APIView):
     permission_classes = [AllowAny]  # Allow unauthenticated access for testing
-    
+
     def post(self, request, contact_id):
-        """
-        Get messages for a specific contact
-        """
-        # Get tenant ID from request
-        tenant_id = request.query_params.get('tenant_id') or request.headers.get('X-Tenant-ID')
-        if not tenant_id:
-            return Response(
-                {"error": "Tenant ID is required"}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
-            
-        client = OnCloudAPIClient(tenant_id=tenant_id)
         try:
-            # Get tenant ID with the same priority order
-            tenant_id = None
-            
-            # Check request body first
-            if request.data and 'tenant_id' in request.data:
-                tenant_id = request.data.get('tenant_id')
-                
-            # If not in body, check headers
-            if not tenant_id and 'X-Tenant-ID' in request.headers:
-                tenant_id = request.headers.get('X-Tenant-ID')
-                
-            # If not in headers, check query params
-            if not tenant_id and 'tenant_id' in request.query_params:
-                tenant_id = request.query_params.get('tenant_id')
-            
-            # Finally check cookies
-            if not tenant_id and 'tenant_id' in request.COOKIES:
-                tenant_id = request.COOKIES.get('tenant_id')
-            
-            # Never use a default tenant
+            tenant_id = request.headers.get('X-Tenant-ID')
             if not tenant_id:
-                pass
+                return Response({
+                    'status': 'error',
+                    'message': 'Tenant ID is required'
+                }, status=400)
+
+            # Check user permission for this chat
+            permission_check = self._check_user_permission(request, contact_id, tenant_id)
+            if not permission_check['allowed']:
+                return Response({
+                    'status': 'error',
+                    'message': permission_check['message']
+                }, status=403)
+
+            # Initialize OnCloud API client
+            client = OnCloudAPIClient(tenant_id=tenant_id)
             
-            # Check if user has permission to access this chat
-            if not self._check_user_permission(request, contact_id, tenant_id):
-                return Response(
-                    {"status": False, "error": "You don't have permission to access this chat"}, 
-                    status=status.HTTP_403_FORBIDDEN
-                )
+            # Get messages from OnCloud API
+            messages_data = client.get_messages(contact_id)
             
-            messages = client.get_messages(contact_id)
+            # Process and store messages
+            processed_data = self._process_messages(contact_id, messages_data, tenant_id)
             
-            # Only process and store messages if we have a valid tenant_id
-            if tenant_id and messages.get('status') == True and 'data' in messages:
-                self._process_messages(contact_id, messages.get('data', []), tenant_id)
-            
-            return Response(messages, status=status.HTTP_200_OK)
+            return Response({
+                'status': 'success',
+                'data': processed_data
+            })
+
         except Exception as e:
-            return Response(
-                {"error": str(e)}, 
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-    
+            return Response({
+                'status': 'error',
+                'message': str(e)
+            }, status=500)
+
     def _check_user_permission(self, request, contact_id, tenant_id):
-        """
-        Check if user has permission to access this chat based on their role
-        Similar to the role-based filtering in apply_role_based_filters
-        """
-        user = request.user
-        
-        # If user is not authenticated, no permission
-        if not user.is_authenticated:
-            return False
-        
-        # Admin users have access to all chats
-        if user.role == 'admin':
-            return True
-        
+        """Check if user has permission to access this chat"""
         try:
-            # Import needed models
-            from leads.models import Lead
-            from django.db.models import Q
-            from teams.models import TeamManager, TeamLead, TeamMember
-            from .models import Chat
+            # Get the user's role
+            user = request.user
+            if not user.is_authenticated:
+                return {'allowed': True, 'message': None}  # Allow for testing
             
-            # First check: Get lead via chat_id
-            lead_via_chat_id = Lead.objects.filter(
+            # Get chat assignment
+            chat_assignment = ChatAssignment.objects.filter(
                 chat_id=contact_id,
                 tenant_id=tenant_id
             ).first()
             
-            # Second check: Get the Chat and then find the lead via lead_id
-            chat = Chat.objects.filter(
-                contact_id=contact_id, 
-                tenant_id=tenant_id,
-                lead_id__isnull=False
-            ).first()
+            # If no assignment exists, allow access
+            if not chat_assignment:
+                return {'allowed': True, 'message': None}
             
-            lead = None
+            # If user is admin or superuser, allow access
+            if user.is_superuser or user.role == 'admin':
+                return {'allowed': True, 'message': None}
             
-            # If we found a direct match through chat_id
-            if lead_via_chat_id:
-                lead = lead_via_chat_id
-            # If we found a chat with lead_id reference
-            elif chat and chat.lead_id:
-                lead = Lead.objects.filter(
-                    id=chat.lead_id,
-                    tenant_id=tenant_id
-                ).first()
+            # If chat is assigned to this user, allow access
+            if chat_assignment.assigned_to == user:
+                return {'allowed': True, 'message': None}
             
-            # If no lead exists through either method, deny access
-            if not lead:
-                return False
-            
-            # Apply role-based permission checking
-            if user.role == 'department_head':
-                # Department head can access all leads in their department
-                if user.department_id and lead.department_id == user.department_id:
-                    return True
-                    
-            elif user.role == 'manager':
-                # Manager can access leads for their teams
-                if lead.assigned_to_id == user.id:
-                    return True
-                    
-                # Check if lead is assigned to a team lead managed by this manager
-                managed_teams = TeamManager.objects.filter(manager=user).values_list('team_id', flat=True)
-                team_leads = TeamLead.objects.filter(team_id__in=managed_teams).values_list('team_lead_id', flat=True)
-                
-                if lead.assigned_to_id in team_leads:
-                    return True
-                
-                # Check if lead is assigned to a team member managed by this manager
-                team_members = TeamMember.objects.filter(team_lead__team_lead_id__in=team_leads).values_list('member_id', flat=True)
-                
-                if lead.assigned_to_id in team_members:
-                    return True
-                
-            elif user.role == 'team_lead':
-                # Team lead can access their own leads and leads assigned to their team members
-                if lead.assigned_to_id == user.id:
-                    return True
-                
-                # Check if lead is assigned to a team member managed by this team lead
-                team_members = TeamMember.objects.filter(team_lead__team_lead=user).values_list('member_id', flat=True)
-                
-                if lead.assigned_to_id in team_members:
-                    return True
-                
-            else:
-                # Regular users can only access their assigned leads
-                if lead.assigned_to_id == user.id:
-                    return True
-            
-            # If none of the conditions match, deny access
-            return False
+            # Otherwise, deny access
+            return {
+                'allowed': False,
+                'message': 'You do not have permission to access this chat'
+            }
             
         except Exception as e:
-            # On error, deny access to be safe
-            return False
-    
+            # Log the error but allow access in case of errors
+            print(f"Error checking chat permissions: {str(e)}")
+            return {'allowed': True, 'message': None}
+
     def _process_messages(self, contact_id, messages_data, tenant_id):
-        """Process and store messages for a contact"""
+        """Process and store messages from the API response"""
         try:
             from users.models import Tenant
+            from .models import Chat, Message, ChatAssignment
             
-            # Get the tenant object
-            try:
-                tenant = Tenant.objects.get(id=tenant_id)
-            except Tenant.DoesNotExist:
-                return
+            tenant = Tenant.objects.get(id=tenant_id)
             
-            # Get or create chat for this contact
-            try:
-                chat = Chat.objects.filter(contact_id=contact_id, tenant=tenant).first()
-                if not chat:
-                    return
+            # Get or create chat record
+            chat, _ = Chat.objects.get_or_create(
+                contact_id=contact_id,
+                tenant=tenant,
+                defaults={
+                    'phone': messages_data.get('phone', ''),
+                    'name': messages_data.get('name', '')
+                }
+            )
+            
+            # Get chat assignment
+            chat_assignment = ChatAssignment.objects.filter(
+                chat_id=contact_id,
+                tenant=tenant
+            ).first()
+            
+            # Update chat with assignment if it exists
+            if chat_assignment and chat.assignment != chat_assignment:
+                chat.assignment = chat_assignment
+                chat.save()
+            
+            # Process messages
+            processed_messages = []
+            latest_message = None
+            latest_timestamp = None
+            
+            for msg in messages_data.get('data', []):
+                # Create message record
+                message, created = Message.objects.get_or_create(
+                    message_id=msg.get('id'),
+                    tenant=tenant,
+                    defaults={
+                        'chat': chat,
+                        'text': msg.get('value', ''),
+                        'sent_by_contact': msg.get('is_message_by_contact') == 1,
+                        'timestamp': msg.get('created_at'),
+                        'is_image': msg.get('message_type') == 2,
+                        'image_url': msg.get('header_image') if msg.get('message_type') == 2 else None
+                    }
+                )
                 
-                # Process each message
-                for msg_data in messages_data:
-                    message_id = msg_data.get('id')
-                    if not message_id:
-                        continue
-                    
-                    # Parse timestamp
-                    timestamp = None
-                    if msg_data.get('created_at'):
-                        try:
-                            timestamp = self._parse_timestamp(msg_data.get('created_at'))
-                        except Exception:
-                            timestamp = timezone.now()
-                    else:
-                        timestamp = timezone.now()
-                    
-                    # Determine if message is from contact
-                    is_from_contact = msg_data.get('is_message_by_contact', 0) == 1
-                    
-                    # Determine if message is an image
-                    is_image = msg_data.get('message_type', 0) == 2
-                    image_url = msg_data.get('header_image', '') if is_image else None
-                    
-                    # Get message text
-                    text = msg_data.get('value', '')
-                    
-                    # Try to get or create the message
-                    try:
-                        message, created = Message.objects.get_or_create(
-                            chat=chat,
-                            message_id=message_id,
-                            tenant=tenant,
-                            defaults={
-                                'text': text,
-                                'sent_by_contact': is_from_contact,
-                                'timestamp': timestamp,
-                                'is_image': is_image,
-                                'image_url': image_url
-                            }
-                        )
-                        
-                        if created:
-                            pass
-                        
-                    except Exception as message_error:
-                        pass
+                # Track latest message
+                msg_timestamp = msg.get('created_at')
+                if not latest_timestamp or msg_timestamp > latest_timestamp:
+                    latest_message = msg
+                    latest_timestamp = msg_timestamp
                 
-            except Exception as chat_error:
-                pass
-                
+                # Add to processed messages
+                processed_messages.append({
+                    'id': message.id,
+                    'value': message.text,
+                    'is_message_by_contact': message.sent_by_contact,
+                    'created_at': message.timestamp,
+                    'message_type': 2 if message.is_image else 1,
+                    'header_image': message.image_url
+                })
+            
+            # Update chat with latest message info
+            if latest_message:
+                chat.last_message = latest_message.get('value', '')
+                chat.last_message_time = latest_timestamp
+                chat.save()
+            
+            return processed_messages
+            
         except Exception as e:
-            pass
+            print(f"Error processing messages: {str(e)}")
+            return messages_data.get('data', [])
 
 class ContactView(APIView):
     permission_classes = [AllowAny]  # Allow unauthenticated access for testing
@@ -568,99 +495,73 @@ class ConversationListView(APIView):
             )
     
     def _process_conversation(self, conv_data, tenant_id):
-        """Process each conversation from the API to store locally and create leads if needed"""
+        """Process a conversation data object and save it to the database"""
         try:
-            from users.models import Tenant, Department
-            
-            # Debug log
+            # Get basic info
             contact_id = conv_data.get('id')
-            
-            if not contact_id:
-                return
-            
-            # Get the tenant object
-            try:
-                tenant = Tenant.objects.get(id=tenant_id)
-            except Tenant.DoesNotExist:
-                return
-                
-            # Find Sales department for this tenant
-            sales_department = None
-            try:
-                from django.db import models
-                
-                # Try to find the Sales department
-                sales_department = Department.objects.filter(
-                    models.Q(name__icontains='sales') | models.Q(name__iexact='sales'),
-                    tenant_id=tenant_id
-                ).first()
-                
-                if sales_department:
-                    pass
-                else:
-                    # If no sales department, get any department
-                    any_department = Department.objects.filter(tenant_id=tenant_id).first()
-                    if any_department:
-                        sales_department = any_department
-                    else:
-                        pass
-            except Exception as e:
-                pass
-            
-            # Parse timestamp
-            last_message_time = None
+            phone = conv_data.get('phone')
+            name = conv_data.get('name')
+
+            # Get or create Chat object
+            chat, created = Chat.objects.get_or_create(
+                contact_id=contact_id,
+                tenant_id=tenant_id,
+                defaults={
+                    'phone': phone,
+                    'name': name
+                }
+            )
+
+            # Update Chat data
+            if not created:
+                chat.phone = phone
+                chat.name = name
+
+            # Format the data for response
+            formatted_data = {
+                'id': contact_id,
+                'phone': phone,
+                'name': name,
+                'avatar': chat.avatar,
+                'lead_id': str(chat.lead_id) if chat.lead_id else None,
+                'resolved_chat': False  # Placeholder for now
+            }
+
+            # Get additional data
+            if conv_data.get('value'):
+                formatted_data['last_message'] = conv_data.get('value')
+                chat.last_message = conv_data.get('value')
+
             if conv_data.get('last_reply_at'):
-                last_message_time = self._parse_timestamp(conv_data.get('last_reply_at'))
-            
-            # Check if we already have this chat for this tenant
-            try:
-                chat, created = Chat.objects.get_or_create(
-                    contact_id=contact_id,
-                    tenant=tenant,
-                    defaults={
-                        'phone': conv_data.get('phone', ''),
-                        'name': conv_data.get('name', ''),
-                        'avatar': conv_data.get('avatar', ''),
-                        'last_message': conv_data.get('last_message', ''),
-                        'last_message_time': last_message_time
-                    }
-                )
-                
-                if created:
-                    pass
-                else:
-                    chat.name = conv_data.get('name', chat.name)
-                    chat.phone = conv_data.get('phone', chat.phone)
-                    chat.avatar = conv_data.get('avatar', chat.avatar)
-                    chat.last_message = conv_data.get('last_message', chat.last_message)
-                    if last_message_time:
-                        chat.last_message_time = last_message_time
-                    chat.save()
-                
-                # Create a lead regardless of whether the chat is new or existing
+                formatted_data['last_reply_at'] = conv_data.get('last_reply_at')
                 try:
-                    # Import the lead service
-                    from .services.lead_service import LeadService
-                    
-                    lead = LeadService.create_lead_from_contact(
-                        conv_data, 
-                        tenant_id, 
-                        department_id=sales_department.id if sales_department else None
-                    )
-                    
-                    if lead:
-                        chat.lead_id = lead.id
-                        chat.save()
-                    else:
-                        pass
-                except Exception as lead_error:
+                    chat.last_message_time = self._parse_timestamp(conv_data.get('last_reply_at'))
+                except:
                     pass
-            
-            except Exception as chat_error:
-                pass
-        
+
+            if conv_data.get('is_last_message_by_contact'):
+                formatted_data['is_last_message_by_contact'] = conv_data.get('is_last_message_by_contact')
+
+            # Save chat updates
+            chat.save()
+
+            # Check if this chat is directly assigned to the user through ChatAssignment
+            is_assigned_to_user = False
+            if hasattr(self.request, 'user') and self.request.user.is_authenticated:
+                from .models import ChatAssignment
+                is_assigned = ChatAssignment.objects.filter(
+                    chat_id=contact_id,
+                    tenant_id=tenant_id,
+                    assigned_to=self.request.user,
+                    is_active=True
+                ).exists()
+                is_assigned_to_user = is_assigned
+
+            formatted_data['is_assigned_to_user'] = is_assigned_to_user
+
+            return formatted_data
         except Exception as e:
-            pass
+            return None
     
     def _parse_timestamp(self, timestamp_str):
         """Parse timestamp string to datetime object"""
@@ -1036,6 +937,41 @@ def get_conversations(request):
             except Exception as e:
                 pass
         
+        # Check which conversations are directly assigned to the current user
+        if request.user.is_authenticated:
+            from .models import ChatAssignment, Chat
+            
+            # Get all conversation IDs
+            conv_ids = [str(conv.get('id')) for conv in conversations_data if conv.get('id')]
+            
+            # Debug: Check if any chats exist with these IDs
+            chat_matches = Chat.objects.filter(
+                contact_id__in=conv_ids,
+                tenant_id=tenant_id
+            ).values_list('contact_id', 'id')
+            
+            chat_id_mapping = {str(contact_id): id for contact_id, id in chat_matches}
+            
+            # Get chat assignments for this user
+            assigned_chats = ChatAssignment.objects.filter(
+                assigned_to=request.user,
+                tenant_id=tenant_id,
+                is_active=True
+            ).values_list('chat_id', flat=True)
+            
+            # Convert assigned_chats to strings for comparison
+            assigned_chat_ids = [str(chat_id) for chat_id in assigned_chats]
+            
+            # Add is_assigned_to_user flag to each conversation
+            for conv in conversations_data:
+                conv_id = str(conv.get('id')) if conv.get('id') else None
+                # Check if this conversation ID is directly assigned
+                direct_assigned = conv_id and conv_id in assigned_chat_ids
+                # Check if this conversation maps to a chat that is assigned
+                mapped_assigned = conv_id and conv_id in chat_id_mapping and str(chat_id_mapping[conv_id]) in assigned_chat_ids
+                
+                conv['is_assigned_to_user'] = direct_assigned or mapped_assigned
+        
         # Apply role-based filtering to conversations based on user role
         filtered_conversations = apply_role_based_filters(request, conversations_data)
         
@@ -1046,7 +982,14 @@ def get_conversations(request):
                 'total_conversations': len(conversations_data),
                 'filtered_conversations': len(filtered_conversations),
                 'leads_created': leads_created,
-                'leads_found': leads_found
+                'leads_found': leads_found,
+                'debug_info': {
+                    'user_id': request.user.id if request.user.is_authenticated else None,
+                    'user_role': request.user.role if request.user.is_authenticated else None,
+                    'assigned_chat_ids': list(assigned_chat_ids) if 'assigned_chat_ids' in locals() else [],
+                    'conversation_ids': conv_ids[:10] if 'conv_ids' in locals() else [],  # Show first 10 for brevity
+                    'chat_mappings': {str(k): str(v) for k, v in chat_id_mapping.items()} if 'chat_id_mapping' in locals() else {}
+                }
             }
         })
         
@@ -1080,102 +1023,132 @@ def apply_role_based_filters(request, conversations):
         from leads.models import Lead
         from django.db.models import Q
         from teams.models import TeamManager, TeamLead, TeamMember
+        from .models import Chat, ChatAssignment
         
         # Get tenant ID
         tenant_id = request.data.get('tenant_id') or request.headers.get('X-Tenant-ID')
         
         # Get all conversation ids
-        conversation_ids = [conv.get('id') for conv in conversations if conv.get('id')]
+        conversation_ids = [str(conv.get('id')) for conv in conversations if conv.get('id')]
         
-        # First approach: Get leads with chat_id in the conversation_ids
-        leads_queryset = Lead.objects.filter(
-            chat_id__in=conversation_ids,
-            tenant_id=tenant_id
-        )
-        
-        # Second approach: Get chats directly using the Chat model
-        # This is crucial because sometimes the chat_id may not be in the Lead model
-        # but the Chat model's lead_id would point to the lead assigned to the user
-        from .models import Chat
-        
-        # Get all chats that match the conversation IDs
-        chats = Chat.objects.filter(
-            contact_id__in=conversation_ids,
-            tenant_id=tenant_id
-        ).exclude(lead_id__isnull=True)
-        
-        # Get the lead IDs from these chats
-        lead_ids_from_chats = [str(chat.lead_id) for chat in chats if chat.lead_id]
-        
-        # Get leads based on these lead IDs
-        leads_from_chats = Lead.objects.filter(
-            id__in=lead_ids_from_chats,
-            tenant_id=tenant_id
-        )
-        
-        # Combine both querysets
-        leads_queryset = (leads_queryset | leads_from_chats).distinct()
-        
-        # Apply role-based filtering similar to LeadViewSet
-        if user.role == 'department_head':
-            # Department head sees all leads in their department
-            if user.department_id:
-                leads_queryset = leads_queryset.filter(department_id=user.department_id)
-                
-        elif user.role == 'manager':
-            # Manager sees leads for their teams
-            # First, find teams they manage
-            managed_teams = TeamManager.objects.filter(manager=user).values_list('team_id', flat=True)
-            
-            # Find team leads under those teams
-            team_leads = TeamLead.objects.filter(team_id__in=managed_teams).values_list('team_lead_id', flat=True)
-            
-            # Find team members under those team leads
-            team_members = TeamMember.objects.filter(team_lead__team_lead_id__in=team_leads).values_list('member_id', flat=True)
-            
-            # Return leads assigned to any of these users (or the manager themselves)
-            leads_queryset = leads_queryset.filter(
-                Q(assigned_to=user) | 
-                Q(assigned_to_id__in=team_leads) |
-                Q(assigned_to_id__in=team_members)
-            )
-            
-        elif user.role == 'team_lead':
-            # Team lead sees leads for their team members
-            team_members = TeamMember.objects.filter(team_lead__team_lead=user).values_list('member_id', flat=True)
-            
-            # Return leads assigned to any of these members (or the team lead themselves)
-            leads_queryset = leads_queryset.filter(
-                Q(assigned_to=user) | 
-                Q(assigned_to_id__in=team_members)
-            )
-            
-        else:
-            # Regular users (sales_agent, support_agent, processor) see only their assigned leads
-            leads_queryset = leads_queryset.filter(assigned_to=user)
-        
-        # Get all lead chat_ids and lead IDs
+        # Initialize the set of filtered chat IDs
         filtered_chat_ids = set()
         
-        # Add chat_ids from leads
-        lead_chat_ids = leads_queryset.values_list('chat_id', flat=True)
-        filtered_chat_ids.update([cid for cid in lead_chat_ids if cid])
-        
-        # Also get lead IDs to match with Chat model lead_id
-        lead_ids = leads_queryset.values_list('id', flat=True)
-        
-        # Get conversation_ids from Chats where lead_id is in our filtered leads
-        chats_with_filtered_leads = Chat.objects.filter(
-            lead_id__in=lead_ids,
+        # APPROACH 1: Direct chat assignments to the user
+        # First, find any existing Chat objects for these conversation IDs to get their IDs
+        chats_mapping = Chat.objects.filter(
+            contact_id__in=conversation_ids,
             tenant_id=tenant_id
-        ).values_list('contact_id', flat=True)
+        ).values_list('contact_id', 'id')
+
+        # Create a mapping from contact_id to id
+        contact_to_id_map = {str(contact_id): str(id) for contact_id, id in chats_mapping}
+
+        # Get all chats directly assigned to this user
+        chat_assignments = ChatAssignment.objects.filter(
+            assigned_to=user,
+            tenant_id=tenant_id,
+            is_active=True
+        ).values_list('chat_id', flat=True)
+
+        # Convert to strings for comparison
+        chat_assignment_ids = [str(chat_id) for chat_id in chat_assignments]
+
+        # Add directly assigned chats to filtered list - both by chat_id and contact_id
+        filtered_chat_ids.update(chat_assignment_ids)
+
+        # Also add conversation IDs that map to assigned chat IDs
+        for conv_id in conversation_ids:
+            if conv_id in contact_to_id_map and contact_to_id_map[conv_id] in chat_assignment_ids:
+                filtered_chat_ids.add(conv_id)
         
-        filtered_chat_ids.update(chats_with_filtered_leads)
+        # APPROACH 2: Lead-based assignments (if we still don't have any matching chats)
+        if not filtered_chat_ids:
+            # First approach: Get leads with chat_id in the conversation_ids
+            leads_queryset = Lead.objects.filter(
+                chat_id__in=conversation_ids,
+                tenant_id=tenant_id
+            )
+            
+            # Second approach: Get chats directly using the Chat model
+            # This is crucial because sometimes the chat_id may not be in the Lead model
+            # but the Chat model's lead_id would point to the lead assigned to the user
+            
+            # Get all chats that match the conversation IDs
+            chats = Chat.objects.filter(
+                contact_id__in=conversation_ids,
+                tenant_id=tenant_id
+            ).exclude(lead_id__isnull=True)
+            
+            # Get the lead IDs from these chats
+            lead_ids_from_chats = [str(chat.lead_id) for chat in chats if chat.lead_id]
+            
+            # Get leads based on these lead IDs
+            leads_from_chats = Lead.objects.filter(
+                id__in=lead_ids_from_chats,
+                tenant_id=tenant_id
+            )
+            
+            # Combine both querysets
+            leads_queryset = (leads_queryset | leads_from_chats).distinct()
+            
+            # Apply role-based filtering similar to LeadViewSet
+            if user.role == 'department_head':
+                # Department head sees all leads in their department
+                if user.department_id:
+                    leads_queryset = leads_queryset.filter(department_id=user.department_id)
+                    
+            elif user.role == 'manager':
+                # Manager sees leads for their teams
+                # First, find teams they manage
+                managed_teams = TeamManager.objects.filter(manager=user).values_list('team_id', flat=True)
+                
+                # Find team leads under those teams
+                team_leads = TeamLead.objects.filter(team_id__in=managed_teams).values_list('team_lead_id', flat=True)
+                
+                # Find team members under those team leads
+                team_members = TeamMember.objects.filter(team_lead__team_lead_id__in=team_leads).values_list('member_id', flat=True)
+                
+                # Return leads assigned to any of these users (or the manager themselves)
+                leads_queryset = leads_queryset.filter(
+                    Q(assigned_to=user) | 
+                    Q(assigned_to_id__in=team_leads) |
+                    Q(assigned_to_id__in=team_members)
+                )
+                
+            elif user.role == 'team_lead':
+                # Team lead sees leads for their team members
+                team_members = TeamMember.objects.filter(team_lead__team_lead=user).values_list('member_id', flat=True)
+                
+                # Return leads assigned to any of these members (or the team lead themselves)
+                leads_queryset = leads_queryset.filter(
+                    Q(assigned_to=user) | 
+                    Q(assigned_to_id__in=team_members)
+                )
+                
+            else:
+                # Regular users (sales_agent, support_agent, processor) see only their assigned leads
+                leads_queryset = leads_queryset.filter(assigned_to=user)
+            
+            # Add chat_ids from leads
+            lead_chat_ids = leads_queryset.values_list('chat_id', flat=True)
+            filtered_chat_ids.update([str(cid) for cid in lead_chat_ids if cid])
+            
+            # Also get lead IDs to match with Chat model lead_id
+            lead_ids = leads_queryset.values_list('id', flat=True)
+            
+            # Get conversation_ids from Chats where lead_id is in our filtered leads
+            chats_with_filtered_leads = Chat.objects.filter(
+                lead_id__in=lead_ids,
+                tenant_id=tenant_id
+            ).values_list('contact_id', flat=True)
+            
+            filtered_chat_ids.update([str(cid) for cid in chats_with_filtered_leads if cid])
         
-        # Filter conversations based on filtered lead chat_ids
+        # Filter conversations based on filtered chat_ids
         filtered_conversations = [
             conv for conv in conversations 
-            if conv.get('id') in filtered_chat_ids
+            if str(conv.get('id')) in filtered_chat_ids
         ]
         
         return filtered_conversations

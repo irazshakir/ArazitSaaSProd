@@ -3,6 +3,7 @@ import json
 import uuid
 import traceback
 from django.db.models import Count
+from ..models import ChatAssignment, Chat
 
 class LeadService:
     """Service for handling lead creation and management from WhatsApp chats"""
@@ -177,6 +178,40 @@ class LeadService:
                 department=department,  # Set the department directly
                 branch=branch  # Set the default branch
             )
+            
+            # Create or update chat assignment
+            chat_assignment, created = ChatAssignment.objects.get_or_create(
+                chat_id=contact_id,
+                tenant=tenant,
+                defaults={
+                    'assigned_to': assigned_to,
+                    'is_active': True
+                }
+            )
+            
+            # If chat assignment already existed, update the assigned_to if needed
+            if not created and assigned_to and chat_assignment.assigned_to != assigned_to:
+                chat_assignment.assigned_to = assigned_to
+                chat_assignment.save()
+            
+            # Create or update chat record
+            chat, created = Chat.objects.get_or_create(
+                contact_id=contact_id,
+                tenant=tenant,
+                defaults={
+                    'phone': phone,
+                    'name': name,
+                    'lead_id': lead.id,
+                    'assignment': chat_assignment
+                }
+            )
+            
+            # If chat already existed, update its fields
+            if not created:
+                chat.name = name
+                chat.lead_id = lead.id
+                chat.assignment = chat_assignment
+                chat.save()
             
             return lead
             

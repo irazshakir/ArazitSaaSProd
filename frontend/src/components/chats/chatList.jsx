@@ -128,6 +128,7 @@ const ChatList = ({
           minute: '2-digit' 
         }) : '',
         unread: !conv.resolved_chat && conv.is_last_message_by_contact === 1,
+        isDirectlyAssigned: conv.is_assigned_to_user === true,
         messages: []
       }));
 
@@ -282,7 +283,7 @@ const ChatList = ({
             marginBottom: '4px'
           }}>
             <span style={{ marginRight: '4px' }}>➤</span>
-            Showing {chats.length} {chats.length === 1 ? 'chat' : 'chats'} assigned to you as {formatUserRole(userRole)}
+            Showing {chats.length} {chats.length === 1 ? 'conversation' : 'conversations'} assigned to you as {formatUserRole(userRole)}
             {totalConversations > 0 && chats.length !== totalConversations && (
               <span style={{ marginLeft: '4px' }}>
                 (of {totalConversations} total)
@@ -325,6 +326,9 @@ const ChatList = ({
                     e.target.src = "/avatar-crm.svg";
                   }}
                 />
+                {chat.isDirectlyAssigned && (
+                  <div className="assignment-indicator" title="Directly assigned to you">•</div>
+                )}
               </div>
               <div className="chat-info">
                 <div className="chat-name-time">
@@ -341,7 +345,7 @@ const ChatList = ({
             {roleFilterActive && userRole && userRole !== 'admin' ? (
               <>
                 <p>No chats are currently assigned to you.</p>
-                <small>You'll see chats here when leads are assigned to you.</small>
+                <small>You'll see chats here when conversations are assigned to you directly or through leads.</small>
               </>
             ) : (
               <p>No chats available at this time.</p>
