@@ -11860,3 +11860,327 @@ INFO 2025-04-11 01:59:38,216 basehttp "GET /api/analytics/lead-analytics/?page=1
 INFO 2025-04-11 02:41:55,747 basehttp "GET /api/analytics/filter-options/?tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b&user_id=23 HTTP/1.1" 200 518
 INFO 2025-04-11 02:41:55,999 basehttp "GET /api/analytics/lead-analytics/?date_from=2025-03-01&date_to=2025-04-30&date_range_type=custom&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b&user_id=23 HTTP/1.1" 200 1027
 INFO 2025-04-11 02:42:13,030 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b&user_id=23 HTTP/1.1" 200 494
+INFO 2025-04-11 02:53:45,547 basehttp "OPTIONS /api/auth/token/ HTTP/1.1" 200 0
+INFO 2025-04-11 02:53:46,957 basehttp "POST /api/auth/token/ HTTP/1.1" 200 683
+INFO 2025-04-11 02:53:46,964 basehttp "OPTIONS /api/auth/me/ HTTP/1.1" 200 0
+WARNING 2025-04-11 02:53:46,968 log Unauthorized: /api/auth/me/
+WARNING 2025-04-11 02:53:46,969 basehttp "GET /api/auth/me/ HTTP/1.1" 401 183
+INFO 2025-04-11 02:53:47,564 basehttp "GET /api/auth/me/ HTTP/1.1" 200 299
+INFO 2025-04-11 02:53:47,820 basehttp "OPTIONS /api/analytics/dashboard-stats?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-11 02:53:47,863 basehttp "OPTIONS /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-11 02:53:50,898 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 507
+INFO 2025-04-12 14:28:44,265 autoreload Watching for file changes with StatReloader
+INFO 2025-04-12 14:33:23,830 basehttp "OPTIONS /api/auth/register/ HTTP/1.1" 200 0
+WARNING 2025-04-12 14:33:24,205 log Unauthorized: /api/auth/register/
+WARNING 2025-04-12 14:33:24,206 basehttp "POST /api/auth/register/ HTTP/1.1" 401 183
+WARNING 2025-04-12 14:34:17,936 log Unauthorized: /api/auth/register/
+WARNING 2025-04-12 14:34:17,937 basehttp "POST /api/auth/register/ HTTP/1.1" 401 183
+WARNING 2025-04-12 14:35:46,792 log Unauthorized: /api/auth/register/
+WARNING 2025-04-12 14:35:46,795 basehttp "POST /api/auth/register/ HTTP/1.1" 401 183
+INFO 2025-04-12 14:36:07,701 basehttp "OPTIONS /api/auth/token/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:36:11,339 basehttp "POST /api/auth/token/ HTTP/1.1" 200 683
+INFO 2025-04-12 14:36:11,348 basehttp "OPTIONS /api/auth/me/ HTTP/1.1" 200 0
+WARNING 2025-04-12 14:36:11,360 log Unauthorized: /api/auth/me/
+WARNING 2025-04-12 14:36:11,362 basehttp "GET /api/auth/me/ HTTP/1.1" 401 183
+INFO 2025-04-12 14:36:12,005 basehttp "GET /api/auth/me/ HTTP/1.1" 200 299
+INFO 2025-04-12 14:36:12,353 basehttp "OPTIONS /api/analytics/dashboard-stats?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-12 14:36:12,416 basehttp "OPTIONS /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-12 14:36:17,510 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 507
+INFO 2025-04-12 14:37:16,653 basehttp "POST /api/auth/register/ HTTP/1.1" 201 643
+INFO 2025-04-12 14:37:56,946 basehttp "POST /api/auth/token/ HTTP/1.1" 200 696
+WARNING 2025-04-12 14:37:56,954 log Unauthorized: /api/auth/me/
+WARNING 2025-04-12 14:37:56,955 basehttp "GET /api/auth/me/ HTTP/1.1" 401 183
+INFO 2025-04-12 14:37:57,184 basehttp "GET /api/auth/me/ HTTP/1.1" 200 302
+INFO 2025-04-12 14:37:57,462 basehttp "OPTIONS /api/analytics/dashboard-stats?date_from=2025-03-31&date_to=2025-04-29&tenant_id=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f HTTP/1.1" 200 0
+INFO 2025-04-12 14:37:57,937 basehttp "GET /api/analytics/dashboard-stats?date_from=2025-03-31&date_to=2025-04-29&tenant_id=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f HTTP/1.1" 301 0
+INFO 2025-04-12 14:37:57,941 basehttp "OPTIONS /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f HTTP/1.1" 200 0
+INFO 2025-04-12 14:38:10,798 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f HTTP/1.1" 200 494
+INFO 2025-04-12 14:38:12,717 basehttp "OPTIONS /api/conversations/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:38:12,720 basehttp "OPTIONS /api/conversations/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:38:13,037 basehttp "OPTIONS /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 0
+INFO 2025-04-12 14:38:13,047 basehttp "OPTIONS /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 0
+INFO 2025-04-12 14:38:13,047 basehttp "OPTIONS /api/messages/1/ HTTP/1.1" 200 0
+WARNING 2025-04-12 14:38:13,057 log Bad Request: /api/conversations/
+WARNING 2025-04-12 14:38:13,060 basehttp "POST /api/conversations/ HTTP/1.1" 400 81
+INFO 2025-04-12 14:38:13,666 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:38:14,091 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+ERROR 2025-04-12 14:38:14,170 log Internal Server Error: /api/messages/1/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\services\waba_int.py", line 18, in __init__
+    waba_settings = WABASettings.objects.get(tenant_id=tenant_id, is_active=True)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 637, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+waba_int.models.WABASettings.DoesNotExist: WABASettings matching query does not exist.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py", line 146, in post
+    client = OnCloudAPIClient(tenant_id=tenant_id)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\services\waba_int.py", line 25, in __init__
+    raise Exception("No WhatsApp API settings configured for this tenant")
+Exception: No WhatsApp API settings configured for this tenant
+ERROR 2025-04-12 14:38:14,187 basehttp "POST /api/messages/1/ HTTP/1.1" 500 116804
+WARNING 2025-04-12 14:38:14,755 log Bad Request: /api/conversations/
+WARNING 2025-04-12 14:38:14,765 log Bad Request: /api/conversations/
+WARNING 2025-04-12 14:38:14,767 basehttp "POST /api/conversations/ HTTP/1.1" 400 81
+INFO 2025-04-12 14:38:14,795 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+WARNING 2025-04-12 14:38:14,804 basehttp "POST /api/conversations/ HTTP/1.1" 400 81
+ERROR 2025-04-12 14:38:15,254 log Internal Server Error: /api/messages/1/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\services\waba_int.py", line 18, in __init__
+    waba_settings = WABASettings.objects.get(tenant_id=tenant_id, is_active=True)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 637, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+waba_int.models.WABASettings.DoesNotExist: WABASettings matching query does not exist.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py", line 146, in post
+    client = OnCloudAPIClient(tenant_id=tenant_id)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\services\waba_int.py", line 25, in __init__
+    raise Exception("No WhatsApp API settings configured for this tenant")
+Exception: No WhatsApp API settings configured for this tenant
+ERROR 2025-04-12 14:38:15,265 basehttp "POST /api/messages/1/ HTTP/1.1" 500 116804
+INFO 2025-04-12 14:38:16,187 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+WARNING 2025-04-12 14:38:48,611 log Bad Request: /api/conversations/
+WARNING 2025-04-12 14:38:48,613 basehttp "POST /api/conversations/ HTTP/1.1" 400 81
+WARNING 2025-04-12 14:38:49,201 log Bad Request: /api/conversations/
+WARNING 2025-04-12 14:38:49,203 basehttp "POST /api/conversations/ HTTP/1.1" 400 81
+ERROR 2025-04-12 14:38:49,659 log Internal Server Error: /api/messages/1/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\services\waba_int.py", line 18, in __init__
+    waba_settings = WABASettings.objects.get(tenant_id=tenant_id, is_active=True)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 637, in get
+    raise self.model.DoesNotExist(
+        "%s matching query does not exist." % self.model._meta.object_name
+    )
+waba_int.models.WABASettings.DoesNotExist: WABASettings matching query does not exist.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py", line 146, in post
+    client = OnCloudAPIClient(tenant_id=tenant_id)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\services\waba_int.py", line 25, in __init__
+    raise Exception("No WhatsApp API settings configured for this tenant")
+Exception: No WhatsApp API settings configured for this tenant
+ERROR 2025-04-12 14:38:49,669 basehttp "POST /api/messages/1/ HTTP/1.1" 500 116804
+INFO 2025-04-12 14:40:11,347 basehttp "OPTIONS /api/settings/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:40:12,358 basehttp "POST /api/settings/ HTTP/1.1" 201 402
+INFO 2025-04-12 14:40:18,000 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:40:19,836 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:40:20,313 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:40:20,534 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:40:20,652 basehttp "POST /api/messages/1/ HTTP/1.1" 200 37
+INFO 2025-04-12 14:40:20,916 basehttp "POST /api/messages/1/ HTTP/1.1" 200 37
+INFO 2025-04-12 14:40:28,103 basehttp "POST /api/conversations/ HTTP/1.1" 200 4686
+INFO 2025-04-12 14:40:28,170 basehttp "POST /api/conversations/ HTTP/1.1" 200 4686
+INFO 2025-04-12 14:40:28,213 basehttp "OPTIONS /api/messages/2508885/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:40:28,549 basehttp "POST /api/conversations/ HTTP/1.1" 200 4686
+INFO 2025-04-12 14:40:28,603 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:40:28,813 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:40:29,038 basehttp "POST /api/messages/2508885/ HTTP/1.1" 200 697
+INFO 2025-04-12 14:40:49,299 basehttp "OPTIONS /api/leads/by-role/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&page_size=100 HTTP/1.1" 200 0
+INFO 2025-04-12 14:40:58,743 basehttp "POST /api/conversations/ HTTP/1.1" 200 4686
+INFO 2025-04-12 14:41:24,332 basehttp "GET /api/leads/by-role/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&page_size=100 HTTP/1.1" 200 41098
+INFO 2025-04-12 14:41:24,345 basehttp "OPTIONS /api/auth/users/29/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:41:24,843 basehttp "GET /api/auth/users/29/ HTTP/1.1" 200 302
+INFO 2025-04-12 14:41:24,854 basehttp "OPTIONS /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&ids=29 HTTP/1.1" 200 0
+INFO 2025-04-12 14:41:25,578 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&ids=29 HTTP/1.1" 200 354
+INFO 2025-04-12 14:41:42,092 basehttp "OPTIONS /api/leads/5ac84115-546f-4db7-9d9b-e6c319945105/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:41:45,829 basehttp "DELETE /api/leads/5ac84115-546f-4db7-9d9b-e6c319945105/ HTTP/1.1" 204 0
+INFO 2025-04-12 14:41:46,171 basehttp "OPTIONS /api/leads/96acc71e-b9bb-43b8-a646-2636b3839ddd/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:41:46,172 basehttp "OPTIONS /api/leads/96acc71e-b9bb-43b8-a646-2636b3839ddd/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:41:48,195 basehttp "GET /api/leads/96acc71e-b9bb-43b8-a646-2636b3839ddd/ HTTP/1.1" 200 1513
+INFO 2025-04-12 14:41:49,932 basehttp "GET /api/leads/96acc71e-b9bb-43b8-a646-2636b3839ddd/ HTTP/1.1" 200 1513
+INFO 2025-04-12 14:42:19,430 basehttp "GET /api/leads/by-role/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&page_size=100 HTTP/1.1" 200 39584
+INFO 2025-04-12 14:42:19,634 basehttp "GET /api/auth/users/29/ HTTP/1.1" 200 302
+INFO 2025-04-12 14:42:20,260 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&ids=29 HTTP/1.1" 200 354
+INFO 2025-04-12 14:44:52,424 basehttp "OPTIONS /api/leads/a357c0aa-7eff-46ca-b2ee-aa690b6c9412/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:44:55,258 basehttp "DELETE /api/leads/a357c0aa-7eff-46ca-b2ee-aa690b6c9412/ HTTP/1.1" 204 0
+INFO 2025-04-12 14:44:58,769 basehttp "OPTIONS /api/leads/cf078eed-1fb1-4f54-a9eb-fba1bebd8d9e/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:45:00,810 basehttp "DELETE /api/leads/cf078eed-1fb1-4f54-a9eb-fba1bebd8d9e/ HTTP/1.1" 204 0
+INFO 2025-04-12 14:45:04,656 basehttp "OPTIONS /api/leads/bcbdfb94-1127-44bf-bac7-cf7582f09cb4/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:45:05,639 basehttp "DELETE /api/leads/bcbdfb94-1127-44bf-bac7-cf7582f09cb4/ HTTP/1.1" 204 0
+INFO 2025-04-12 14:45:08,341 basehttp "OPTIONS /api/leads/ed6efa29-6306-45fb-beff-6103777ed57b/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:45:09,920 basehttp "DELETE /api/leads/ed6efa29-6306-45fb-beff-6103777ed57b/ HTTP/1.1" 204 0
+INFO 2025-04-12 14:45:12,585 basehttp "OPTIONS /api/leads/46abf000-8693-4df3-a7e9-2cde14e5c688/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:45:14,325 basehttp "DELETE /api/leads/46abf000-8693-4df3-a7e9-2cde14e5c688/ HTTP/1.1" 204 0
+INFO 2025-04-12 14:45:16,803 basehttp "OPTIONS /api/leads/12956c54-be75-487f-929b-aba038888348/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:45:19,961 basehttp "DELETE /api/leads/12956c54-be75-487f-929b-aba038888348/ HTTP/1.1" 204 0
+INFO 2025-04-12 14:45:21,983 basehttp "OPTIONS /api/leads/3a4feab8-2167-4d1f-9aa0-c88d145cadd6/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:45:25,029 basehttp "DELETE /api/leads/3a4feab8-2167-4d1f-9aa0-c88d145cadd6/ HTTP/1.1" 204 0
+INFO 2025-04-12 14:45:26,327 basehttp "OPTIONS /api/leads/bb868763-1479-4992-a3fd-ed96a5e968cb/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:45:30,097 basehttp "DELETE /api/leads/bb868763-1479-4992-a3fd-ed96a5e968cb/ HTTP/1.1" 204 0
+INFO 2025-04-12 14:45:34,186 basehttp "OPTIONS /api/leads/c36ac13e-2282-4e96-bef2-a1e0763b1862/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:45:38,125 basehttp "DELETE /api/leads/c36ac13e-2282-4e96-bef2-a1e0763b1862/ HTTP/1.1" 204 0
+INFO 2025-04-12 14:45:41,804 basehttp "OPTIONS /api/leads/73c1833a-fb6e-40a5-af3a-d4f5cbfa4e37/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:45:45,601 basehttp "DELETE /api/leads/73c1833a-fb6e-40a5-af3a-d4f5cbfa4e37/ HTTP/1.1" 204 0
+INFO 2025-04-12 14:45:47,694 basehttp "OPTIONS /api/leads/6c1112f0-240f-4056-b1a8-924fb5a41d35/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:45:52,118 basehttp "DELETE /api/leads/6c1112f0-240f-4056-b1a8-924fb5a41d35/ HTTP/1.1" 204 0
+INFO 2025-04-12 14:45:56,195 basehttp "OPTIONS /api/leads/b3b1d343-ae5b-43fd-919a-478c3e51b81c/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:46:00,759 basehttp "DELETE /api/leads/b3b1d343-ae5b-43fd-919a-478c3e51b81c/ HTTP/1.1" 204 0
+INFO 2025-04-12 14:46:03,589 basehttp "OPTIONS /api/leads/b34acff7-fc05-43fa-8eef-d47034539a74/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:46:07,063 basehttp "DELETE /api/leads/b34acff7-fc05-43fa-8eef-d47034539a74/ HTTP/1.1" 204 0
+INFO 2025-04-12 14:46:10,138 basehttp "OPTIONS /api/leads/b9f61a0a-e98d-4493-a73c-3859a3f4f108/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:46:13,411 basehttp "DELETE /api/leads/b9f61a0a-e98d-4493-a73c-3859a3f4f108/ HTTP/1.1" 204 0
+INFO 2025-04-12 14:46:15,509 basehttp "OPTIONS /api/leads/e5d60853-822d-4183-83cf-66d2fdb31f77/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:46:19,225 basehttp "DELETE /api/leads/e5d60853-822d-4183-83cf-66d2fdb31f77/ HTTP/1.1" 204 0
+INFO 2025-04-12 14:46:21,576 basehttp "OPTIONS /api/leads/226933d6-0b09-4b24-b53c-9608fdfc60a7/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:46:24,779 basehttp "DELETE /api/leads/226933d6-0b09-4b24-b53c-9608fdfc60a7/ HTTP/1.1" 204 0
+INFO 2025-04-12 14:46:30,508 basehttp "DELETE /api/leads/96acc71e-b9bb-43b8-a646-2636b3839ddd/ HTTP/1.1" 204 0
+INFO 2025-04-12 14:46:34,612 basehttp "OPTIONS /api/leads/23634904-35a6-4456-9e45-7e0ebbb8c91d/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:46:37,366 basehttp "DELETE /api/leads/23634904-35a6-4456-9e45-7e0ebbb8c91d/ HTTP/1.1" 204 0
+INFO 2025-04-12 14:46:39,573 basehttp "OPTIONS /api/leads/85234ae2-d8c1-40f1-b4a3-b8a7f498e4f5/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:46:43,852 basehttp "DELETE /api/leads/85234ae2-d8c1-40f1-b4a3-b8a7f498e4f5/ HTTP/1.1" 204 0
+INFO 2025-04-12 14:47:33,970 basehttp "GET /api/leads/by-role/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&page_size=100 HTTP/1.1" 200 10696
+INFO 2025-04-12 14:47:34,124 basehttp "GET /api/auth/users/29/ HTTP/1.1" 200 302
+INFO 2025-04-12 14:47:34,354 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&ids=29 HTTP/1.1" 200 354
+INFO 2025-04-12 14:47:51,864 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:47:52,103 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:47:52,890 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:47:53,424 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:47:54,135 basehttp "POST /api/messages/1/ HTTP/1.1" 200 37
+INFO 2025-04-12 14:47:54,358 basehttp "POST /api/messages/1/ HTTP/1.1" 200 37
+INFO 2025-04-12 14:47:57,837 basehttp "POST /api/conversations/ HTTP/1.1" 200 4686
+INFO 2025-04-12 14:47:58,184 basehttp "POST /api/conversations/ HTTP/1.1" 200 4686
+INFO 2025-04-12 14:47:58,251 basehttp "POST /api/conversations/ HTTP/1.1" 200 4686
+INFO 2025-04-12 14:47:58,271 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:47:58,486 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:47:58,710 basehttp "POST /api/messages/2508885/ HTTP/1.1" 200 697
+INFO 2025-04-12 14:48:00,765 basehttp "OPTIONS /api/messages/2508878/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:48:01,554 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:48:02,268 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:48:03,289 basehttp "POST /api/messages/2508878/ HTTP/1.1" 200 3290
+INFO 2025-04-12 14:48:10,582 basehttp "OPTIONS /api/messages/2507766/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:48:11,326 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:48:12,005 basehttp "POST /api/messages/2507766/ HTTP/1.1" 200 762
+INFO 2025-04-12 14:48:12,005 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:48:21,223 basehttp "OPTIONS /api/messages/2507174/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:48:23,571 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:48:24,087 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:48:24,362 basehttp "POST /api/messages/2507174/ HTTP/1.1" 200 37
+INFO 2025-04-12 14:48:27,154 basehttp "POST /api/conversations/ HTTP/1.1" 200 4686
+INFO 2025-04-12 14:48:27,302 basehttp "OPTIONS /api/messages/2506604/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:48:27,954 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:48:28,176 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:48:28,400 basehttp "POST /api/messages/2506604/ HTTP/1.1" 200 723
+INFO 2025-04-12 14:48:28,422 basehttp "POST /api/messages/2507174/ HTTP/1.1" 200 37
+INFO 2025-04-12 14:48:29,889 basehttp "OPTIONS /api/messages/2506595/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:48:30,540 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:48:31,155 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:48:31,758 basehttp "POST /api/messages/2506595/ HTTP/1.1" 200 723
+INFO 2025-04-12 14:48:33,383 basehttp "POST /api/conversations/ HTTP/1.1" 200 4686
+INFO 2025-04-12 14:48:34,722 basehttp "OPTIONS /api/messages/2506029/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:48:35,350 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:48:35,876 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:48:36,359 basehttp "POST /api/messages/2506029/ HTTP/1.1" 200 10503
+INFO 2025-04-12 14:48:45,914 basehttp "OPTIONS /api/messages/2506028/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:48:46,603 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:48:47,222 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:48:47,424 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 2619
+INFO 2025-04-12 14:48:48,752 basehttp "OPTIONS /api/messages/2505817/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:48:49,484 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:48:50,305 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:48:51,924 basehttp "POST /api/messages/2505817/ HTTP/1.1" 200 3453
+INFO 2025-04-12 14:48:52,554 basehttp "OPTIONS /api/templates/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:48:52,560 basehttp "OPTIONS /api/templates/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:48:54,287 basehttp "GET /api/templates/ HTTP/1.1" 200 35
+INFO 2025-04-12 14:48:55,623 basehttp "GET /api/templates/ HTTP/1.1" 200 35
+INFO 2025-04-12 14:48:56,474 basehttp "OPTIONS /api/groups/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:48:56,475 basehttp "OPTIONS /api/groups/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:48:58,020 basehttp "GET /api/groups/ HTTP/1.1" 200 32
+INFO 2025-04-12 14:48:59,406 basehttp "GET /api/groups/ HTTP/1.1" 200 32
+INFO 2025-04-12 14:49:00,326 basehttp "OPTIONS /api/contacts/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:49:00,327 basehttp "OPTIONS /api/contacts/ HTTP/1.1" 200 0
+INFO 2025-04-12 14:49:01,655 basehttp "GET /api/contacts/ HTTP/1.1" 200 4620
+INFO 2025-04-12 14:49:02,711 basehttp "GET /api/contacts/ HTTP/1.1" 200 4620
+INFO 2025-04-12 14:49:06,588 basehttp "POST /api/messages/2505817/ HTTP/1.1" 200 3453
+INFO 2025-04-12 14:49:06,591 basehttp "POST /api/messages/2505817/ HTTP/1.1" 200 3453
+INFO 2025-04-12 14:49:08,467 basehttp "POST /api/messages/2505817/ HTTP/1.1" 200 3453
+INFO 2025-04-12 14:49:10,541 basehttp "POST /api/conversations/ HTTP/1.1" 200 4686
+INFO 2025-04-12 14:49:10,928 basehttp "POST /api/conversations/ HTTP/1.1" 200 4686
+INFO 2025-04-12 14:49:10,966 basehttp "POST /api/conversations/ HTTP/1.1" 200 4686
+INFO 2025-04-12 14:49:10,972 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:49:11,205 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 354
+INFO 2025-04-12 14:49:11,494 basehttp "POST /api/messages/2508885/ HTTP/1.1" 200 697
+INFO 2025-04-12 14:49:44,418 basehttp "POST /api/conversations/ HTTP/1.1" 200 4686
+INFO 2025-04-12 14:49:45,367 basehttp "POST /api/messages/2508885/ HTTP/1.1" 200 697
+INFO 2025-04-12 14:49:47,876 basehttp "POST /api/conversations/ HTTP/1.1" 200 4686
+INFO 2025-04-12 14:50:08,707 basehttp "GET /api/leads/by-role/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&page_size=100 HTTP/1.1" 200 22820
+INFO 2025-04-12 14:50:08,868 basehttp "GET /api/auth/users/29/ HTTP/1.1" 200 302
+INFO 2025-04-12 14:50:09,095 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&ids=29 HTTP/1.1" 200 354
+INFO 2025-04-12 15:02:44,426 basehttp "GET /api/leads/by-role/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&page_size=100 HTTP/1.1" 200 22820
+INFO 2025-04-12 15:02:44,575 basehttp "GET /api/auth/users/29/ HTTP/1.1" 200 302
+INFO 2025-04-12 15:02:44,794 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&ids=29 HTTP/1.1" 200 354
+INFO 2025-04-12 15:05:22,416 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f HTTP/1.1" 200 505
+INFO 2025-04-12 15:13:04,618 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f HTTP/1.1" 200 505

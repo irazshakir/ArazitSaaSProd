@@ -49,9 +49,6 @@ const TemplateList = () => {
       const tenantId = localStorage.getItem('tenant_id');
       const token = localStorage.getItem('token');
       
-      console.log('[DEBUG] Using tenant ID from localStorage:', tenantId);
-      console.log('[DEBUG] Using token from localStorage:', token ? 'Token exists' : 'No token found');
-      
       const response = await fetch('http://localhost:8000/api/templates/', {
         method: 'GET',
         headers: {
@@ -97,7 +94,6 @@ const TemplateList = () => {
       
       setTemplates(data.templates || []);
     } catch (error) {
-      console.error('Error fetching templates:', error);
       setError('Error fetching templates: ' + error.message);
     } finally {
       setLoading(false);
@@ -106,7 +102,6 @@ const TemplateList = () => {
 
   const handlePreview = (template) => {
     // TODO: Implement template preview functionality
-    console.log('Preview template:', template);
   };
 
   const handleSend = (template) => {

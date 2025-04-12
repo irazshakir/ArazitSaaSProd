@@ -39,9 +39,6 @@ const ContactList = () => {
       const tenantId = localStorage.getItem('tenant_id');
       const token = localStorage.getItem('token');
       
-      console.log('[DEBUG] Using tenant ID from localStorage:', tenantId);
-      console.log('[DEBUG] Using token from localStorage:', token ? 'Token exists' : 'No token found');
-      
       const response = await fetch('http://localhost:8000/api/contacts/', {
         method: 'GET',
         headers: {
@@ -87,7 +84,6 @@ const ContactList = () => {
       
       setContacts(data.contacts || []);
     } catch (error) {
-      console.error('Error fetching contacts:', error);
       setError('Error fetching contacts: ' + error.message);
     } finally {
       setLoading(false);

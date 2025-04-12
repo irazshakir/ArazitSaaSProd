@@ -100,7 +100,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
     { text: 'Chats', icon: <ChatIcon />, path: '/dashboard/chats' },
     { text: 'Leads', icon: <PersonIcon />, path: '/dashboard/leads' },
-    { text: 'Groups', icon: <GroupIcon />, path: '/dashboard/groups' },
+    // { text: 'Groups', icon: <GroupIcon />, path: '/dashboard/groups' },
   ];
 
   // Analytics submenu - available to all authenticated users

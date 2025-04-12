@@ -39,9 +39,6 @@ const GroupList = () => {
       const tenantId = localStorage.getItem('tenant_id');
       const token = localStorage.getItem('token');
       
-      console.log('[DEBUG] Using tenant ID from localStorage:', tenantId);
-      console.log('[DEBUG] Using token from localStorage:', token ? 'Token exists' : 'No token found');
-      
       const response = await fetch('http://localhost:8000/api/groups/', {
         method: 'GET',
         headers: {
@@ -87,7 +84,6 @@ const GroupList = () => {
       
       setGroups(data.groups || []);
     } catch (error) {
-      console.error('Error fetching groups:', error);
       setError('Error fetching groups: ' + error.message);
     } finally {
       setLoading(false);

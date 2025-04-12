@@ -48,7 +48,6 @@ const WABASettings = () => {
         // Get the current user to access tenant_id
         const user = getUser();
         if (!user || !user.tenant_id) {
-          console.error('No user or tenant_id found');
           setSnackbar({
             open: true,
             message: 'User or tenant information not found',
@@ -59,11 +58,9 @@ const WABASettings = () => {
         }
         
         const data = await wabaService.getSettings();
-        console.log('Settings data received in component:', data);
         
         // Check if we have valid data
         if (!data || (typeof data === 'object' && Object.keys(data).length === 0)) {
-          console.warn('Empty data received from API, using default values');
           // Keep the default form data
           setLoading(false);
           return;
@@ -81,10 +78,8 @@ const WABASettings = () => {
           return acc;
         }, {});
         
-        console.log('Sanitized data to be used in form:', sanitizedData);
         setFormData(sanitizedData);
       } catch (error) {
-        console.error('Error fetching WABA settings:', error);
         setSnackbar({
           open: true,
           message: 'Failed to load WABA settings',
@@ -128,8 +123,6 @@ const WABASettings = () => {
     
     setSaving(true);
     try {
-      console.log('Submitting WABA settings:', formData);
-      
       // Create a copy of the data to send
       const dataToSend = { ...formData };
       
@@ -144,7 +137,6 @@ const WABASettings = () => {
       }
       
       const savedSettings = await wabaService.saveSettings(dataToSend);
-      console.log('Saved settings response:', savedSettings);
       
       // Update the form data but clear the password fields for security
       const updatedFormData = { ...savedSettings, password: '' };
@@ -157,7 +149,6 @@ const WABASettings = () => {
         severity: 'success'
       });
     } catch (error) {
-      console.error('Error saving WABA settings:', error);
       setSnackbar({
         open: true,
         message: 'Failed to save WABA settings',
