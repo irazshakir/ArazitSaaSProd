@@ -1,8 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { SearchOutlined, UserOutlined, TeamOutlined, SyncOutlined } from '@ant-design/icons';
+import { Typography, Box } from '@mui/material';
+import FilterListIcon from '@mui/icons-material/FilterList';
 import './chatList.css';
 
-const ChatList = ({ activeChat, setActiveChat, refreshData, lastRefreshTime, hasNewChats, noApiConfigured: parentNoApiConfigured }) => {
+const ChatList = ({ 
+  activeChat, 
+  setActiveChat, 
+  refreshData, 
+  lastRefreshTime, 
+  hasNewChats, 
+  noApiConfigured: parentNoApiConfigured,
+  totalConversations,
+  roleFilterActive,
+  userRole
+}) => {
   const [activeTab, setActiveTab] = useState('personal');
   const [chats, setChats] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -201,6 +213,14 @@ const ChatList = ({ activeChat, setActiveChat, refreshData, lastRefreshTime, has
     }
   };
 
+  // Format user role for display
+  const formatUserRole = (role) => {
+    if (!role) return '';
+    return role.split('_').map(word => 
+      word.charAt(0).toUpperCase() + word.slice(1)
+    ).join(' ');
+  };
+
   if (loading && !refreshing) {
     return <div className="chat-list-container">Loading conversations...</div>;
   }
@@ -249,6 +269,29 @@ const ChatList = ({ activeChat, setActiveChat, refreshData, lastRefreshTime, has
         </div>
       </div>
 
+      {roleFilterActive && userRole && userRole !== 'admin' && (
+        <div className="filter-banner">
+          <Typography variant="caption" sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            fontSize: '11px',
+            padding: '4px 8px',
+            color: '#5f6368',
+            backgroundColor: '#f8f9fa',
+            borderRadius: '4px',
+            marginBottom: '4px'
+          }}>
+            <span style={{ marginRight: '4px' }}>➤</span>
+            Showing {chats.length} {chats.length === 1 ? 'chat' : 'chats'} assigned to you as {formatUserRole(userRole)}
+            {totalConversations > 0 && chats.length !== totalConversations && (
+              <span style={{ marginLeft: '4px' }}>
+                (of {totalConversations} total)
+              </span>
+            )}
+          </Typography>
+        </div>
+      )}
+
       <div className="chat-tabs">
         <button 
           className={`tab ${activeTab === 'personal' ? 'active' : ''}`}
@@ -265,33 +308,46 @@ const ChatList = ({ activeChat, setActiveChat, refreshData, lastRefreshTime, has
       </div>
 
       <div className="chat-list">
-        {chats.map((chat) => (
-          <div 
-            key={chat.id} 
-            className={`chat-item ${selectedChatId === chat.id ? 'active' : ''} ${chat.unread ? 'unread-chat' : ''}`}
-            onClick={() => handleChatSelect(chat)}
-          >
-            <div className="avatar">
-              <img 
-                src={chat.avatar || "/avatar-crm.svg"} 
-                alt={chat.name} 
-                className="avatar-image" 
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = "/avatar-crm.svg";
-                }}
-              />
-            </div>
-            <div className="chat-info">
-              <div className="chat-name-time">
-                <h3>{chat.name}</h3>
-                <span className="chat-time">{chat.lastMessageTime}</span>
+        {chats.length > 0 ? (
+          chats.map((chat) => (
+            <div 
+              key={chat.id} 
+              className={`chat-item ${selectedChatId === chat.id ? 'active' : ''} ${chat.unread ? 'unread-chat' : ''}`}
+              onClick={() => handleChatSelect(chat)}
+            >
+              <div className="avatar">
+                <img 
+                  src={chat.avatar || "/avatar-crm.svg"} 
+                  alt={chat.name} 
+                  className="avatar-image" 
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "/avatar-crm.svg";
+                  }}
+                />
               </div>
-              <p className="chat-preview">{chat.lastMessage}</p>
+              <div className="chat-info">
+                <div className="chat-name-time">
+                  <h3>{chat.name}</h3>
+                  <span className="chat-time">{chat.lastMessageTime}</span>
+                </div>
+                <p className="chat-preview">{chat.lastMessage}</p>
+              </div>
+              {chat.unread && <div className="unread-indicator"></div>}
             </div>
-            {chat.unread && <div className="unread-indicator"></div>}
+          ))
+        ) : (
+          <div className="no-chats-message">
+            {roleFilterActive && userRole && userRole !== 'admin' ? (
+              <>
+                <p>No chats are currently assigned to you.</p>
+                <small>You'll see chats here when leads are assigned to you.</small>
+              </>
+            ) : (
+              <p>No chats available at this time.</p>
+            )}
           </div>
-        ))}
+        )}
       </div>
 
       <button className="new-chat-button">New chat</button>

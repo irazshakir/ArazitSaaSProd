@@ -416,7 +416,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         
         try {
           // Try to fetch active users for this tenant with the correct path
-          const response = await api.get(`auth/users/active-by-tenant/?tenant=${tenantId}`);
+          const response = await api.get(`/auth/active-by-tenant/?tenant=${tenantId}`);
           
           let usersArray = Array.isArray(response.data) 
             ? response.data
@@ -450,7 +450,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         } catch (error) {
           // Try a direct fetch to debug the issue with the correct path
           try {
-            const fullUrl = `http://localhost:8000/api/auth/users/active-by-tenant/?tenant=${tenantId}`;
+            const fullUrl = `http://localhost:8000/api/auth/active-by-tenant/?tenant=${tenantId}`;
             
             const response = await fetch(fullUrl, {
               headers: {

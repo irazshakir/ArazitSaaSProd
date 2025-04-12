@@ -183,6 +183,11 @@ class UserCreateSerializer(serializers.ModelSerializer):
         }
     
     def create(self, validated_data):
+        """
+        Create a new user with tenant association.
+        Also creates a TenantUser record for the user.
+        """
+        # Extract tenant_id
         tenant_id = validated_data.pop('tenant_id', None)
         request = self.context.get('request')
         
@@ -192,7 +197,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
         try:
             tenant = Tenant.objects.get(id=tenant_id)
         except Tenant.DoesNotExist:
-            raise serializers.ValidationError({"tenant_id": "Invalid tenant ID or tenant not found."})
+            error_msg = f"Invalid tenant ID or tenant not found: {tenant_id}"
+            raise serializers.ValidationError({"tenant_id": error_msg})
         
         # Handle branch
         branch = None
@@ -202,7 +208,8 @@ class UserCreateSerializer(serializers.ModelSerializer):
                 try:
                     branch = Branch.objects.get(id=branch_id)
                 except Branch.DoesNotExist:
-                    raise serializers.ValidationError({"branch_id": "Branch not found."})
+                    error_msg = f"Branch not found: {branch_id}"
+                    raise serializers.ValidationError({"branch_id": error_msg})
         
         # Handle department
         department = None
@@ -212,33 +219,50 @@ class UserCreateSerializer(serializers.ModelSerializer):
                 try:
                     department = Department.objects.get(id=department_id)
                 except Department.DoesNotExist:
-                    raise serializers.ValidationError({"department_id": "Department not found."})
+                    error_msg = f"Department not found: {department_id}"
+                    raise serializers.ValidationError({"department_id": error_msg})
         
+        # Get industry (required for TenantUser)
         industry = validated_data.pop('industry', None)
+        if not industry:
+            # Default to 'travel_tourism' if not provided
+            industry = 'travel_tourism'
         
-        # Create user with department
-        user = User.objects.create(
-            email=validated_data['email'],
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name'],
-            phone_number=validated_data.get('phone_number', ''),
-            role=validated_data['role'],
-            branch=branch,
-            department=department,
-            tenant_id=tenant_id,
-            is_active=validated_data.get('is_active', True),
-            profile_picture=validated_data.get('profile_picture', None)
-        )
-        
-        user.set_password(validated_data['password'])
-        user.save()
-        
-        # Associate user with tenant
-        TenantUser.objects.create(
-            user=user,
-            tenant=tenant,
-            role=validated_data['role'],
-            industry=industry
-        )
-        
-        return user
+        try:
+            # Create user with department and branch
+            user_data = {
+                'email': validated_data['email'],
+                'first_name': validated_data['first_name'],
+                'last_name': validated_data['last_name'],
+                'phone_number': validated_data.get('phone_number', ''),
+                'role': validated_data['role'],
+                'branch': branch,
+                'department': department,
+                'tenant_id': tenant_id,
+                'is_active': validated_data.get('is_active', True),
+            }
+            
+            # Add profile picture if provided
+            if 'profile_picture' in validated_data:
+                user_data['profile_picture'] = validated_data['profile_picture']
+            
+            # Create the user object
+            user = User.objects.create(**user_data)
+            
+            # Set password
+            user.set_password(validated_data['password'])
+            user.save()
+            
+            # Create TenantUser association
+            tenant_user = TenantUser.objects.create(
+                user=user,
+                tenant=tenant,
+                role=validated_data['role'],
+                industry=industry
+            )
+            
+            return user
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            raise serializers.ValidationError({"error": str(e)})

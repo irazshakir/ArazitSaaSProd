@@ -27,7 +27,6 @@ const UserCreate = () => {
     }
     
     setTenantId(storedTenantId);
-    console.log('Creating user for tenant:', storedTenantId);
   }, [navigate]);
   
   // Handle successful form submission

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Form, 
   Input, 
@@ -13,7 +14,7 @@ import {
   Typography, 
   Spin,
   Upload,
-  message 
+  message
 } from 'antd';
 import { 
   UserOutlined, 
@@ -26,7 +27,6 @@ import {
   PlusOutlined,
   BankOutlined
 } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
 import api, { departmentService, branchService } from '../../services/api';
 
 const { Option } = Select;
@@ -68,19 +68,14 @@ const UserForm = ({
       try {
         const tenantId = localStorage.getItem('tenant_id');
         if (!tenantId) {
-          console.warn('No tenant ID found in local storage');
           setBranchesLoading(false);
           setDepartmentsLoading(false);
           return;
         }
         
-        console.log('Fetching data for tenant ID:', tenantId);
-        
         // Fetch branches using the service function
         try {
-          console.log('Fetching branches...');
           const branchResponse = await branchService.getBranches(tenantId);
-          console.log('Raw branch data received:', branchResponse);
           
           // Ensure branchData is an array
           let branchData = [];
@@ -92,16 +87,12 @@ const UserForm = ({
             if (Array.isArray(branchResponse.results)) {
               branchData = branchResponse.results;
             } else {
-              // Try to convert object to array if it's an object
-              console.warn('Branch data is not an array, attempting to convert:', branchResponse);
               branchData = Object.values(branchResponse);
             }
           }
           
-          console.log('Processed branch data (array):', branchData);
           setBranches(branchData);
         } catch (branchError) {
-          console.error('Error fetching branches:', branchError);
           message.error('Failed to load branches. Please try again later.');
           // Ensure branches is set to an empty array on error
           setBranches([]);
@@ -109,9 +100,7 @@ const UserForm = ({
         
         // Fetch departments using the service function
         try {
-          console.log('Fetching departments...');
           const deptResponse = await departmentService.getDepartments(tenantId);
-          console.log('Raw department data received:', deptResponse);
           
           // Ensure departmentData is an array
           let departmentData = [];
@@ -123,23 +112,18 @@ const UserForm = ({
             if (Array.isArray(deptResponse.results)) {
               departmentData = deptResponse.results;
             } else {
-              // Try to convert object to array if it's an object
-              console.warn('Department data is not an array, attempting to convert:', deptResponse);
               departmentData = Object.values(deptResponse);
             }
           }
           
-          console.log('Processed department data (array):', departmentData);
           setDepartments(departmentData);
         } catch (deptError) {
-          console.error('Error fetching departments:', deptError);
           message.error('Failed to load departments. Please try again later.');
           // Ensure departments is set to an empty array on error
           setDepartments([]);
         }
         
       } catch (error) {
-        console.error('Error in data fetching process:', error);
         message.error('Failed to fetch organization data');
         // Ensure both arrays are empty on error
         setBranches([]);
@@ -170,39 +154,24 @@ const UserForm = ({
 
   // Enhanced handleImageChange function
   const handleImageChange = (info) => {
-    console.log('handleImageChange called with file status:', info.file.status);
-    
     if (info.file.status === 'uploading') {
       setImageLoading(true);
-      console.log('File uploading...', info.file);
       return;
     }
     
     if (info.file.status === 'done' || info.file.status === 'error') {
       setImageLoading(false);
-      console.log('File status changed to:', info.file.status);
       
       // Get the file object
       const fileObj = info.file.originFileObj;
       if (fileObj) {
-        console.log('Image file details:', {
-          name: fileObj.name,
-          size: fileObj.size,
-          type: fileObj.type,
-          lastModified: fileObj.lastModified
-        });
-        
         // Store the file object in form state for submission
-        console.log('Setting profile_picture_file in form:', fileObj);
         form.setFieldsValue({ profile_picture_file: fileObj });
         
         // Preview the image
         getBase64(fileObj, (url) => {
-          console.log('Base64 image preview generated');
           setImageUrl(url);
         });
-      } else {
-        console.warn('No originFileObj found in info.file');
       }
     }
   };
@@ -221,57 +190,10 @@ const UserForm = ({
       <div style={{ marginTop: 8 }}>Upload Photo</div>
     </div>
   );
-  
-  // Add this utility function near the top of your UserForm component
-  const tryApiEndpoints = async (formData, isEditMode, initialData) => {
-    const config = {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    };
-    
-    // Try endpoints in order of likelihood
-    const endpoints = [
-      { prefix: 'auth/users', description: 'Auth prefix endpoint' },
-      { prefix: 'users', description: 'Direct users endpoint' },
-      { prefix: 'auth/register', description: 'Register endpoint (create only)' }
-    ];
-    
-    let lastError = null;
-    
-    for (const endpoint of endpoints) {
-      try {
-        console.log(`Trying ${endpoint.description}...`);
-        
-        if (isEditMode) {
-          if (endpoint.prefix === 'auth/register') continue; // Skip register for edit
-          return await api.put(`${endpoint.prefix}/${initialData.id}/`, formData, config);
-        } else {
-          const url = endpoint.prefix.endsWith('register') ? endpoint.prefix : `${endpoint.prefix}/`;
-          return await api.post(url, formData, config);
-        }
-      } catch (error) {
-        console.log(`${endpoint.description} failed:`, error.response?.status || error.message);
-        lastError = error;
-        
-        // If it's not a 404, rethrow immediately as it's likely a data problem
-        if (error.response && error.response.status !== 404) {
-          throw error;
-        }
-        
-        // Otherwise continue to next endpoint
-      }
-    }
-    
-    // If we got here, all endpoints failed
-    throw lastError;
-  };
 
   // Enhanced customUploadRequest function - simplified
   const customUploadRequest = async ({ file, onSuccess, onError }) => {
     try {
-      console.log('File selected for upload:', file.name);
-      
       // Store the original file for future use
       form.setFieldsValue({ 
         profile_picture_file: file 
@@ -288,7 +210,6 @@ const UserForm = ({
       // Mark as success
       onSuccess("ok");
     } catch (error) {
-      console.error('Error in custom upload:', error);
       onError(error);
     }
   };
@@ -297,7 +218,6 @@ const UserForm = ({
   const onFinish = async (values) => {
     try {
       setSubmitting(true);
-      console.log('Submitting form with values:', values);
       
       // Get tenant_id from localStorage
       const tenantId = localStorage.getItem('tenant_id');
@@ -307,8 +227,6 @@ const UserForm = ({
         navigate('/login');
         return;
       }
-      
-      console.log('Creating user for tenant:', tenantId);
       
       // Get the file from all possible sources
       let profilePictureFile = null;
@@ -346,7 +264,7 @@ const UserForm = ({
           }
         }
       } catch (err) {
-        console.warn('Error parsing user from localStorage:', err);
+        // Handle error silently
       }
       
       // Fallback to direct industry key if needed
@@ -359,7 +277,6 @@ const UserForm = ({
       
       // Add industry to formData - this is required for TenantUser creation
       formData.append('industry', selectedIndustry);
-      console.log('Adding industry to form data:', selectedIndustry);
       
       if (values.department) {
         formData.append('department_id', values.department);
@@ -367,7 +284,6 @@ const UserForm = ({
       
       // Add branch_id if selected
       if (values.branch) {
-        console.log('Adding branch ID to form data:', values.branch);
         formData.append('branch_id', values.branch);
       }
       
@@ -381,98 +297,45 @@ const UserForm = ({
         formData.append('profile_picture', profilePictureFile, profilePictureFile.name);
       }
       
-      // Log FormData entries for debugging
-      console.log('FormData contents:');
-      for (let pair of formData.entries()) {
-        if (pair[1] instanceof File) {
-          console.log(`${pair[0]}: File: ${pair[1].name}`);
-        } else {
-          console.log(`${pair[0]}: ${pair[1]}`);
+      try {
+        const response = await api.post('auth/users/', formData, {
+          headers: {'Content-Type': 'multipart/form-data'}
+        });
+        
+        message.success(
+          isEditMode 
+            ? `User ${values.email} updated successfully!` 
+            : `User ${values.email} created successfully!`
+        );
+        
+        form.resetFields();
+        setImageUrl(null);
+        
+        if (onSuccess) {
+          onSuccess(response.data);
         }
-      }
-      
-      // Define API endpoints to try - prioritize auth/users/ endpoint
-      const endpoints = isEditMode 
-        ? [`auth/users/${initialData.id}/`, `users/${initialData.id}/`]
-        : [`auth/users/`, `users/`];
-      
-      // Track detailed error information for better debugging
-      const errorDetails = [];
-      
-      // Try all endpoints in sequence
-      for (const endpoint of endpoints) {
-        try {
-          console.log(`Attempting to submit to endpoint: ${endpoint}`);
-          
-          const response = isEditMode
-            ? await api.put(endpoint, formData, {
-                headers: {'Content-Type': 'multipart/form-data'}
-              })
-            : await api.post(endpoint, formData, {
-                headers: {'Content-Type': 'multipart/form-data'}
-              });
-          
-          console.log(`Success with endpoint ${endpoint}!`, response.data);
-          
-          // Success! Show message and navigate
-          message.success(
-            isEditMode 
-              ? `User ${values.email} updated successfully!` 
-              : `User ${values.email} created successfully!`
-          );
-          
-          form.resetFields();
-          setImageUrl(null);
-          
-          if (onSuccess) {
-            onSuccess(response.data);
-          }
-          
-          return; // Exit after successful submission
-        } catch (error) {
-          // Capture detailed error information
-          const errorInfo = {
-            endpoint,
-            status: error.response?.status,
-            statusText: error.response?.statusText,
-            data: error.response?.data
-          };
-          
-          errorDetails.push(errorInfo);
-          console.error(`Error with endpoint ${endpoint}:`, errorInfo);
-          
-          // Continue to next endpoint
-        }
-      }
-      
-      // If we get here, all endpoints failed
-      console.error('All endpoints failed:', errorDetails);
-      
-      // Provide more detailed error message based on collected errors
-      let errorMessage = 'Failed to create user. Server responded with:';
-      
-      errorDetails.forEach(err => {
-        if (err.status === 400) {
-          // For 400 errors, show validation issues
-          if (typeof err.data === 'object') {
-            const validationErrors = Object.entries(err.data)
+        
+      } catch (error) {
+        // Provide detailed error message
+        let errorMessage = 'Failed to create user. ';
+        
+        if (error.response?.data) {
+          if (typeof error.response.data === 'object') {
+            const validationErrors = Object.entries(error.response.data)
               .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
               .join('\n');
             
-            errorMessage += `\n\n${err.endpoint}: ${validationErrors}`;
+            errorMessage += `\n\nValidation errors: ${validationErrors}`;
           } else {
-            errorMessage += `\n\n${err.endpoint}: ${err.data || err.statusText}`;
+            errorMessage += error.response.data;
           }
         } else {
-          // For other errors
-          errorMessage += `\n\n${err.endpoint}: ${err.status} ${err.statusText}`;
+          errorMessage += error.message;
         }
-      });
-      
-      message.error(errorMessage);
-      
+        
+        message.error(errorMessage);
+      }
     } catch (error) {
-      console.error('Unexpected error:', error);
       message.error('An unexpected error occurred. Please try again.');
     } finally {
       setSubmitting(false);
@@ -521,7 +384,7 @@ const UserForm = ({
             showUploadList={false}
             customRequest={customUploadRequest}
             beforeUpload={(file) => {
-              // Store the file directly in the form values - similar to HajjPackageForm
+              // Store the file directly in the form values
               form.setFieldsValue({ profile_picture_file: file });
               
               // Also store globally for backup

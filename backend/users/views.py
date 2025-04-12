@@ -168,7 +168,17 @@ class UserViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        users = User.objects.filter(tenant_id=tenant_id, is_active=True)
+        # Get user IDs that are associated with this tenant through TenantUser
+        tenant_user_ids = TenantUser.objects.filter(
+            tenant_id=tenant_id
+        ).values_list('user_id', flat=True)
+        
+        # Filter users by these IDs and active status
+        users = User.objects.filter(
+            id__in=tenant_user_ids, 
+            is_active=True
+        )
+        
         serializer = self.get_serializer(users, many=True)
         return Response(serializer.data)
 

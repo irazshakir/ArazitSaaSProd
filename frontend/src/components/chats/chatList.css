@@ -261,4 +261,32 @@
     transform: scale(1);
     opacity: 1;
   }
+}
+
+/* Add these styles for filter banner */
+.filter-banner {
+  padding: 0 8px;
+  margin-bottom: 4px;
+}
+
+/* Add styles for no chats message */
+.no-chats-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  text-align: center;
+  color: #6c757d;
+  height: 200px;
+}
+
+.no-chats-message p {
+  margin-bottom: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.no-chats-message small {
+  font-size: 0.8rem;
+  opacity: 0.7;
 } 

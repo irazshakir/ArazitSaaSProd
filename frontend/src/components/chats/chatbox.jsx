@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { SendOutlined, MoreOutlined, InfoCircleOutlined, PictureOutlined, SyncOutlined } from '@ant-design/icons';
 import './Chatbox.css';
 
-const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, lastRefreshTime, noApiConfigured: parentNoApiConfigured }) => {
+const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, lastRefreshTime, noApiConfigured: parentNoApiConfigured, userRole }) => {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
@@ -12,6 +12,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
   const [error, setError] = useState(null);
   const [noApiConfigured, setNoApiConfigured] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [noPermission, setNoPermission] = useState(false);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const [currentChatId, setCurrentChatId] = useState(null);
@@ -90,6 +91,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
       
       setNoApiConfigured(false);
       setRefreshing(true);
+      setNoPermission(false);
       
       const tenantId = localStorage.getItem('tenant_id');
       const token = localStorage.getItem('token');
@@ -105,6 +107,16 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
           tenant_id: tenantId
         })
       });
+      
+      // Check status code for permission issues
+      if (response.status === 403) {
+        setNoPermission(true);
+        setError(null);
+        setMessages([]);
+        setLoading(false);
+        setRefreshing(false);
+        return;
+      }
       
       // Check content type before trying to parse JSON
       const contentType = response.headers.get('content-type');
@@ -125,6 +137,15 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
           setError(null);
           return;
         }
+        
+        // Check for permission error
+        if (data.error && data.error.toLowerCase().includes('permission')) {
+          setNoPermission(true);
+          setError(null);
+          setMessages([]);
+          return;
+        }
+        
         throw new Error(data.errMsg || 'Failed to fetch messages');
       }
 
@@ -319,6 +340,52 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
 
   if (!activeChat) {
     return <div className="no-chat-selected">Select a chat to start messaging</div>;
+  }
+
+  if (noPermission) {
+    return (
+      <div className="chatbox-container no-permission">
+        <div className="chatbox-header">
+          <div className="chat-user-info">
+            <div className="avatar">
+              <img 
+                src={activeChat.avatar || "/avatar-crm.svg"} 
+                alt={activeChat.name} 
+                className="avatar-image" 
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "/avatar-crm.svg";
+                }}
+              />
+            </div>
+            <div>
+              <h3>{activeChat.name}</h3>
+              <p className="last-seen">Chat details restricted</p>
+            </div>
+          </div>
+          <div className="chat-header-actions">
+            <button 
+              className="refresh-button"
+              onClick={handleManualRefresh}
+              disabled={refreshing}
+              title="Refresh messages"
+            >
+              <SyncOutlined spin={refreshing} />
+            </button>
+          </div>
+        </div>
+
+        <div className="no-permission-message">
+          <div className="no-permission-icon">
+            <svg viewBox="0 0 24 24" width="64" height="64" fill="#6c757d">
+              <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 11h6c-.54 4.13-3.77 7.61-6 8.77V12H6V6.3l6-2.7v8.4z"/>
+            </svg>
+          </div>
+          <h3>Access Restricted</h3>
+          <p>You don't have permission to view this chat. This chat is assigned to another user or team.</p>
+        </div>
+      </div>
+    );
   }
 
   if (noApiConfigured) {

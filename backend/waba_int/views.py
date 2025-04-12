@@ -168,6 +168,13 @@ class ChatMessageView(APIView):
             if not tenant_id:
                 pass
             
+            # Check if user has permission to access this chat
+            if not self._check_user_permission(request, contact_id, tenant_id):
+                return Response(
+                    {"status": False, "error": "You don't have permission to access this chat"}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
             messages = client.get_messages(contact_id)
             
             # Only process and store messages if we have a valid tenant_id
@@ -180,6 +187,104 @@ class ChatMessageView(APIView):
                 {"error": str(e)}, 
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+    
+    def _check_user_permission(self, request, contact_id, tenant_id):
+        """
+        Check if user has permission to access this chat based on their role
+        Similar to the role-based filtering in apply_role_based_filters
+        """
+        user = request.user
+        
+        # If user is not authenticated, no permission
+        if not user.is_authenticated:
+            return False
+        
+        # Admin users have access to all chats
+        if user.role == 'admin':
+            return True
+        
+        try:
+            # Import needed models
+            from leads.models import Lead
+            from django.db.models import Q
+            from teams.models import TeamManager, TeamLead, TeamMember
+            from .models import Chat
+            
+            # First check: Get lead via chat_id
+            lead_via_chat_id = Lead.objects.filter(
+                chat_id=contact_id,
+                tenant_id=tenant_id
+            ).first()
+            
+            # Second check: Get the Chat and then find the lead via lead_id
+            chat = Chat.objects.filter(
+                contact_id=contact_id, 
+                tenant_id=tenant_id,
+                lead_id__isnull=False
+            ).first()
+            
+            lead = None
+            
+            # If we found a direct match through chat_id
+            if lead_via_chat_id:
+                lead = lead_via_chat_id
+            # If we found a chat with lead_id reference
+            elif chat and chat.lead_id:
+                lead = Lead.objects.filter(
+                    id=chat.lead_id,
+                    tenant_id=tenant_id
+                ).first()
+            
+            # If no lead exists through either method, deny access
+            if not lead:
+                return False
+            
+            # Apply role-based permission checking
+            if user.role == 'department_head':
+                # Department head can access all leads in their department
+                if user.department_id and lead.department_id == user.department_id:
+                    return True
+                    
+            elif user.role == 'manager':
+                # Manager can access leads for their teams
+                if lead.assigned_to_id == user.id:
+                    return True
+                    
+                # Check if lead is assigned to a team lead managed by this manager
+                managed_teams = TeamManager.objects.filter(manager=user).values_list('team_id', flat=True)
+                team_leads = TeamLead.objects.filter(team_id__in=managed_teams).values_list('team_lead_id', flat=True)
+                
+                if lead.assigned_to_id in team_leads:
+                    return True
+                
+                # Check if lead is assigned to a team member managed by this manager
+                team_members = TeamMember.objects.filter(team_lead__team_lead_id__in=team_leads).values_list('member_id', flat=True)
+                
+                if lead.assigned_to_id in team_members:
+                    return True
+                
+            elif user.role == 'team_lead':
+                # Team lead can access their own leads and leads assigned to their team members
+                if lead.assigned_to_id == user.id:
+                    return True
+                
+                # Check if lead is assigned to a team member managed by this team lead
+                team_members = TeamMember.objects.filter(team_lead__team_lead=user).values_list('member_id', flat=True)
+                
+                if lead.assigned_to_id in team_members:
+                    return True
+                
+            else:
+                # Regular users can only access their assigned leads
+                if lead.assigned_to_id == user.id:
+                    return True
+            
+            # If none of the conditions match, deny access
+            return False
+            
+        except Exception as e:
+            # On error, deny access to be safe
+            return False
     
     def _process_messages(self, contact_id, messages_data, tenant_id):
         """Process and store messages for a contact"""
@@ -931,11 +1036,15 @@ def get_conversations(request):
             except Exception as e:
                 pass
         
+        # Apply role-based filtering to conversations based on user role
+        filtered_conversations = apply_role_based_filters(request, conversations_data)
+        
         return Response({
             'status': 'success',
-            'data': conversations_data,
+            'data': filtered_conversations,
             'summary': {
                 'total_conversations': len(conversations_data),
+                'filtered_conversations': len(filtered_conversations),
                 'leads_created': leads_created,
                 'leads_found': leads_found
             }
@@ -946,6 +1055,134 @@ def get_conversations(request):
             'status': 'error',
             'errMsg': str(e)
         }, status=500)
+
+def apply_role_based_filters(request, conversations):
+    """
+    Apply role-based filtering to conversations similar to lead filtering
+    Returns filtered conversations based on user's role
+    """
+    user = request.user
+    
+    # If user is not authenticated, return empty list
+    if not user.is_authenticated:
+        return []
+    
+    # If no conversations, return empty list
+    if not conversations:
+        return []
+    
+    # For admin users, return all conversations
+    if user.role == 'admin':
+        return conversations
+    
+    try:
+        # Import needed models
+        from leads.models import Lead
+        from django.db.models import Q
+        from teams.models import TeamManager, TeamLead, TeamMember
+        
+        # Get tenant ID
+        tenant_id = request.data.get('tenant_id') or request.headers.get('X-Tenant-ID')
+        
+        # Get all conversation ids
+        conversation_ids = [conv.get('id') for conv in conversations if conv.get('id')]
+        
+        # First approach: Get leads with chat_id in the conversation_ids
+        leads_queryset = Lead.objects.filter(
+            chat_id__in=conversation_ids,
+            tenant_id=tenant_id
+        )
+        
+        # Second approach: Get chats directly using the Chat model
+        # This is crucial because sometimes the chat_id may not be in the Lead model
+        # but the Chat model's lead_id would point to the lead assigned to the user
+        from .models import Chat
+        
+        # Get all chats that match the conversation IDs
+        chats = Chat.objects.filter(
+            contact_id__in=conversation_ids,
+            tenant_id=tenant_id
+        ).exclude(lead_id__isnull=True)
+        
+        # Get the lead IDs from these chats
+        lead_ids_from_chats = [str(chat.lead_id) for chat in chats if chat.lead_id]
+        
+        # Get leads based on these lead IDs
+        leads_from_chats = Lead.objects.filter(
+            id__in=lead_ids_from_chats,
+            tenant_id=tenant_id
+        )
+        
+        # Combine both querysets
+        leads_queryset = (leads_queryset | leads_from_chats).distinct()
+        
+        # Apply role-based filtering similar to LeadViewSet
+        if user.role == 'department_head':
+            # Department head sees all leads in their department
+            if user.department_id:
+                leads_queryset = leads_queryset.filter(department_id=user.department_id)
+                
+        elif user.role == 'manager':
+            # Manager sees leads for their teams
+            # First, find teams they manage
+            managed_teams = TeamManager.objects.filter(manager=user).values_list('team_id', flat=True)
+            
+            # Find team leads under those teams
+            team_leads = TeamLead.objects.filter(team_id__in=managed_teams).values_list('team_lead_id', flat=True)
+            
+            # Find team members under those team leads
+            team_members = TeamMember.objects.filter(team_lead__team_lead_id__in=team_leads).values_list('member_id', flat=True)
+            
+            # Return leads assigned to any of these users (or the manager themselves)
+            leads_queryset = leads_queryset.filter(
+                Q(assigned_to=user) | 
+                Q(assigned_to_id__in=team_leads) |
+                Q(assigned_to_id__in=team_members)
+            )
+            
+        elif user.role == 'team_lead':
+            # Team lead sees leads for their team members
+            team_members = TeamMember.objects.filter(team_lead__team_lead=user).values_list('member_id', flat=True)
+            
+            # Return leads assigned to any of these members (or the team lead themselves)
+            leads_queryset = leads_queryset.filter(
+                Q(assigned_to=user) | 
+                Q(assigned_to_id__in=team_members)
+            )
+            
+        else:
+            # Regular users (sales_agent, support_agent, processor) see only their assigned leads
+            leads_queryset = leads_queryset.filter(assigned_to=user)
+        
+        # Get all lead chat_ids and lead IDs
+        filtered_chat_ids = set()
+        
+        # Add chat_ids from leads
+        lead_chat_ids = leads_queryset.values_list('chat_id', flat=True)
+        filtered_chat_ids.update([cid for cid in lead_chat_ids if cid])
+        
+        # Also get lead IDs to match with Chat model lead_id
+        lead_ids = leads_queryset.values_list('id', flat=True)
+        
+        # Get conversation_ids from Chats where lead_id is in our filtered leads
+        chats_with_filtered_leads = Chat.objects.filter(
+            lead_id__in=lead_ids,
+            tenant_id=tenant_id
+        ).values_list('contact_id', flat=True)
+        
+        filtered_chat_ids.update(chats_with_filtered_leads)
+        
+        # Filter conversations based on filtered lead chat_ids
+        filtered_conversations = [
+            conv for conv in conversations 
+            if conv.get('id') in filtered_chat_ids
+        ]
+        
+        return filtered_conversations
+    
+    except Exception as e:
+        # On error, return empty list to be safe
+        return []
 
 @api_view(['GET'])
 def check_lead_departments(request):

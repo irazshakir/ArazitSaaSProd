@@ -5,8 +5,10 @@ import ChatDetails from './chatDetails';
 import TemplateList from './TemplateList';
 import GroupList from './GroupList';
 import ContactList from './ContactList';
-import { Box, Paper, Tabs, Tab, IconButton, Tooltip, Typography, Button } from '@mui/material';
+import { Box, Paper, Tabs, Tab, IconButton, Tooltip, Typography, Button, Chip } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import FilterListIcon from '@mui/icons-material/FilterList';
 import './Chat.css';
 
 // Dummy data - replace with your API calls later
@@ -117,6 +119,9 @@ const Chat = () => {
   const [lastRefreshTime, setLastRefreshTime] = useState(Date.now());
   const [hasNewChats, setHasNewChats] = useState(false);
   const [noApiConfigured, setNoApiConfigured] = useState(false);
+  const [userRole, setUserRole] = useState('');
+  const [totalConversations, setTotalConversations] = useState(0);
+  const [roleFilterActive, setRoleFilterActive] = useState(false);
   const lastActiveChat = useRef(null);
 
   // Set the polling interval (in milliseconds) - 30 seconds is less intrusive
@@ -180,6 +185,30 @@ const Chat = () => {
     };
   }, [isRefreshing, activeTab]);
 
+  // Get user role on component mount
+  useEffect(() => {
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        const newUserRole = userData.role || '';
+        // Only update if role changed
+        if (newUserRole !== userRole) {
+          setUserRole(newUserRole);
+          // Role filtering is active for non-admin roles
+          setRoleFilterActive(newUserRole && newUserRole !== 'admin');
+          
+          // Refresh data when role changes
+          if (newUserRole) {
+            refreshData(true);
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+      }
+    }
+  }, []);
+
   // Function to refresh the chat data with silent option
   const refreshData = async (forceFull = false) => {
     setIsRefreshing(true);
@@ -230,6 +259,15 @@ const Chat = () => {
           unread: !conv.resolved_chat && conv.is_last_message_by_contact === 1,
           messages: []
         }));
+        
+        // Set total conversations from summary if available
+        if (data.summary && data.summary.total_conversations) {
+          setTotalConversations(data.summary.total_conversations);
+          // Check if role-based filtering is active
+          setRoleFilterActive(
+            data.summary.total_conversations !== data.summary.filtered_conversations
+          );
+        }
         
         // Check if there are new chats or updates to existing chats
         const { hasChanges } = checkForChatChanges(chats, transformedChats);
@@ -432,21 +470,47 @@ const Chat = () => {
             <Tab label="Contacts" />
           </Tabs>
           
-          {activeTab === 0 && (
-            <Tooltip title="Refresh chats">
-              <IconButton 
-                onClick={handleManualRefresh} 
-                size="small"
-                disabled={isRefreshing}
-                color={hasNewChats ? "primary" : "default"}
-              >
-                <RefreshIcon 
-                  className={isRefreshing ? 'rotating' : ''} 
-                  fontSize="small" 
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {activeTab === 0 && roleFilterActive && (
+              <Tooltip title={userRole === 'admin' ? 'Viewing all chats' : `Viewing chats assigned to you (${userRole})`}>
+                <Chip
+                  icon={<FilterListIcon fontSize="small" />}
+                  label={userRole === 'admin' ? 'All Chats' : 'My Chats'}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                  sx={{ height: '24px' }}
                 />
-              </IconButton>
-            </Tooltip>
-          )}
+              </Tooltip>
+            )}
+            
+            {activeTab === 0 && totalConversations > 0 && chats.length < totalConversations && (
+              <Tooltip title={`Showing ${chats.length} of ${totalConversations} total chats`}>
+                <Chip
+                  size="small"
+                  label={`${chats.length}/${totalConversations}`}
+                  variant="outlined"
+                  sx={{ height: '24px' }}
+                />
+              </Tooltip>
+            )}
+            
+            {activeTab === 0 && (
+              <Tooltip title="Refresh chats">
+                <IconButton 
+                  onClick={handleManualRefresh} 
+                  size="small"
+                  disabled={isRefreshing}
+                  color={hasNewChats ? "primary" : "default"}
+                >
+                  <RefreshIcon 
+                    className={isRefreshing ? 'rotating' : ''} 
+                    fontSize="small" 
+                  />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
         </Box>
 
         {/* Content */}
@@ -462,6 +526,9 @@ const Chat = () => {
                 lastRefreshTime={lastRefreshTime}
                 hasNewChats={hasNewChats}
                 noApiConfigured={noApiConfigured}
+                totalConversations={totalConversations}
+                roleFilterActive={roleFilterActive}
+                userRole={userRole}
               />
             </Box>
             <Box sx={{ flex: 1 }}>
@@ -472,6 +539,7 @@ const Chat = () => {
                 refreshData={() => refreshData(true)}
                 lastRefreshTime={lastRefreshTime}
                 noApiConfigured={noApiConfigured}
+                userRole={userRole}
               />
             </Box>
           </Box>
