@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { SendOutlined, MoreOutlined, InfoCircleOutlined, PictureOutlined, SyncOutlined } from '@ant-design/icons';
+import { SendOutlined, MoreOutlined, InfoCircleOutlined, PictureOutlined, SyncOutlined, UserSwitchOutlined } from '@ant-design/icons';
 import './Chatbox.css';
 
 const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, lastRefreshTime, noApiConfigured: parentNoApiConfigured, userRole }) => {
@@ -13,8 +13,14 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
   const [noApiConfigured, setNoApiConfigured] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [noPermission, setNoPermission] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [assigningUser, setAssigningUser] = useState(false);
+  const [assignmentSuccess, setAssignmentSuccess] = useState(null);
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
+  const userDropdownRef = useRef(null);
   const [currentChatId, setCurrentChatId] = useState(null);
   const lastProcessedRefreshTime = useRef(0);
 
@@ -24,6 +30,20 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
       setNoApiConfigured(true);
     }
   }, [parentNoApiConfigured]);
+
+  // Add event listener to handle clicks outside the dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
+        setShowUserDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const scrollToBottom = (smooth = true) => {
     messagesEndRef.current?.scrollIntoView({ 
@@ -80,6 +100,110 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
       }
     }
   }, [messages, activeChat?.id]);
+
+  // Fetch users for assignment dropdown
+  const fetchUsers = async () => {
+    if (loadingUsers) return;
+
+    try {
+      setLoadingUsers(true);
+      
+      const tenantId = localStorage.getItem('tenant_id');
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`http://localhost:8000/api/users-for-assignment/?tenant_id=${tenantId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Tenant-ID': tenantId,
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch users');
+      }
+      
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        setUsers(data.data);
+      } else {
+        throw new Error(data.errMsg || 'Failed to fetch users');
+      }
+    } catch (err) {
+      console.error('Error fetching users:', err);
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  // Handle user assignment
+  const assignChatToUser = async (userId) => {
+    if (!activeChat?.id || assigningUser) return;
+    
+    try {
+      setAssigningUser(true);
+      setAssignmentSuccess(null);
+      
+      const tenantId = localStorage.getItem('tenant_id');
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch('http://localhost:8000/api/assign-chat/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Tenant-ID': tenantId,
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          tenant_id: tenantId,
+          chat_id: activeChat.id,
+          user_id: userId,
+          phone: activeChat.phone || '',
+          name: activeChat.name || ''
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to assign chat');
+      }
+      
+      const data = await response.json();
+      
+      if (data.status === 'success') {
+        setAssignmentSuccess({
+          success: true,
+          message: data.data.message
+        });
+        
+        // Hide success message after 3 seconds
+        setTimeout(() => {
+          setAssignmentSuccess(null);
+        }, 3000);
+        
+        // Refresh chats to show updated assignment
+        if (refreshData) {
+          setTimeout(() => refreshData(), 1000);
+        }
+      } else {
+        throw new Error(data.errMsg || 'Failed to assign chat');
+      }
+    } catch (err) {
+      setAssignmentSuccess({
+        success: false,
+        message: err.message || 'Failed to assign chat'
+      });
+      
+      // Hide error message after 3 seconds
+      setTimeout(() => {
+        setAssignmentSuccess(null);
+      }, 3000);
+    } finally {
+      setAssigningUser(false);
+      setShowUserDropdown(false);
+    }
+  };
 
   const fetchMessages = async (silentCheck = false) => {
     if (!activeChat?.id) return;
@@ -471,6 +595,50 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
           </div>
         </div>
         <div className="chat-header-actions">
+          {assignmentSuccess && (
+            <div className={`assignment-notification ${assignmentSuccess.success ? 'success' : 'error'}`}>
+              {assignmentSuccess.message}
+            </div>
+          )}
+          <div className="user-assignment-dropdown" ref={userDropdownRef}>
+            <button 
+              className="assign-button"
+              onClick={() => {
+                if (!showUserDropdown) {
+                  fetchUsers();
+                }
+                setShowUserDropdown(!showUserDropdown);
+              }}
+              title="Assign Chat"
+            >
+              <UserSwitchOutlined />
+            </button>
+            {showUserDropdown && (
+              <div className="user-dropdown">
+                <div className="dropdown-header">
+                  Assign chat to:
+                </div>
+                {loadingUsers ? (
+                  <div className="dropdown-loading">Loading users...</div>
+                ) : users.length > 0 ? (
+                  <ul className="user-list">
+                    {users.map(user => (
+                      <li 
+                        key={user.id} 
+                        onClick={() => assignChatToUser(user.id)}
+                        className={assigningUser ? 'disabled' : ''}
+                      >
+                        <span className="user-name">{user.name}</span>
+                        <span className="user-role">{user.role}</span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="no-users">No users found</div>
+                )}
+              </div>
+            )}
+          </div>
           <button 
             className="refresh-button"
             onClick={handleManualRefresh}

@@ -1233,3 +1233,130 @@ class WABASettingsViewSet(viewsets.ModelViewSet):
             raise serializers.ValidationError({"tenant": "No tenant found for user."})
         
         serializer.save(tenant=tenant_user.tenant)
+
+@api_view(['GET'])
+def get_users_for_assignment(request):
+    """Get users for a specific tenant for chat assignment dropdown"""
+    try:
+        # Get tenant ID from request
+        tenant_id = request.query_params.get('tenant_id') or request.headers.get('X-Tenant-ID')
+        
+        if not tenant_id:
+            return Response({
+                'status': 'error',
+                'errMsg': 'Tenant ID is required'
+            }, status=400)
+        
+        # Get users with this tenant
+        from users.models import TenantUser, User
+        tenant_users = TenantUser.objects.filter(tenant_id=tenant_id).select_related('user')
+        
+        # Format response
+        users_data = []
+        for tenant_user in tenant_users:
+            user = tenant_user.user
+            users_data.append({
+                'id': user.id,
+                'name': f"{user.first_name} {user.last_name}".strip() or user.email,
+                'email': user.email,
+                'role': user.role
+            })
+        
+        return Response({
+            'status': 'success',
+            'data': users_data
+        })
+    
+    except Exception as e:
+        return Response({
+            'status': 'error',
+            'errMsg': str(e)
+        }, status=500)
+
+@api_view(['POST'])
+def assign_chat_to_user(request):
+    """Assign a chat to a specific user"""
+    try:
+        # Get tenant ID and other required parameters
+        tenant_id = request.data.get('tenant_id') or request.headers.get('X-Tenant-ID')
+        chat_id = request.data.get('chat_id')
+        user_id = request.data.get('user_id')
+        
+        if not tenant_id or not chat_id or not user_id:
+            missing = []
+            if not tenant_id: missing.append('tenant_id')
+            if not chat_id: missing.append('chat_id')
+            if not user_id: missing.append('user_id')
+            
+            return Response({
+                'status': 'error',
+                'errMsg': f'Missing required fields: {", ".join(missing)}'
+            }, status=400)
+        
+        # Import needed models
+        from .models import Chat, ChatAssignment
+        from users.models import User
+        
+        # Get the user
+        try:
+            assigned_user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'errMsg': 'User not found'
+            }, status=404)
+        
+        # Get the chat
+        try:
+            chat = Chat.objects.get(contact_id=chat_id, tenant_id=tenant_id)
+        except Chat.DoesNotExist:
+            # Need to create a new chat entry
+            try:
+                chat = Chat.objects.create(
+                    contact_id=chat_id,
+                    tenant_id=tenant_id,
+                    phone=request.data.get('phone', ''),
+                    name=request.data.get('name', '')
+                )
+            except Exception as e:
+                return Response({
+                    'status': 'error',
+                    'errMsg': f'Failed to create chat record: {str(e)}'
+                }, status=500)
+        
+        # Check if there's an existing assignment
+        chat_assignment = None
+        try:
+            chat_assignment = ChatAssignment.objects.get(chat_id=chat_id, tenant_id=tenant_id)
+            # Update the existing assignment
+            chat_assignment.assigned_to = assigned_user
+            chat_assignment.is_active = True
+            chat_assignment.save()
+        except ChatAssignment.DoesNotExist:
+            # Create a new assignment
+            chat_assignment = ChatAssignment.objects.create(
+                chat_id=chat_id,
+                tenant_id=tenant_id,
+                assigned_to=assigned_user,
+                is_active=True
+            )
+        
+        # Update the chat's assignment
+        chat.assignment = chat_assignment
+        chat.save()
+        
+        return Response({
+            'status': 'success',
+            'data': {
+                'chat_id': chat_id,
+                'user_id': user_id,
+                'username': f"{assigned_user.first_name} {assigned_user.last_name}".strip() or assigned_user.email,
+                'message': f'Chat assigned to {assigned_user.first_name} {assigned_user.last_name}'.strip()
+            }
+        })
+        
+    except Exception as e:
+        return Response({
+            'status': 'error',
+            'errMsg': str(e)
+        }, status=500)

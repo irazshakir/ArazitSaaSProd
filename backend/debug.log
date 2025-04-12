@@ -18000,3 +18000,143 @@ INFO 2025-04-13 02:56:45,966 basehttp "POST /api/messages/2506604/ HTTP/1.1" 200
 INFO 2025-04-13 02:56:45,979 basehttp "POST /api/messages/2506604/ HTTP/1.1" 200 470
 INFO 2025-04-13 02:56:48,891 basehttp "POST /api/conversations/ HTTP/1.1" 200 3227
 INFO 2025-04-13 02:56:49,186 basehttp "POST /api/conversations/ HTTP/1.1" 200 3227
+INFO 2025-04-13 02:58:12,117 basehttp "POST /api/auth/token/ HTTP/1.1" 200 745
+INFO 2025-04-13 02:58:12,334 basehttp "GET /api/auth/me/ HTTP/1.1" 200 438
+WARNING 2025-04-13 02:58:12,389 log Not Found: /api/auth/user-tenants/
+WARNING 2025-04-13 02:58:12,391 basehttp "GET /api/auth/user-tenants/ HTTP/1.1" 404 69532
+INFO 2025-04-13 02:58:16,113 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&user_id=31 HTTP/1.1" 200 494
+INFO 2025-04-13 02:58:27,058 basehttp "POST /api/auth/token/ HTTP/1.1" 200 745
+INFO 2025-04-13 02:58:27,285 basehttp "GET /api/auth/me/ HTTP/1.1" 200 442
+WARNING 2025-04-13 02:58:27,336 log Not Found: /api/auth/user-tenants/
+WARNING 2025-04-13 02:58:27,337 basehttp "GET /api/auth/user-tenants/ HTTP/1.1" 404 69532
+INFO 2025-04-13 02:58:30,541 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 1236
+INFO 2025-04-13 02:58:31,649 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 1236
+INFO 2025-04-13 02:58:31,792 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&user_id=30 HTTP/1.1" 200 494
+INFO 2025-04-13 02:58:31,812 basehttp "POST /api/messages/1/ HTTP/1.1" 200 30
+INFO 2025-04-13 02:58:32,986 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 1236
+INFO 2025-04-13 02:58:33,772 basehttp "POST /api/messages/1/ HTTP/1.1" 200 30
+INFO 2025-04-13 02:58:33,914 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 1236
+INFO 2025-04-13 02:58:35,639 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 02:58:35,839 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 02:58:35,839 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 02:58:35,906 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 02:58:36,385 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 02:58:36,623 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 1236
+INFO 2025-04-13 02:58:37,118 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 1236
+INFO 2025-04-13 02:58:37,469 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 02:58:37,550 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 02:58:38,028 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 02:58:39,286 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 02:58:40,306 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 02:59:09,617 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 02:59:11,250 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 02:59:13,316 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 02:59:43,065 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 02:59:45,006 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 02:59:47,016 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:00:16,867 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:00:18,470 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:00:20,636 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:00:50,608 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:00:52,521 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:00:53,983 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:01:24,063 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:01:26,741 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:01:27,855 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:10:43,292 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 1236
+INFO 2025-04-13 03:10:44,557 basehttp "POST /api/messages/1/ HTTP/1.1" 200 30
+INFO 2025-04-13 03:10:44,767 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 1236
+INFO 2025-04-13 03:10:46,056 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 1236
+INFO 2025-04-13 03:10:46,061 basehttp "POST /api/messages/1/ HTTP/1.1" 200 30
+INFO 2025-04-13 03:10:46,545 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 1236
+INFO 2025-04-13 03:10:48,067 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:10:48,214 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:10:48,214 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:10:48,215 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:10:48,522 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:10:49,094 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 1236
+INFO 2025-04-13 03:10:49,282 basehttp "POST /api/messages/1/ HTTP/1.1" 200 30
+INFO 2025-04-13 03:10:49,561 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 1236
+INFO 2025-04-13 03:10:50,058 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:10:50,194 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:10:51,972 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:10:52,110 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:11:45,061 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:11:46,340 basehttp "POST /api/messages/1/ HTTP/1.1" 200 30
+INFO 2025-04-13 03:11:47,950 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:11:50,695 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:14:42,960 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:14:45,289 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:14:47,271 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:14:49,273 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:15:03,087 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:15:04,696 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:15:06,331 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:15:08,849 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:15:38,457 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:15:40,830 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:15:42,915 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:16:12,398 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:16:14,072 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:16:16,106 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:16:45,931 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:16:47,637 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:16:49,719 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:17:19,434 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:17:21,130 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:17:23,044 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:19:08,105 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:19:09,774 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:19:11,405 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:19:14,782 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:19:28,377 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-13 03:19:29,711 autoreload Watching for file changes with StatReloader
+INFO 2025-04-13 03:19:44,775 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:19:45,604 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-13 03:19:47,424 autoreload Watching for file changes with StatReloader
+INFO 2025-04-13 03:20:05,281 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\urls.py changed, reloading.
+INFO 2025-04-13 03:20:06,502 autoreload Watching for file changes with StatReloader
+INFO 2025-04-13 03:20:19,877 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:20:22,035 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:20:23,797 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:20:47,643 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:20:47,847 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:20:49,099 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:20:53,350 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:20:56,984 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:20:58,971 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:21:27,459 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:21:29,113 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:21:31,248 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:21:46,121 basehttp "OPTIONS /api/users-for-assignment/?tenant_id=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f HTTP/1.1" 200 0
+INFO 2025-04-13 03:21:46,268 basehttp "GET /api/users-for-assignment/?tenant_id=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f HTTP/1.1" 200 287
+INFO 2025-04-13 03:21:48,583 basehttp "OPTIONS /api/assign-chat/ HTTP/1.1" 200 0
+INFO 2025-04-13 03:21:49,013 basehttp "POST /api/assign-chat/ HTTP/1.1" 200 132
+INFO 2025-04-13 03:21:54,053 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:21:55,982 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:21:57,827 basehttp "POST /api/messages/2506028/ HTTP/1.1" 200 829
+INFO 2025-04-13 03:22:00,157 basehttp "POST /api/conversations/ HTTP/1.1" 200 3800
+INFO 2025-04-13 03:22:00,661 basehttp "GET /api/users-for-assignment/?tenant_id=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f HTTP/1.1" 200 287
+INFO 2025-04-13 03:22:15,407 basehttp "GET /api/users-for-assignment/?tenant_id=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f HTTP/1.1" 200 287
+INFO 2025-04-13 03:22:19,000 basehttp "POST /api/assign-chat/ HTTP/1.1" 200 122
+INFO 2025-04-13 03:22:23,572 basehttp "POST /api/conversations/ HTTP/1.1" 200 3239
+WARNING 2025-04-13 03:22:23,787 log Forbidden: /api/messages/2506028/
+WARNING 2025-04-13 03:22:23,788 basehttp "POST /api/messages/2506028/ HTTP/1.1" 403 77
+WARNING 2025-04-13 03:22:24,070 log Forbidden: /api/messages/2506028/
+WARNING 2025-04-13 03:22:24,072 basehttp "POST /api/messages/2506028/ HTTP/1.1" 403 77
+INFO 2025-04-13 03:22:27,557 basehttp "POST /api/messages/2508885/ HTTP/1.1" 200 186
+INFO 2025-04-13 03:22:27,569 basehttp "POST /api/conversations/ HTTP/1.1" 200 3239
+INFO 2025-04-13 03:22:27,861 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 1236
+INFO 2025-04-13 03:22:28,683 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 1236
+INFO 2025-04-13 03:22:38,569 basehttp "GET /api/users-for-assignment/?tenant_id=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f HTTP/1.1" 200 287
+INFO 2025-04-13 03:22:39,860 basehttp "POST /api/assign-chat/ HTTP/1.1" 200 122
+INFO 2025-04-13 03:22:44,332 basehttp "POST /api/conversations/ HTTP/1.1" 200 2685
+WARNING 2025-04-13 03:22:44,559 log Forbidden: /api/messages/2508885/
+WARNING 2025-04-13 03:22:44,561 basehttp "POST /api/messages/2508885/ HTTP/1.1" 403 77
+WARNING 2025-04-13 03:22:44,838 log Forbidden: /api/messages/2508885/
+WARNING 2025-04-13 03:22:44,839 basehttp "POST /api/messages/2508885/ HTTP/1.1" 403 77
+INFO 2025-04-13 03:22:48,633 basehttp "POST /api/conversations/ HTTP/1.1" 200 2685
+INFO 2025-04-13 03:23:12,560 autoreload C:\Personal Data\IT-Projects\Arazit-SaaS\backend\waba_int\views.py changed, reloading.
+INFO 2025-04-13 03:23:14,391 autoreload Watching for file changes with StatReloader
+INFO 2025-04-13 03:23:17,981 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 1236
+INFO 2025-04-13 03:23:18,575 basehttp "GET /api/auth/users/?tenant=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f&is_active=true HTTP/1.1" 200 1236

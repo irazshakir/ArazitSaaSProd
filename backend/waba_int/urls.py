@@ -5,7 +5,8 @@ from .views import (
     ContactView, SingleContactView, SendMessageView,
     SendImageMessageView, ConversationListView, ChatLeadView,
     CreateLeadFromChatView, TenantDebugView, get_conversations,
-    check_lead_departments, WABASettingsViewSet
+    check_lead_departments, WABASettingsViewSet, get_users_for_assignment,
+    assign_chat_to_user
 )
 
 app_name = 'waba_int'
@@ -27,6 +28,8 @@ urlpatterns = [
     path('lead/<int:contact_id>/', ChatLeadView.as_view(), name='chat_lead'),
     path('debug-tenant/', TenantDebugView.as_view(), name='debug_tenant'),
     path('check-lead-departments/', check_lead_departments, name='check_lead_departments'),
+    path('users-for-assignment/', get_users_for_assignment, name='users_for_assignment'),
+    path('assign-chat/', assign_chat_to_user, name='assign_chat'),
 ]
 
 # Add the router URLs to the urlpatterns

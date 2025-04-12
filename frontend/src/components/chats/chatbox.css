@@ -365,4 +365,128 @@
   margin-bottom: 1.5rem;
   line-height: 1.5;
   color: #6c757d;
+}
+
+/* Add styles for the user assignment dropdown */
+.user-assignment-dropdown {
+  position: relative;
+}
+
+.assign-button {
+  background: none;
+  border: none;
+  color: #555;
+  cursor: pointer;
+  font-size: 20px;
+  height: 36px;
+  width: 36px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.assign-button:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #25D366;
+}
+
+.user-dropdown {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  width: 250px;
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.dropdown-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+  font-weight: 500;
+  color: #333;
+}
+
+.dropdown-loading, .no-users {
+  padding: 16px;
+  text-align: center;
+  color: #666;
+}
+
+.user-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.user-list li {
+  padding: 10px 16px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background-color 0.2s;
+}
+
+.user-list li:hover {
+  background-color: #f5f5f5;
+}
+
+.user-list li.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.user-name {
+  font-weight: 500;
+  font-size: 14px;
+  color: #333;
+}
+
+.user-role {
+  font-size: 12px;
+  color: #777;
+  text-transform: capitalize;
+}
+
+.assignment-notification {
+  position: absolute;
+  top: -36px;
+  right: 0;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  animation: fadeInDown 0.3s ease-out;
+  z-index: 101;
+  white-space: nowrap;
+}
+
+.assignment-notification.success {
+  background-color: #e3f7ea;
+  border: 1px solid #c3e6d1;
+  color: #2e7d32;
+}
+
+.assignment-notification.error {
+  background-color: #fdeded;
+  border: 1px solid #f5c2c2;
+  color: #d32f2f;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 } 
