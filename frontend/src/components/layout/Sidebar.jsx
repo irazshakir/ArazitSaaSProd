@@ -45,6 +45,7 @@ import {
   Group as GroupIcon,
   Receipt as ReceiptIcon,
   AccountBalance as AccountIcon,
+  Message as MessageIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -130,6 +131,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
     { text: 'Departments', icon: <DepartmentIcon />, path: '/dashboard/departments' },
     { text: 'Users', icon: <PeopleIcon />, path: '/dashboard/users' },
     { text: 'Teams', icon: <GroupsIcon />, path: '/dashboard/teams' },
+    { text: 'Canned Messages', icon: <MessageIcon />, path: '/dashboard/canned-messages' },
   ];
 
   // Hajj and Umrah specific menu items

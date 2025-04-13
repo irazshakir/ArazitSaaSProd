@@ -36,6 +36,11 @@ import LeadCreate from '../components/leads/LeadCreate';
 import LeadEdit from '../components/leads/leadEdit';
 import LeadView from '../components/leads/leadView';
 
+// Canned Messages Pages
+import CannedIndex from '../components/cannedMessages/cannedIndex';
+import CannedCreate from '../components/cannedMessages/cannedCreate';
+import CannedEdit from '../components/cannedMessages/cannedEdit';
+
 // Groups Pages
 import { GroupIndex } from '../components/groups/GroupIndex';
 import { GroupCreate } from '../components/groups/groupCreate';
@@ -174,6 +179,11 @@ const AppRoutes = () => {
             <Route path="waba" element={<WABASettings />} />
             {/* Add other settings routes here */}
           </Route>
+          
+          {/* Canned Messages Routes */}
+          <Route path="canned-messages" element={<CannedIndex />} />
+          <Route path="canned-messages/create" element={<CannedCreate />} />
+          <Route path="canned-messages/:id/edit" element={<CannedEdit />} />
           
           {/* Add other module routes here */}
         </Route>

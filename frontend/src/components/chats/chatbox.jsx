@@ -54,9 +54,15 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [assigningUser, setAssigningUser] = useState(false);
   const [assignmentSuccess, setAssignmentSuccess] = useState(null);
+  const [cannedMessages, setCannedMessages] = useState([]);
+  const [showCannedMessages, setShowCannedMessages] = useState(false);
+  const [loadingCannedMessages, setLoadingCannedMessages] = useState(false);
+  const [filterText, setFilterText] = useState('');
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
   const userDropdownRef = useRef(null);
+  const cannedMessagesRef = useRef(null);
+  const inputRef = useRef(null);
   const [currentChatId, setCurrentChatId] = useState(null);
   const lastProcessedRefreshTime = useRef(0);
 
@@ -67,11 +73,14 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
     }
   }, [parentNoApiConfigured]);
 
-  // Add event listener to handle clicks outside the dropdown
+  // Add event listener to handle clicks outside the dropdowns
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (userDropdownRef.current && !userDropdownRef.current.contains(event.target)) {
         setShowUserDropdown(false);
+      }
+      if (cannedMessagesRef.current && !cannedMessagesRef.current.contains(event.target)) {
+        setShowCannedMessages(false);
       }
     };
 
@@ -80,6 +89,43 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Fetch canned messages on component mount
+  useEffect(() => {
+    fetchCannedMessages();
+  }, []);
+
+  const fetchCannedMessages = async () => {
+    try {
+      setLoadingCannedMessages(true);
+      
+      const tenantId = localStorage.getItem('tenant_id');
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch('http://localhost:8000/api/canned-messages/?is_active=true', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Tenant-ID': tenantId,
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch canned messages');
+      }
+      
+      const data = await response.json();
+      
+      // Ensure data is an array
+      setCannedMessages(Array.isArray(data) ? data : (data.results || []));
+    } catch (err) {
+      console.error('Error fetching canned messages:', err);
+      setCannedMessages([]); // Set empty array on error
+    } finally {
+      setLoadingCannedMessages(false);
+    }
+  };
 
   const scrollToBottom = (smooth = true) => {
     messagesEndRef.current?.scrollIntoView({ 
@@ -130,6 +176,38 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
       }
     }
   }, [messages, activeChat?.id]);
+
+  // Handle input changes and check for canned message trigger
+  const handleInputChange = (e) => {
+    const newValue = e.target.value;
+    setMessage(newValue);
+    
+    // Show canned message dropdown if slash is typed
+    if (newValue.includes('/')) {
+      // Get the text after the last slash
+      const lastSlashIndex = newValue.lastIndexOf('/');
+      const searchText = newValue.substring(lastSlashIndex + 1);
+      setFilterText(searchText);
+      setShowCannedMessages(true);
+    } else {
+      setShowCannedMessages(false);
+    }
+  };
+
+  // Handle canned message selection
+  const handleSelectCannedMessage = (selectedMessage) => {
+    // Replace the partial command with the canned message content
+    const lastSlashIndex = message.lastIndexOf('/');
+    const messageStart = lastSlashIndex === 0 ? '' : message.substring(0, lastSlashIndex);
+    
+    setMessage(messageStart + selectedMessage.template_message);
+    setShowCannedMessages(false);
+    
+    // Focus the input field after selection
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 0);
+  };
 
   // Fetch users for assignment dropdown
   const fetchUsers = async () => {
@@ -502,6 +580,17 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
     fetchMessages();
   };
 
+  // Filter canned messages based on user input
+  const filteredCannedMessages = Array.isArray(cannedMessages) 
+    ? cannedMessages.filter(msg => {
+        if (!filterText) return true;
+        return (
+          msg.template_name?.toLowerCase().includes(filterText.toLowerCase()) || 
+          msg.template_message?.toLowerCase().includes(filterText.toLowerCase())
+        );
+      })
+    : [];
+
   if (!activeChat) {
     return <div className="no-chat-selected">Select a chat to start messaging</div>;
   }
@@ -799,21 +888,113 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
           className="image-button"
           onClick={() => fileInputRef.current?.click()}
           disabled={sending}
+          style={{
+            margin: '0 8px',
+            flexShrink: 0
+          }}
         >
           <PictureOutlined />
         </button>
-        <input
-          type="text"
-          placeholder={selectedImage ? "Add a caption (optional)" : "Enter a message"}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          className="message-input"
-          disabled={sending}
-        />
+        <div className="input-wrapper" style={{ 
+          position: 'relative', 
+          flex: 1,
+          width: '100%',
+          display: 'flex' 
+        }}>
+          <input
+            type="text"
+            placeholder={selectedImage ? "Add a caption (optional)" : "Enter a message or type / for canned messages"}
+            value={message}
+            onChange={handleInputChange}
+            className="message-input"
+            disabled={sending}
+            ref={inputRef}
+            style={{
+              width: '100%',
+              padding: '12px 16px',
+              borderRadius: '24px',
+              border: '1px solid #e0e0e0',
+              outline: 'none',
+              fontSize: '14px'
+            }}
+          />
+          
+          {showCannedMessages && (
+            <div 
+              className="canned-messages-dropdown" 
+              ref={cannedMessagesRef}
+              style={{
+                position: 'absolute',
+                bottom: '100%',
+                left: 0,
+                width: '100%',
+                maxHeight: '200px',
+                overflowY: 'auto',
+                backgroundColor: '#fff',
+                boxShadow: '0 -4px 10px rgba(0,0,0,0.1)',
+                borderRadius: '8px',
+                zIndex: 10
+              }}
+            >
+              {loadingCannedMessages ? (
+                <div className="canned-loading" style={{ padding: '10px', textAlign: 'center' }}>
+                  Loading templates...
+                </div>
+              ) : filteredCannedMessages.length > 0 ? (
+                <ul className="canned-list" style={{ listStyle: 'none', margin: 0, padding: 0 }}>
+                  {filteredCannedMessages.map(msg => (
+                    <li 
+                      key={msg.id}
+                      onClick={() => handleSelectCannedMessage(msg)}
+                      style={{
+                        padding: '10px 15px',
+                        borderBottom: '1px solid #f0f0f0',
+                        cursor: 'pointer',
+                        transition: 'background-color 0.2s',
+                        hover: { backgroundColor: '#f9f9f9' }
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f9f9f9'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <div style={{ fontWeight: 'bold' }}>{msg.template_name}</div>
+                      <div style={{ 
+                        fontSize: '12px', 
+                        color: '#666',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}>
+                        {msg.template_message}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="no-templates" style={{ padding: '10px', textAlign: 'center' }}>
+                  No matching templates found
+                </div>
+              )}
+            </div>
+          )}
+        </div>
         <button 
           type="submit" 
           className="send-button"
           disabled={sending || (!message.trim() && !selectedImage)}
+          style={{
+            margin: '0 8px',
+            flexShrink: 0,
+            backgroundColor: (!message.trim() && !selectedImage) ? '#e0e0e0' : '#25D366',
+            color: (!message.trim() && !selectedImage) ? '#aaa' : 'white',
+            border: 'none',
+            borderRadius: '50%',
+            width: '40px',
+            height: '40px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: (!message.trim() && !selectedImage) ? 'default' : 'pointer'
+          }}
         >
           <SendOutlined className="send-icon" />
         </button>
@@ -832,6 +1013,48 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
           </button>
         </div>
       )}
+
+      {/* Add CSS to fix message-input-container styling */}
+      <style jsx="true">{`
+        .message-input-container {
+          display: flex;
+          align-items: center;
+          padding: 10px 16px;
+          background-color: #f0f2f5;
+          border-top: 1px solid #e0e0e0;
+          width: 100%;
+        }
+        
+        .message-input {
+          flex: 1;
+          border-radius: 24px;
+          padding: 12px 16px;
+          border: 1px solid #e0e0e0;
+          outline: none;
+          background-color: white;
+          width: 100%;
+        }
+        
+        .image-button, .send-button {
+          background: none;
+          border: none;
+          cursor: pointer;
+          font-size: 18px;
+          color: #919191;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .send-button {
+          margin-left: 8px;
+        }
+        
+        .send-button:disabled {
+          opacity: 0.5;
+          cursor: default;
+        }
+      `}</style>
     </div>
   );
 };

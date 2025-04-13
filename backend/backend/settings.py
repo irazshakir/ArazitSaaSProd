@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'analytics', # Analytics app for business intelligence and reporting
     'flights', # Flights app for flight bookings and management
     'study', # Study app for student and education assessment
+    'canned_messages', # Canned Messages app for template messages
 ]
 
 MIDDLEWARE = [
