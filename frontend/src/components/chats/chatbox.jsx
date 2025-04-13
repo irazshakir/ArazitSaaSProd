@@ -1,6 +1,42 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { SendOutlined, MoreOutlined, InfoCircleOutlined, PictureOutlined, SyncOutlined, UserSwitchOutlined } from '@ant-design/icons';
-import './Chatbox.css';
+import './chatbox.css';
+
+// Force-applied styles to fix message bubbles
+const forceStyles = `
+.message.received {
+  align-self: flex-start !important;
+  justify-content: flex-start !important;
+}
+.message.sent {
+  align-self: flex-end !important;
+  justify-content: flex-end !important;
+}
+.message.received .message-content {
+  background-color: #fff !important;
+  border-radius: 0 16px 16px 16px !important;
+}
+.message.sent .message-content {
+  background-color: #25D366 !important;
+  color: white !important;
+  border-radius: 16px 0 16px 16px !important;
+}
+.message.received .message-content:before {
+  left: -8px !important;
+  right: auto !important;
+  border-radius: 0 0 0 16px !important;
+  background-color: #fff !important;
+}
+.message.sent .message-content:before {
+  right: -8px !important;
+  left: auto !important;
+  border-radius: 0 0 16px 0 !important;
+  background-color: #25D366 !important;
+}
+.message-avatar {
+  margin-right: 8px !important;
+}
+`;
 
 const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, lastRefreshTime, noApiConfigured: parentNoApiConfigured, userRole }) => {
   const [message, setMessage] = useState('');
@@ -51,6 +87,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
     });
   };
 
+  // Remove auto-refresh effect
   useEffect(() => {
     if (activeChat?.id && activeChat.id !== currentChatId) {
       setCurrentChatId(activeChat.id);
@@ -68,13 +105,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
     }
   }, [activeChat?.id, parentNoApiConfigured]);
 
-  useEffect(() => {
-    if (lastRefreshTime > lastProcessedRefreshTime.current && currentChatId && !parentNoApiConfigured) {
-      lastProcessedRefreshTime.current = lastRefreshTime;
-      fetchMessages(true);
-    }
-  }, [lastRefreshTime, currentChatId, parentNoApiConfigured]);
-  
   // Auto-scroll to newest messages
   useEffect(() => {
     scrollToBottom();
@@ -220,6 +250,10 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
       const tenantId = localStorage.getItem('tenant_id');
       const token = localStorage.getItem('token');
       
+      console.log('Debug - Fetching messages for chat ID:', activeChat.id, 'with tenant_id:', tenantId);
+      // Log only the first few characters of the token for security
+      console.log('Debug - Using token (first 10 chars):', token ? token.substring(0, 10) + '...' : 'null');
+      
       const response = await fetch(`http://localhost:8000/api/messages/${activeChat.id}/`, {
         method: 'POST',
         headers: {
@@ -274,14 +308,39 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
       }
 
       const transformedMessages = data.data
-        .map(msg => ({
-          id: msg.id,
-          text: msg.value || '',
-          sent: msg.is_message_by_contact !== 1,
-          timestamp: new Date(msg.created_at),
-          isImage: msg.message_type === 2,
-          image: msg.message_type === 2 ? msg.header_image : null
-        }))
+        .map(msg => {
+          // Enhanced debugging for message classification
+          console.log("----- Message Debug Info -----");
+          console.log("Message ID:", msg.id);
+          console.log("Content:", msg.value);
+          console.log("API is_message_by_contact:", msg.is_message_by_contact);
+          console.log("Created at:", msg.created_at);
+          console.log("Message type:", msg.message_type);
+          
+          // Determine if message is from contact (more robust logic)
+          // Using numeric 1 for true, 0 for false in case that's how the API sends it
+          const isFromContact = msg.is_message_by_contact === 1 || msg.is_message_by_contact === true;
+          
+          console.log("Final classification - isFromContact:", isFromContact);
+          console.log("This will display as:", isFromContact ? "RECEIVED (left)" : "SENT (right)");
+          console.log("-----------------------------");
+          
+          // Create the message object with the corrected classification
+          const messageObj = {
+            id: msg.id,
+            text: msg.value || '',
+            // For display, sent=true means OUR message (displayed on right)
+            // sent=false means THEIR message (displayed on left)
+            sent: !isFromContact,
+            timestamp: new Date(msg.created_at),
+            isImage: msg.message_type === 2,
+            image: msg.message_type === 2 ? msg.header_image : null,
+            // Add original API flag for debugging in the UI
+            originalIsMessageByContact: msg.is_message_by_contact
+          };
+          
+          return messageObj;
+        })
         .sort((a, b) => a.timestamp - b.timestamp);
 
       // Check if the message list has changed
@@ -469,6 +528,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
   if (noPermission) {
     return (
       <div className="chatbox-container no-permission">
+        <style>{forceStyles}</style>
         <div className="chatbox-header">
           <div className="chat-user-info">
             <div className="avatar">
@@ -515,6 +575,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
   if (noApiConfigured) {
     return (
       <div className="chatbox-container no-api-configured">
+        <style>{forceStyles}</style>
         <div className="chatbox-header">
           <div className="chat-user-info">
             <div className="avatar">
@@ -576,6 +637,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
 
   return (
     <div className="chatbox-container">
+      <style>{forceStyles}</style>
       <div className="chatbox-header">
         <div className="chat-user-info">
           <div className="avatar">
@@ -647,62 +709,118 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
           >
             <SyncOutlined spin={refreshing} />
           </button>
-          <button 
-            className="info-button" 
-            onClick={toggleDetailsDrawer}
-            title="View Details"
-          >
-            <InfoCircleOutlined />
-          </button>
           <button className="more-options">
             <MoreOutlined />
           </button>
         </div>
       </div>
 
-      <div className="messages-container">
+      <div className="messages-container" style={{ display: 'flex', flexDirection: 'column' }}>
         {loading ? (
           <div className="loading-messages">Loading messages...</div>
         ) : error && !noApiConfigured ? (
           <div className="error-messages">Error: {error}</div>
         ) : (
           <>
-            {messages.map((msg, index) => (
-              <div 
-                key={msg.id || index} 
-                className={`message ${msg.sent ? 'sent' : 'received'}`}
-              >
-                {!msg.sent && (
-                  <div className="message-avatar">
-                    <img 
-                      src={activeChat.avatar || "/avatar-crm.svg"} 
-                      alt={activeChat.name} 
-                      className="avatar-image" 
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = "/avatar-crm.svg";
-                      }}
-                    />
-                  </div>
-                )}
-                <div className="message-content">
-                  {msg.isImage ? (
-                    <div className="image-message">
-                      <img src={msg.image} alt="Shared" className="shared-image" />
-                      {msg.text !== 'Image' && <p>{msg.text}</p>}
+            {messages.map((msg, index) => {
+              // For WhatsApp-style chat, messages FROM contact should appear on LEFT with white background
+              // Messages TO contact (sent by user) should appear on RIGHT with green background
+              
+              // Use the final determined property
+              const isSentByUser = msg.sent;
+              
+              // Add more detailed logging for debugging
+              console.log(`Rendering message ${index}:`, {
+                text: msg.text,
+                isSentByUser: isSentByUser, 
+                originalApiValue: msg.originalIsMessageByContact
+              });
+              
+              // Force display of messages correctly with style overrides
+              const containerStyle = {
+                display: 'flex',
+                marginBottom: '16px',
+                maxWidth: '65%',
+                position: 'relative',
+                alignSelf: isSentByUser ? 'flex-end' : 'flex-start',
+                justifyContent: isSentByUser ? 'flex-end' : 'flex-start'
+              };
+              
+              const bubbleStyle = {
+                padding: '10px 16px',
+                borderRadius: isSentByUser ? '16px 0 16px 16px' : '0 16px 16px 16px',
+                position: 'relative',
+                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+                backgroundColor: isSentByUser ? '#25D366' : '#fff',
+                color: isSentByUser ? 'white' : '#333',
+              };
+              
+              const timeStyle = {
+                fontSize: '11px',
+                color: isSentByUser ? 'rgba(255, 255, 255, 0.8)' : '#999',
+                display: 'block',
+                marginTop: '4px',
+                textAlign: 'right'
+              };
+              
+              return (
+                <div 
+                  key={msg.id || index} 
+                  style={containerStyle}
+                  className={`message ${isSentByUser ? 'sent' : 'received'}`}
+                >
+                  {!isSentByUser && (
+                    <div className="message-avatar">
+                      <img 
+                        src={activeChat.avatar || "/avatar-crm.svg"} 
+                        alt={activeChat.name} 
+                        className="avatar-image" 
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = "/avatar-crm.svg";
+                        }}
+                      />
                     </div>
-                  ) : (
-                    <p>{msg.text}</p>
                   )}
-                  <span className="message-time">
-                    {msg.timestamp.toLocaleTimeString([], { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
-                    })}
-                  </span>
+                  <div 
+                    className="message-content"
+                    style={bubbleStyle}
+                  >
+                    {msg.isImage ? (
+                      <div className="image-message">
+                        <img src={msg.image} alt="Shared" className="shared-image" />
+                        {msg.text !== 'Image' && <p>{msg.text}</p>}
+                      </div>
+                    ) : (
+                      <p>{msg.text}</p>
+                    )}
+                    <span 
+                      className="message-time"
+                      style={timeStyle}
+                    >
+                      {msg.timestamp.toLocaleTimeString([], { 
+                        hour: '2-digit', 
+                        minute: '2-digit' 
+                      })}
+                    </span>
+                    
+                    {/* Debug information - small text at bottom of each message */}
+                    <div style={{
+                      fontSize: '9px',
+                      color: isSentByUser ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
+                      marginTop: '5px',
+                      padding: '2px 0',
+                      borderTop: '1px dashed ' + (isSentByUser ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)')
+                    }}>
+                      API flag: {msg.originalIsMessageByContact === 1 ? "1" : 
+                               msg.originalIsMessageByContact === 0 ? "0" : 
+                               String(msg.originalIsMessageByContact)} | 
+                      Display: {isSentByUser ? "SENT" : "RCVD"}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             <div ref={messagesEndRef} />
           </>
         )}
