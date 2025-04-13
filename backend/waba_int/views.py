@@ -893,24 +893,89 @@ def get_conversations(request):
         # Process each conversation
         leads_created = 0
         leads_found = 0
+        processed_phones = set()  # Track which phone numbers we've already processed
+        
+        # Pre-process all phone numbers to find existing leads in a single query
+        # This avoids race conditions and is more efficient
+        all_phones = []
+        phone_to_conversation = {}
         
         for conversation in conversations_data:
+            phone = conversation.get('phone')
+            if phone and phone not in processed_phones:
+                all_phones.append(phone)
+                phone_to_conversation[phone] = conversation
+                processed_phones.add(phone)
+        
+        # Get all existing leads with these phone numbers
+        from leads.models import Lead
+        from django.db.models import Q
+        
+        # Build query to find all leads with matching phones
+        lead_query = Q()
+        for phone in all_phones:
+            lead_query |= Q(phone=phone) | Q(whatsapp=phone)
+            
+            # Also check for normalized versions of the phone number
+            normalized_phone = LeadService.normalize_phone(phone)
+            if normalized_phone:
+                # Use the phone field to simplify the query
+                lead_query |= Q(phone__endswith=normalized_phone[-9:])
+        
+        # Get all existing leads matching any of these phone criteria
+        existing_leads = {}
+        if lead_query:
+            for lead in Lead.objects.filter(lead_query, tenant_id=tenant_id):
+                # Index by normalized phone
+                lead_phone = lead.phone or ""
+                lead_whatsapp = lead.whatsapp or ""
+                
+                # Normalize both phone fields
+                norm_phone = LeadService.normalize_phone(lead_phone)
+                norm_whatsapp = LeadService.normalize_phone(lead_whatsapp)
+                
+                # Add to existing leads dict by normalized phone
+                if norm_phone:
+                    existing_leads[norm_phone] = lead
+                if norm_whatsapp and norm_whatsapp != norm_phone:
+                    existing_leads[norm_whatsapp] = lead
+        
+        # Now process each conversation with knowledge of all existing leads
+        for phone, conversation in phone_to_conversation.items():
             try:
-                # Extract contact data
+                # Prepare contact data
                 contact_data = {
                     'id': conversation.get('id'),
                     'name': conversation.get('name'),
-                    'phone': conversation.get('phone')
+                    'phone': phone
                 }
                 
-                # Check if lead already exists
-                from leads.models import Lead
-                existing_lead = Lead.objects.filter(
-                    chat_id=contact_data['id'], 
-                    tenant_id=tenant_id
-                ).exists()
+                normalized_phone = LeadService.normalize_phone(phone)
                 
-                # Create lead with department info
+                # Check if a lead with this normalized phone already exists
+                lead_exists = False
+                existing_lead = None
+                
+                if normalized_phone and normalized_phone in existing_leads:
+                    lead_exists = True
+                    existing_lead = existing_leads[normalized_phone]
+                    
+                    # Update the existing lead's chat_id if needed
+                    if existing_lead.chat_id != contact_data['id']:
+                        existing_lead.chat_id = contact_data['id']
+                        existing_lead.save()
+                        
+                        # Ensure chat record is linked
+                        chat = Chat.objects.filter(contact_id=contact_data['id'], tenant_id=tenant_id).first()
+                        if chat:
+                            chat.lead_id = existing_lead.id
+                            chat.save()
+                            
+                if lead_exists:
+                    leads_found += 1
+                    continue
+                
+                # If we get here, no matching lead was found, create a new one
                 lead = LeadService.create_lead_from_contact(
                     contact_data=contact_data,
                     tenant_id=tenant_id,
@@ -918,10 +983,11 @@ def get_conversations(request):
                 )
                 
                 if lead:
-                    if existing_lead:
-                        leads_found += 1
-                    else:
-                        leads_created += 1
+                    leads_created += 1
+                    
+                    # Store this new lead in our map so we don't create duplicates
+                    if normalized_phone:
+                        existing_leads[normalized_phone] = lead
                     
                     # Make sure the chat record has the lead_id
                     try:
@@ -931,8 +997,6 @@ def get_conversations(request):
                             chat.save()
                     except Exception as chat_error:
                         pass
-                else:
-                    pass
                     
             except Exception as e:
                 pass

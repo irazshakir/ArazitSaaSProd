@@ -97,13 +97,13 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
 
   // Core menu items - available to all authenticated users
   const coreMenuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
+    ...(isAdmin ? [{ text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' }] : []),
     { text: 'Chats', icon: <ChatIcon />, path: '/dashboard/chats' },
     { text: 'Leads', icon: <PersonIcon />, path: '/dashboard/leads' },
     // { text: 'Groups', icon: <GroupIcon />, path: '/dashboard/groups' },
   ];
 
-  // Analytics submenu - available to all authenticated users
+  // Analytics submenu - available only to admin
   const analyticsMenuItems = [
     { text: 'Reports', icon: <AnalyticsIcon />, path: '/dashboard/analytics/analytical-report' },
   ];
@@ -202,77 +202,81 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
       </Toolbar>
       <Divider />
       <List sx={{ px: 1 }}>
-        {/* Core Menu Items - Always visible */}
+        {/* Core Menu Items */}
         {renderMenuItems(coreMenuItems)}
 
-        {/* Analytics Menu - Always visible */}
-        <ListItem disablePadding sx={{ mb: 0.5 }}>
-          <ListItemButton 
-            onClick={() => handleMenuToggle('analytics')}
-            sx={{ 
-              borderRadius: 1,
-              '&:hover': {
-                backgroundColor: 'rgba(157, 39, 124, 0.08)',
-              },
-            }}
-          >
-            <ListItemIcon sx={{ minWidth: 40 }}>
-              <AnalyticsIcon />
-            </ListItemIcon>
-            <ListItemText 
-              primary="Analytics" 
-              primaryTypographyProps={{ 
-                fontSize: '0.8rem',
-                fontWeight: 500
-              }}
-            />
-            {openMenus.analytics ? <ExpandLess /> : <ExpandMore />}
-          </ListItemButton>
-        </ListItem>
-        <Collapse in={openMenus.analytics} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            {analyticsMenuItems.map((item) => (
-              <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
-                <ListItemButton 
-                  onClick={() => {
-                    console.log('Navigating to:', item.path);
-                    console.log('Current location:', location.pathname);
-                    navigate(item.path);
+        {/* Analytics Menu - Only visible to admin */}
+        {isAdmin && (
+          <>
+            <ListItem disablePadding sx={{ mb: 0.5 }}>
+              <ListItemButton 
+                onClick={() => handleMenuToggle('analytics')}
+                sx={{ 
+                  borderRadius: 1,
+                  '&:hover': {
+                    backgroundColor: 'rgba(157, 39, 124, 0.08)',
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <AnalyticsIcon />
+                </ListItemIcon>
+                <ListItemText 
+                  primary="Analytics" 
+                  primaryTypographyProps={{ 
+                    fontSize: '0.8rem',
+                    fontWeight: 500
                   }}
-                  sx={{ 
-                    borderRadius: 1,
-                    pl: 4,
-                    '&:hover': {
-                      backgroundColor: 'rgba(157, 39, 124, 0.08)',
-                    },
-                    '&.Mui-selected': {
-                      backgroundColor: 'rgba(157, 39, 124, 0.16)',
-                      '&:hover': {
-                        backgroundColor: 'rgba(157, 39, 124, 0.24)',
-                      },
-                    },
-                  }}
-                  selected={location.pathname === item.path}
-                >
-                  <ListItemIcon sx={{ 
-                    minWidth: 40,
-                    color: location.pathname === item.path ? '#9d277c' : 'inherit'
-                  }}>
-                    {item.icon}
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary={item.text} 
-                    primaryTypographyProps={{ 
-                      fontSize: '0.8rem',
-                      fontWeight: location.pathname === item.path ? 600 : 400,
-                      color: location.pathname === item.path ? '#9d277c' : 'inherit'
-                    }}
-                  />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-        </Collapse>
+                />
+                {openMenus.analytics ? <ExpandLess /> : <ExpandMore />}
+              </ListItemButton>
+            </ListItem>
+            <Collapse in={openMenus.analytics} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding>
+                {analyticsMenuItems.map((item) => (
+                  <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
+                    <ListItemButton 
+                      onClick={() => {
+                        console.log('Navigating to:', item.path);
+                        console.log('Current location:', location.pathname);
+                        navigate(item.path);
+                      }}
+                      sx={{ 
+                        borderRadius: 1,
+                        pl: 4,
+                        '&:hover': {
+                          backgroundColor: 'rgba(157, 39, 124, 0.08)',
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: 'rgba(157, 39, 124, 0.16)',
+                          '&:hover': {
+                            backgroundColor: 'rgba(157, 39, 124, 0.24)',
+                          },
+                        },
+                      }}
+                      selected={location.pathname === item.path}
+                    >
+                      <ListItemIcon sx={{ 
+                        minWidth: 40,
+                        color: location.pathname === item.path ? '#9d277c' : 'inherit'
+                      }}>
+                        {item.icon}
+                      </ListItemIcon>
+                      <ListItemText 
+                        primary={item.text} 
+                        primaryTypographyProps={{ 
+                          fontSize: '0.8rem',
+                          fontWeight: location.pathname === item.path ? 600 : 400,
+                          color: location.pathname === item.path ? '#9d277c' : 'inherit'
+                        }}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+              </List>
+            </Collapse>
+          </>
+        )}
 
         {/* Accounts Section - Available to all users */}
         <ListItem sx={{ pt: 2, pb: 1 }}>
@@ -290,53 +294,57 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
         </ListItem>
         {renderMenuItems(accountsMenuItems)}
 
-        {/* Event Reminder Section */}
-        <ListItem sx={{ pt: 2, pb: 1 }}>
-          <Typography 
-            variant="overline" 
-            color="text.secondary"
-            sx={{ 
-              fontSize: '0.7rem', 
-              fontWeight: 600,
-              letterSpacing: '0.08em'
-            }}
-          >
-            EVENT REMINDER
-          </Typography>
-        </ListItem>
-        <ListItem disablePadding sx={{ mb: 0.5 }}>
-          <ListItemButton 
-            onClick={() => navigate('/dashboard/reminders/events')}
-            sx={{ 
-              borderRadius: 1,
-              '&:hover': {
-                backgroundColor: 'rgba(157, 39, 124, 0.08)',
-              },
-              '&.Mui-selected': {
-                backgroundColor: 'rgba(157, 39, 124, 0.16)',
-                '&:hover': {
-                  backgroundColor: 'rgba(157, 39, 124, 0.24)',
-                },
-              },
-            }}
-            selected={location.pathname === '/dashboard/reminders/events'}
-          >
-            <ListItemIcon sx={{ 
-              minWidth: 40,
-              color: location.pathname === '/dashboard/reminders/events' ? '#9d277c' : 'inherit'
-            }}>
-              <CalendarTodayIcon />
-            </ListItemIcon>
-            <ListItemText 
-              primary="Events" 
-              primaryTypographyProps={{ 
-                fontSize: '0.8rem',
-                fontWeight: location.pathname === '/dashboard/reminders/events' ? 600 : 400,
-                color: location.pathname === '/dashboard/reminders/events' ? '#9d277c' : 'inherit'
-              }}
-            />
-          </ListItemButton>
-        </ListItem>
+        {/* Event Reminder Section - Only visible to admin */}
+        {isAdmin && (
+          <>
+            <ListItem sx={{ pt: 2, pb: 1 }}>
+              <Typography 
+                variant="overline" 
+                color="text.secondary"
+                sx={{ 
+                  fontSize: '0.7rem', 
+                  fontWeight: 600,
+                  letterSpacing: '0.08em'
+                }}
+              >
+                EVENT REMINDER
+              </Typography>
+            </ListItem>
+            <ListItem disablePadding sx={{ mb: 0.5 }}>
+              <ListItemButton 
+                onClick={() => navigate('/dashboard/reminders/events')}
+                sx={{ 
+                  borderRadius: 1,
+                  '&:hover': {
+                    backgroundColor: 'rgba(157, 39, 124, 0.08)',
+                  },
+                  '&.Mui-selected': {
+                    backgroundColor: 'rgba(157, 39, 124, 0.16)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(157, 39, 124, 0.24)',
+                    },
+                  },
+                }}
+                selected={location.pathname === '/dashboard/reminders/events'}
+              >
+                <ListItemIcon sx={{ 
+                  minWidth: 40,
+                  color: location.pathname === '/dashboard/reminders/events' ? '#9d277c' : 'inherit'
+                }}>
+                  <CalendarTodayIcon />
+                </ListItemIcon>
+                <ListItemText 
+                  primary="Events" 
+                  primaryTypographyProps={{ 
+                    fontSize: '0.8rem',
+                    fontWeight: location.pathname === '/dashboard/reminders/events' ? 600 : 400,
+                    color: location.pathname === '/dashboard/reminders/events' ? '#9d277c' : 'inherit'
+                  }}
+                />
+              </ListItemButton>
+            </ListItem>
+          </>
+        )}
 
         {/* Settings Section - Admin only */}
         {isAdmin && (
