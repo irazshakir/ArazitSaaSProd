@@ -81,7 +81,7 @@ const ChatList = ({
       
       const tenantId = localStorage.getItem('tenant_id');
       const token = localStorage.getItem('token');
-      
+
       const response = await fetch('http://localhost:8000/api/conversations/', {
         method: 'POST',
         headers: {

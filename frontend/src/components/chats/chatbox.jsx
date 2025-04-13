@@ -250,10 +250,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
       const tenantId = localStorage.getItem('tenant_id');
       const token = localStorage.getItem('token');
       
-      console.log('Debug - Fetching messages for chat ID:', activeChat.id, 'with tenant_id:', tenantId);
-      // Log only the first few characters of the token for security
-      console.log('Debug - Using token (first 10 chars):', token ? token.substring(0, 10) + '...' : 'null');
-      
       const response = await fetch(`http://localhost:8000/api/messages/${activeChat.id}/`, {
         method: 'POST',
         headers: {
@@ -309,21 +305,8 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
 
       const transformedMessages = data.data
         .map(msg => {
-          // Enhanced debugging for message classification
-          console.log("----- Message Debug Info -----");
-          console.log("Message ID:", msg.id);
-          console.log("Content:", msg.value);
-          console.log("API is_message_by_contact:", msg.is_message_by_contact);
-          console.log("Created at:", msg.created_at);
-          console.log("Message type:", msg.message_type);
-          
-          // Determine if message is from contact (more robust logic)
-          // Using numeric 1 for true, 0 for false in case that's how the API sends it
+          // Determine if message is from contact
           const isFromContact = msg.is_message_by_contact === 1 || msg.is_message_by_contact === true;
-          
-          console.log("Final classification - isFromContact:", isFromContact);
-          console.log("This will display as:", isFromContact ? "RECEIVED (left)" : "SENT (right)");
-          console.log("-----------------------------");
           
           // Create the message object with the corrected classification
           const messageObj = {
@@ -334,9 +317,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
             sent: !isFromContact,
             timestamp: new Date(msg.created_at),
             isImage: msg.message_type === 2,
-            image: msg.message_type === 2 ? msg.header_image : null,
-            // Add original API flag for debugging in the UI
-            originalIsMessageByContact: msg.is_message_by_contact
+            image: msg.message_type === 2 ? msg.header_image : null
           };
           
           return messageObj;
@@ -729,13 +710,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
               // Use the final determined property
               const isSentByUser = msg.sent;
               
-              // Add more detailed logging for debugging
-              console.log(`Rendering message ${index}:`, {
-                text: msg.text,
-                isSentByUser: isSentByUser, 
-                originalApiValue: msg.originalIsMessageByContact
-              });
-              
               // Force display of messages correctly with style overrides
               const containerStyle = {
                 display: 'flex',
@@ -803,20 +777,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
                         minute: '2-digit' 
                       })}
                     </span>
-                    
-                    {/* Debug information - small text at bottom of each message */}
-                    <div style={{
-                      fontSize: '9px',
-                      color: isSentByUser ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)',
-                      marginTop: '5px',
-                      padding: '2px 0',
-                      borderTop: '1px dashed ' + (isSentByUser ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)')
-                    }}>
-                      API flag: {msg.originalIsMessageByContact === 1 ? "1" : 
-                               msg.originalIsMessageByContact === 0 ? "0" : 
-                               String(msg.originalIsMessageByContact)} | 
-                      Display: {isSentByUser ? "SENT" : "RCVD"}
-                    </div>
                   </div>
                 </div>
               );

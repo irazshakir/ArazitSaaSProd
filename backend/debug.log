@@ -19067,3 +19067,1439 @@ WARNING 2025-04-13 13:01:04,740 log Bad Request: /api/conversations/
 WARNING 2025-04-13 13:01:04,741 basehttp "POST /api/conversations/ HTTP/1.1" 400 123
 ERROR 2025-04-13 13:01:05,338 log Internal Server Error: /api/messages/1/
 ERROR 2025-04-13 13:01:05,339 basehttp "POST /api/messages/1/ HTTP/1.1" 500 124
+INFO 2025-04-13 14:15:41,956 basehttp "POST /api/auth/token/ HTTP/1.1" 200 683
+WARNING 2025-04-13 14:15:41,967 log Unauthorized: /api/auth/me/
+WARNING 2025-04-13 14:15:41,968 basehttp "GET /api/auth/me/ HTTP/1.1" 401 183
+INFO 2025-04-13 14:15:42,538 basehttp "GET /api/auth/me/ HTTP/1.1" 200 299
+INFO 2025-04-13 14:15:46,124 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:15:46,212 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 494
+INFO 2025-04-13 14:15:46,872 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+WARNING 2025-04-13 14:15:47,658 log Bad Request: /api/conversations/
+WARNING 2025-04-13 14:15:47,662 basehttp "POST /api/conversations/ HTTP/1.1" 400 123
+INFO 2025-04-13 14:15:47,927 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+WARNING 2025-04-13 14:15:48,004 log Bad Request: /api/conversations/
+WARNING 2025-04-13 14:15:48,005 basehttp "POST /api/conversations/ HTTP/1.1" 400 123
+ERROR 2025-04-13 14:15:48,020 log Internal Server Error: /api/messages/1/
+ERROR 2025-04-13 14:15:48,021 basehttp "POST /api/messages/1/ HTTP/1.1" 500 124
+WARNING 2025-04-13 14:15:48,151 log Bad Request: /api/conversations/
+WARNING 2025-04-13 14:15:48,152 basehttp "POST /api/conversations/ HTTP/1.1" 400 123
+WARNING 2025-04-13 14:15:48,637 log Bad Request: /api/conversations/
+WARNING 2025-04-13 14:15:48,638 basehttp "POST /api/conversations/ HTTP/1.1" 400 123
+WARNING 2025-04-13 14:15:48,647 log Bad Request: /api/conversations/
+WARNING 2025-04-13 14:15:48,649 basehttp "POST /api/conversations/ HTTP/1.1" 400 123
+INFO 2025-04-13 14:15:48,705 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+ERROR 2025-04-13 14:15:49,894 log Internal Server Error: /api/messages/1/
+ERROR 2025-04-13 14:15:49,895 basehttp "POST /api/messages/1/ HTTP/1.1" 500 124
+WARNING 2025-04-13 14:15:50,474 log Bad Request: /api/conversations/
+WARNING 2025-04-13 14:15:50,478 basehttp "POST /api/conversations/ HTTP/1.1" 400 123
+ERROR 2025-04-13 14:15:50,614 log Internal Server Error: /api/messages/1/
+ERROR 2025-04-13 14:15:50,616 basehttp "POST /api/messages/1/ HTTP/1.1" 500 124
+WARNING 2025-04-13 14:15:50,869 log Bad Request: /api/conversations/
+WARNING 2025-04-13 14:15:50,870 basehttp "POST /api/conversations/ HTTP/1.1" 400 123
+ERROR 2025-04-13 14:15:50,968 log Internal Server Error: /api/messages/1/
+ERROR 2025-04-13 14:15:50,969 basehttp "POST /api/messages/1/ HTTP/1.1" 500 124
+WARNING 2025-04-13 14:16:36,951 log Bad Request: /api/conversations/
+WARNING 2025-04-13 14:16:36,952 basehttp "POST /api/conversations/ HTTP/1.1" 400 123
+ERROR 2025-04-13 14:16:39,600 log Internal Server Error: /api/messages/1/
+ERROR 2025-04-13 14:16:39,601 basehttp "POST /api/messages/1/ HTTP/1.1" 500 124
+WARNING 2025-04-13 14:16:40,751 log Bad Request: /api/conversations/
+WARNING 2025-04-13 14:16:40,753 basehttp "POST /api/conversations/ HTTP/1.1" 400 123
+INFO 2025-04-13 14:18:19,455 basehttp "POST /api/settings/ HTTP/1.1" 201 398
+INFO 2025-04-13 14:18:29,337 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:18:30,370 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:18:30,375 basehttp "POST /api/messages/1/ HTTP/1.1" 200 30
+INFO 2025-04-13 14:18:31,691 basehttp "POST /api/messages/1/ HTTP/1.1" 200 30
+INFO 2025-04-13 14:18:31,831 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:18:32,948 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:19:04,555 basehttp "POST /api/conversations/ HTTP/1.1" 200 13127
+INFO 2025-04-13 14:19:04,656 basehttp "POST /api/conversations/ HTTP/1.1" 200 13127
+INFO 2025-04-13 14:19:04,725 basehttp "POST /api/conversations/ HTTP/1.1" 200 13127
+INFO 2025-04-13 14:19:04,796 basehttp "POST /api/conversations/ HTTP/1.1" 200 13127
+INFO 2025-04-13 14:19:04,852 basehttp "OPTIONS /api/messages/2475966/ HTTP/1.1" 200 0
+INFO 2025-04-13 14:19:04,910 basehttp "POST /api/conversations/ HTTP/1.1" 200 13127
+INFO 2025-04-13 14:19:05,808 basehttp "POST /api/messages/1/ HTTP/1.1" 200 30
+INFO 2025-04-13 14:19:06,072 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:19:06,828 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:19:11,007 basehttp "POST /api/conversations/ HTTP/1.1" 200 13127
+INFO 2025-04-13 14:19:12,728 basehttp "POST /api/conversations/ HTTP/1.1" 200 13127
+INFO 2025-04-13 14:19:17,473 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 5773
+INFO 2025-04-13 14:19:17,787 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 5857
+INFO 2025-04-13 14:19:42,614 basehttp "POST /api/conversations/ HTTP/1.1" 200 13127
+INFO 2025-04-13 14:19:47,991 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 5675
+INFO 2025-04-13 14:19:48,769 basehttp "OPTIONS /api/messages/send/ HTTP/1.1" 200 0
+INFO 2025-04-13 14:19:49,232 basehttp "POST /api/conversations/ HTTP/1.1" 200 13127
+INFO 2025-04-13 14:19:51,087 basehttp "POST /api/messages/send/ HTTP/1.1" 200 122
+INFO 2025-04-13 14:19:59,164 basehttp "POST /api/conversations/ HTTP/1.1" 200 13120
+INFO 2025-04-13 14:20:01,751 basehttp "OPTIONS /api/messages/2511143/ HTTP/1.1" 200 0
+INFO 2025-04-13 14:20:02,700 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:20:03,413 basehttp "POST /api/messages/2511143/ HTTP/1.1" 200 175
+INFO 2025-04-13 14:20:03,497 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:20:03,954 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 5831
+INFO 2025-04-13 14:20:05,132 basehttp "POST /api/messages/2511143/ HTTP/1.1" 200 168
+INFO 2025-04-13 14:20:09,510 basehttp "POST /api/conversations/ HTTP/1.1" 200 13120
+INFO 2025-04-13 14:20:10,837 basehttp "POST /api/messages/send/ HTTP/1.1" 200 122
+INFO 2025-04-13 14:20:11,292 basehttp "OPTIONS /api/messages/2510426/ HTTP/1.1" 200 0
+INFO 2025-04-13 14:20:12,542 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:20:13,027 basehttp "OPTIONS /api/messages/2508552/ HTTP/1.1" 200 0
+INFO 2025-04-13 14:20:13,672 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:20:13,873 basehttp "POST /api/messages/2510426/ HTTP/1.1" 200 424
+INFO 2025-04-13 14:20:14,449 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:20:15,794 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:20:16,341 basehttp "POST /api/messages/2508552/ HTTP/1.1" 200 754
+INFO 2025-04-13 14:20:19,330 basehttp "POST /api/conversations/ HTTP/1.1" 200 13135
+INFO 2025-04-13 14:20:20,627 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:20:21,177 basehttp "POST /api/messages/2511143/ HTTP/1.1" 200 314
+INFO 2025-04-13 14:20:21,256 basehttp "POST /api/messages/2511143/ HTTP/1.1" 200 307
+INFO 2025-04-13 14:20:21,392 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:20:22,087 basehttp "OPTIONS /api/messages/2507920/ HTTP/1.1" 200 0
+INFO 2025-04-13 14:20:22,399 basehttp "POST /api/messages/2511143/ HTTP/1.1" 200 307
+INFO 2025-04-13 14:20:23,037 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:20:23,537 basehttp "POST /api/messages/2507920/ HTTP/1.1" 200 162
+INFO 2025-04-13 14:20:23,800 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:20:27,123 basehttp "POST /api/conversations/ HTTP/1.1" 200 13135
+INFO 2025-04-13 14:20:34,792 basehttp "POST /api/messages/send/ HTTP/1.1" 200 122
+INFO 2025-04-13 14:20:41,842 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:20:44,216 basehttp "POST /api/messages/2507920/ HTTP/1.1" 200 292
+INFO 2025-04-13 14:20:45,818 basehttp "POST /api/messages/2507920/ HTTP/1.1" 200 285
+INFO 2025-04-13 14:20:49,498 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:20:50,305 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:20:50,438 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:20:52,955 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 5824
+INFO 2025-04-13 14:21:21,285 basehttp "POST /api/conversations/ HTTP/1.1" 200 13157
+INFO 2025-04-13 14:21:22,427 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:21:22,497 basehttp "POST /api/messages/2507920/ HTTP/1.1" 200 285
+INFO 2025-04-13 14:21:22,599 basehttp "POST /api/messages/2507920/ HTTP/1.1" 200 285
+INFO 2025-04-13 14:21:23,186 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:21:23,802 basehttp "POST /api/messages/2507920/ HTTP/1.1" 200 285
+INFO 2025-04-13 14:21:26,003 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:21:27,047 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:21:28,903 basehttp "POST /api/conversations/ HTTP/1.1" 200 13157
+INFO 2025-04-13 14:21:29,308 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 5982
+INFO 2025-04-13 14:21:39,423 basehttp "POST /api/messages/send/ HTTP/1.1" 200 122
+INFO 2025-04-13 14:21:47,224 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:21:51,873 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 6132
+INFO 2025-04-13 14:21:56,146 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 6125
+INFO 2025-04-13 14:21:57,977 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:22:30,088 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:22:34,342 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 6125
+INFO 2025-04-13 14:22:35,937 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:23:06,066 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:23:10,198 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 6125
+INFO 2025-04-13 14:23:11,799 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:23:42,325 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:23:43,358 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:23:44,438 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:23:48,138 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 6125
+INFO 2025-04-13 14:23:49,270 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:23:49,333 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:24:19,891 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:24:25,621 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 6125
+INFO 2025-04-13 14:24:27,594 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:24:56,713 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:25:01,900 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 6125
+INFO 2025-04-13 14:25:03,754 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:25:32,955 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:25:37,827 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 6125
+INFO 2025-04-13 14:25:39,874 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:26:12,279 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:26:18,307 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 6125
+INFO 2025-04-13 14:26:18,849 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:26:32,806 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 6125
+INFO 2025-04-13 14:26:33,165 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 6125
+INFO 2025-04-13 14:26:50,239 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:26:56,334 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:27:26,952 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:27:33,480 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:28:03,114 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:28:13,783 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:28:40,111 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:28:48,207 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:29:16,263 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:29:22,191 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:29:52,439 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:29:58,933 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:30:28,860 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+INFO 2025-04-13 14:30:36,250 basehttp "POST /api/conversations/ HTTP/1.1" 200 13155
+ERROR 2025-04-13 14:51:01,508 log Internal Server Error: /api/conversations/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\postgresql\base.py", line 275, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: could not translate host name "db.jogixvwelfqlphihabmd.supabase.co" to address: Name or service not known
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 414, in initial
+    self.perform_authentication(request)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 324, in perform_authentication
+    request.user
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\request.py", line 227, in user
+    self._authenticate()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\request.py", line 380, in _authenticate
+    user_auth_tuple = authenticator.authenticate(self)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework_simplejwt\authentication.py", line 51, in authenticate
+    return self.get_user(validated_token), validated_token
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework_simplejwt\authentication.py", line 130, in get_user
+    user = self.user_model.objects.get(**{api_settings.USER_ID_FIELD: user_id})
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 633, in get
+    num = len(clone)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 380, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 1881, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\sql\compiler.py", line 1560, in execute_sql
+    cursor = self.connection.cursor()
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 330, in cursor
+    return self._cursor()
+           ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 306, in _cursor
+    self.ensure_connection()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 288, in ensure_connection
+    with self.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\postgresql\base.py", line 275, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+django.db.utils.OperationalError: could not translate host name "db.jogixvwelfqlphihabmd.supabase.co" to address: Name or service not known
+
+INFO 2025-04-13 14:51:01,529 basehttp - Broken pipe from ('127.0.0.1', 49288)
+ERROR 2025-04-13 14:51:03,114 log Internal Server Error: /api/conversations/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\postgresql\base.py", line 275, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: could not translate host name "db.jogixvwelfqlphihabmd.supabase.co" to address: Name or service not known
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 414, in initial
+    self.perform_authentication(request)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 324, in perform_authentication
+    request.user
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\request.py", line 227, in user
+    self._authenticate()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\request.py", line 380, in _authenticate
+    user_auth_tuple = authenticator.authenticate(self)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework_simplejwt\authentication.py", line 51, in authenticate
+    return self.get_user(validated_token), validated_token
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework_simplejwt\authentication.py", line 130, in get_user
+    user = self.user_model.objects.get(**{api_settings.USER_ID_FIELD: user_id})
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 633, in get
+    num = len(clone)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 380, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 1881, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\sql\compiler.py", line 1560, in execute_sql
+    cursor = self.connection.cursor()
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 330, in cursor
+    return self._cursor()
+           ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 306, in _cursor
+    self.ensure_connection()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 288, in ensure_connection
+    with self.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\postgresql\base.py", line 275, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+django.db.utils.OperationalError: could not translate host name "db.jogixvwelfqlphihabmd.supabase.co" to address: Name or service not known
+
+ERROR 2025-04-13 14:51:03,131 basehttp "POST /api/conversations/ HTTP/1.1" 500 226906
+ERROR 2025-04-13 14:51:03,231 log Internal Server Error: /api/conversations/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\postgresql\base.py", line 275, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: could not translate host name "db.jogixvwelfqlphihabmd.supabase.co" to address: Name or service not known
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 414, in initial
+    self.perform_authentication(request)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 324, in perform_authentication
+    request.user
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\request.py", line 227, in user
+    self._authenticate()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\request.py", line 380, in _authenticate
+    user_auth_tuple = authenticator.authenticate(self)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework_simplejwt\authentication.py", line 51, in authenticate
+    return self.get_user(validated_token), validated_token
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework_simplejwt\authentication.py", line 130, in get_user
+    user = self.user_model.objects.get(**{api_settings.USER_ID_FIELD: user_id})
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 633, in get
+    num = len(clone)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 380, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 1881, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\sql\compiler.py", line 1560, in execute_sql
+    cursor = self.connection.cursor()
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 330, in cursor
+    return self._cursor()
+           ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 306, in _cursor
+    self.ensure_connection()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 288, in ensure_connection
+    with self.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\postgresql\base.py", line 275, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+django.db.utils.OperationalError: could not translate host name "db.jogixvwelfqlphihabmd.supabase.co" to address: Name or service not known
+
+ERROR 2025-04-13 14:51:03,245 basehttp "POST /api/conversations/ HTTP/1.1" 500 226906
+ERROR 2025-04-13 14:51:03,434 log Internal Server Error: /api/conversations/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\postgresql\base.py", line 275, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: could not translate host name "db.jogixvwelfqlphihabmd.supabase.co" to address: Name or service not known
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 414, in initial
+    self.perform_authentication(request)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 324, in perform_authentication
+    request.user
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\request.py", line 227, in user
+    self._authenticate()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\request.py", line 380, in _authenticate
+    user_auth_tuple = authenticator.authenticate(self)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework_simplejwt\authentication.py", line 51, in authenticate
+    return self.get_user(validated_token), validated_token
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework_simplejwt\authentication.py", line 130, in get_user
+    user = self.user_model.objects.get(**{api_settings.USER_ID_FIELD: user_id})
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 633, in get
+    num = len(clone)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 380, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 1881, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\sql\compiler.py", line 1560, in execute_sql
+    cursor = self.connection.cursor()
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 330, in cursor
+    return self._cursor()
+           ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 306, in _cursor
+    self.ensure_connection()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 288, in ensure_connection
+    with self.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\postgresql\base.py", line 275, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+django.db.utils.OperationalError: could not translate host name "db.jogixvwelfqlphihabmd.supabase.co" to address: Name or service not known
+
+ERROR 2025-04-13 14:51:03,513 basehttp "POST /api/conversations/ HTTP/1.1" 500 226906
+ERROR 2025-04-13 14:51:03,697 log Internal Server Error: /api/conversations/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\postgresql\base.py", line 275, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: could not translate host name "db.jogixvwelfqlphihabmd.supabase.co" to address: Name or service not known
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 414, in initial
+    self.perform_authentication(request)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 324, in perform_authentication
+    request.user
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\request.py", line 227, in user
+    self._authenticate()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\request.py", line 380, in _authenticate
+    user_auth_tuple = authenticator.authenticate(self)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework_simplejwt\authentication.py", line 51, in authenticate
+    return self.get_user(validated_token), validated_token
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework_simplejwt\authentication.py", line 130, in get_user
+    user = self.user_model.objects.get(**{api_settings.USER_ID_FIELD: user_id})
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 633, in get
+    num = len(clone)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 380, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 1881, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\sql\compiler.py", line 1560, in execute_sql
+    cursor = self.connection.cursor()
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 330, in cursor
+    return self._cursor()
+           ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 306, in _cursor
+    self.ensure_connection()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 288, in ensure_connection
+    with self.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\postgresql\base.py", line 275, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+django.db.utils.OperationalError: could not translate host name "db.jogixvwelfqlphihabmd.supabase.co" to address: Name or service not known
+
+ERROR 2025-04-13 14:51:03,793 log Internal Server Error: /api/messages/1/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\postgresql\base.py", line 275, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: could not translate host name "db.jogixvwelfqlphihabmd.supabase.co" to address: Name or service not known
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 414, in initial
+    self.perform_authentication(request)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 324, in perform_authentication
+    request.user
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\request.py", line 227, in user
+    self._authenticate()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\request.py", line 380, in _authenticate
+    user_auth_tuple = authenticator.authenticate(self)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework_simplejwt\authentication.py", line 51, in authenticate
+    return self.get_user(validated_token), validated_token
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework_simplejwt\authentication.py", line 130, in get_user
+    user = self.user_model.objects.get(**{api_settings.USER_ID_FIELD: user_id})
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 633, in get
+    num = len(clone)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 380, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 1881, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\sql\compiler.py", line 1560, in execute_sql
+    cursor = self.connection.cursor()
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 330, in cursor
+    return self._cursor()
+           ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 306, in _cursor
+    self.ensure_connection()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 288, in ensure_connection
+    with self.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\postgresql\base.py", line 275, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+django.db.utils.OperationalError: could not translate host name "db.jogixvwelfqlphihabmd.supabase.co" to address: Name or service not known
+
+ERROR 2025-04-13 14:51:03,825 basehttp "POST /api/conversations/ HTTP/1.1" 500 226906
+ERROR 2025-04-13 14:51:03,851 basehttp "POST /api/messages/1/ HTTP/1.1" 500 227028
+ERROR 2025-04-13 14:51:03,932 log Internal Server Error: /api/conversations/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\postgresql\base.py", line 275, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: could not translate host name "db.jogixvwelfqlphihabmd.supabase.co" to address: Name or service not known
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\generic\base.py", line 104, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 414, in initial
+    self.perform_authentication(request)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 324, in perform_authentication
+    request.user
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\request.py", line 227, in user
+    self._authenticate()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\request.py", line 380, in _authenticate
+    user_auth_tuple = authenticator.authenticate(self)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework_simplejwt\authentication.py", line 51, in authenticate
+    return self.get_user(validated_token), validated_token
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework_simplejwt\authentication.py", line 130, in get_user
+    user = self.user_model.objects.get(**{api_settings.USER_ID_FIELD: user_id})
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 633, in get
+    num = len(clone)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 380, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 1881, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\sql\compiler.py", line 1560, in execute_sql
+    cursor = self.connection.cursor()
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 330, in cursor
+    return self._cursor()
+           ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 306, in _cursor
+    self.ensure_connection()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 288, in ensure_connection
+    with self.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\postgresql\base.py", line 275, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+django.db.utils.OperationalError: could not translate host name "db.jogixvwelfqlphihabmd.supabase.co" to address: Name or service not known
+
+ERROR 2025-04-13 14:51:03,959 basehttp "POST /api/conversations/ HTTP/1.1" 500 226906
+ERROR 2025-04-13 14:51:04,058 log Internal Server Error: /api/auth/users/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\postgresql\base.py", line 275, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: could not translate host name "db.jogixvwelfqlphihabmd.supabase.co" to address: Name or service not known
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 414, in initial
+    self.perform_authentication(request)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 324, in perform_authentication
+    request.user
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\request.py", line 227, in user
+    self._authenticate()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\request.py", line 380, in _authenticate
+    user_auth_tuple = authenticator.authenticate(self)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework_simplejwt\authentication.py", line 51, in authenticate
+    return self.get_user(validated_token), validated_token
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework_simplejwt\authentication.py", line 130, in get_user
+    user = self.user_model.objects.get(**{api_settings.USER_ID_FIELD: user_id})
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 633, in get
+    num = len(clone)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 380, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 1881, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\sql\compiler.py", line 1560, in execute_sql
+    cursor = self.connection.cursor()
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 330, in cursor
+    return self._cursor()
+           ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 306, in _cursor
+    self.ensure_connection()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 288, in ensure_connection
+    with self.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\postgresql\base.py", line 275, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+django.db.utils.OperationalError: could not translate host name "db.jogixvwelfqlphihabmd.supabase.co" to address: Name or service not known
+
+ERROR 2025-04-13 14:51:04,080 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 500 229498
+ERROR 2025-04-13 14:51:04,244 log Internal Server Error: /api/auth/users/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\postgresql\base.py", line 275, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: could not translate host name "db.jogixvwelfqlphihabmd.supabase.co" to address: Name or service not known
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 414, in initial
+    self.perform_authentication(request)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 324, in perform_authentication
+    request.user
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\request.py", line 227, in user
+    self._authenticate()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\request.py", line 380, in _authenticate
+    user_auth_tuple = authenticator.authenticate(self)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework_simplejwt\authentication.py", line 51, in authenticate
+    return self.get_user(validated_token), validated_token
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework_simplejwt\authentication.py", line 130, in get_user
+    user = self.user_model.objects.get(**{api_settings.USER_ID_FIELD: user_id})
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 633, in get
+    num = len(clone)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 380, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 1881, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\sql\compiler.py", line 1560, in execute_sql
+    cursor = self.connection.cursor()
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 330, in cursor
+    return self._cursor()
+           ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 306, in _cursor
+    self.ensure_connection()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 288, in ensure_connection
+    with self.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\postgresql\base.py", line 275, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+django.db.utils.OperationalError: could not translate host name "db.jogixvwelfqlphihabmd.supabase.co" to address: Name or service not known
+
+ERROR 2025-04-13 14:51:04,260 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 500 229498
+INFO 2025-04-13 14:51:04,385 basehttp "OPTIONS /api/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 0
+ERROR 2025-04-13 14:51:04,552 log Internal Server Error: /api/auth/users/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\postgresql\base.py", line 275, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: could not translate host name "db.jogixvwelfqlphihabmd.supabase.co" to address: Name or service not known
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 414, in initial
+    self.perform_authentication(request)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 324, in perform_authentication
+    request.user
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\request.py", line 227, in user
+    self._authenticate()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\request.py", line 380, in _authenticate
+    user_auth_tuple = authenticator.authenticate(self)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework_simplejwt\authentication.py", line 51, in authenticate
+    return self.get_user(validated_token), validated_token
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework_simplejwt\authentication.py", line 130, in get_user
+    user = self.user_model.objects.get(**{api_settings.USER_ID_FIELD: user_id})
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 633, in get
+    num = len(clone)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 380, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 1881, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\sql\compiler.py", line 1560, in execute_sql
+    cursor = self.connection.cursor()
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 330, in cursor
+    return self._cursor()
+           ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 306, in _cursor
+    self.ensure_connection()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 288, in ensure_connection
+    with self.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\postgresql\base.py", line 275, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+django.db.utils.OperationalError: could not translate host name "db.jogixvwelfqlphihabmd.supabase.co" to address: Name or service not known
+
+WARNING 2025-04-13 14:51:04,585 log Not Found: /api/users/
+ERROR 2025-04-13 14:51:04,589 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 500 229498
+WARNING 2025-04-13 14:51:04,590 basehttp "GET /api/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 404 60917
+WARNING 2025-04-13 14:51:04,678 log Not Found: /api/users/
+WARNING 2025-04-13 14:51:04,680 basehttp "GET /api/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 404 60917
+WARNING 2025-04-13 14:51:04,748 log Not Found: /api/users/
+WARNING 2025-04-13 14:51:04,760 basehttp "GET /api/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 404 60917
+ERROR 2025-04-13 14:51:04,930 log Internal Server Error: /api/auth/users/
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\postgresql\base.py", line 275, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+psycopg2.OperationalError: could not translate host name "db.jogixvwelfqlphihabmd.supabase.co" to address: Name or service not known
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\exception.py", line 55, in inner
+    response = get_response(request)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\core\handlers\base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\views\decorators\csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 497, in dispatch
+    self.initial(request, *args, **kwargs)
+    ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 414, in initial
+    self.perform_authentication(request)
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\views.py", line 324, in perform_authentication
+    request.user
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\request.py", line 227, in user
+    self._authenticate()
+    ~~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework\request.py", line 380, in _authenticate
+    user_auth_tuple = authenticator.authenticate(self)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework_simplejwt\authentication.py", line 51, in authenticate
+    return self.get_user(validated_token), validated_token
+           ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\rest_framework_simplejwt\authentication.py", line 130, in get_user
+    user = self.user_model.objects.get(**{api_settings.USER_ID_FIELD: user_id})
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\manager.py", line 87, in manager_method
+    return getattr(self.get_queryset(), name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 633, in get
+    num = len(clone)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 380, in __len__
+    self._fetch_all()
+    ~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 1881, in _fetch_all
+    self._result_cache = list(self._iterable_class(self))
+                         ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\query.py", line 91, in __iter__
+    results = compiler.execute_sql(
+        chunked_fetch=self.chunked_fetch, chunk_size=self.chunk_size
+    )
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\models\sql\compiler.py", line 1560, in execute_sql
+    cursor = self.connection.cursor()
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 330, in cursor
+    return self._cursor()
+           ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 306, in _cursor
+    self.ensure_connection()
+    ~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 288, in ensure_connection
+    with self.wrap_database_errors:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 289, in ensure_connection
+    self.connect()
+    ~~~~~~~~~~~~^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\base\base.py", line 270, in connect
+    self.connection = self.get_new_connection(conn_params)
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\utils\asyncio.py", line 26, in inner
+    return func(*args, **kwargs)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\django\db\backends\postgresql\base.py", line 275, in get_new_connection
+    connection = self.Database.connect(**conn_params)
+  File "C:\Personal Data\IT-Projects\Arazit-SaaS\backend\env\Lib\site-packages\psycopg2\__init__.py", line 135, in connect
+    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+django.db.utils.OperationalError: could not translate host name "db.jogixvwelfqlphihabmd.supabase.co" to address: Name or service not known
+
+ERROR 2025-04-13 14:51:04,945 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 500 229498
+WARNING 2025-04-13 14:51:05,114 log Not Found: /api/users/
+WARNING 2025-04-13 14:51:05,115 basehttp "GET /api/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 404 60917
+INFO 2025-04-13 14:51:42,966 basehttp "POST /api/conversations/ HTTP/1.1" 200 13160
+INFO 2025-04-13 14:51:50,007 basehttp "POST /api/conversations/ HTTP/1.1" 200 13160
+INFO 2025-04-13 14:51:54,077 basehttp "POST /api/messages/2511143/ HTTP/1.1" 200 457
+INFO 2025-04-13 14:51:54,461 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:51:55,217 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:52:18,695 basehttp "POST /api/conversations/ HTTP/1.1" 200 13160
+INFO 2025-04-13 14:52:25,190 basehttp "POST /api/conversations/ HTTP/1.1" 200 13160
+INFO 2025-04-13 14:52:35,156 basehttp "POST /api/messages/send/ HTTP/1.1" 200 122
+INFO 2025-04-13 14:52:38,609 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:52:39,361 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:52:41,748 basehttp "POST /api/conversations/ HTTP/1.1" 200 13180
+INFO 2025-04-13 14:52:42,606 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 6125
+INFO 2025-04-13 14:52:42,799 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:52:43,345 basehttp "POST /api/messages/2511143/ HTTP/1.1" 200 665
+INFO 2025-04-13 14:52:43,555 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:52:43,977 basehttp "POST /api/messages/2511143/ HTTP/1.1" 200 658
+INFO 2025-04-13 14:52:49,215 basehttp "OPTIONS /api/users-for-assignment/?tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 0
+INFO 2025-04-13 14:52:49,358 basehttp "GET /api/users-for-assignment/?tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 830
+INFO 2025-04-13 14:52:49,902 basehttp "POST /api/conversations/ HTTP/1.1" 200 13180
+INFO 2025-04-13 14:53:18,816 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:53:19,151 basehttp "POST /api/conversations/ HTTP/1.1" 200 13180
+INFO 2025-04-13 14:53:19,556 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:53:22,090 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 6125
+INFO 2025-04-13 14:53:24,785 basehttp "POST /api/conversations/ HTTP/1.1" 200 13180
+INFO 2025-04-13 14:54:06,570 basehttp "POST /api/conversations/ HTTP/1.1" 200 13180
+INFO 2025-04-13 14:54:11,076 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 6125
+INFO 2025-04-13 14:54:17,084 basehttp "POST /api/conversations/ HTTP/1.1" 200 13180
+INFO 2025-04-13 14:54:47,850 basehttp "POST /api/conversations/ HTTP/1.1" 200 13156
+INFO 2025-04-13 14:54:53,851 basehttp "POST /api/conversations/ HTTP/1.1" 200 13156
+INFO 2025-04-13 14:55:17,989 basehttp "OPTIONS /api/conversations/ HTTP/1.1" 200 0
+INFO 2025-04-13 14:55:23,593 basehttp "POST /api/conversations/ HTTP/1.1" 200 13156
+INFO 2025-04-13 14:55:29,078 basehttp "OPTIONS /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 0
+INFO 2025-04-13 14:55:29,198 basehttp "OPTIONS /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 0
+INFO 2025-04-13 14:55:29,987 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:55:30,194 basehttp "POST /api/conversations/ HTTP/1.1" 200 13156
+INFO 2025-04-13 14:55:30,613 basehttp "POST /api/messages/2511143/ HTTP/1.1" 200 950
+INFO 2025-04-13 14:55:30,744 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:55:58,907 basehttp "POST /api/messages/send/ HTTP/1.1" 200 122
+INFO 2025-04-13 14:56:00,035 basehttp "POST /api/conversations/ HTTP/1.1" 200 13156
+INFO 2025-04-13 14:56:05,728 basehttp "POST /api/conversations/ HTTP/1.1" 200 13180
+INFO 2025-04-13 14:56:06,215 basehttp "POST /api/conversations/ HTTP/1.1" 200 13180
+INFO 2025-04-13 14:56:06,876 basehttp "POST /api/conversations/ HTTP/1.1" 200 13180
+INFO 2025-04-13 14:56:07,796 basehttp "POST /api/messages/2511143/ HTTP/1.1" 200 1147
+INFO 2025-04-13 14:56:12,981 basehttp "POST /api/conversations/ HTTP/1.1" 200 13180
+INFO 2025-04-13 14:56:16,796 basehttp "POST /api/conversations/ HTTP/1.1" 200 13180
+INFO 2025-04-13 14:56:16,997 basehttp "POST /api/conversations/ HTTP/1.1" 200 13180
+INFO 2025-04-13 14:56:18,873 basehttp "POST /api/conversations/ HTTP/1.1" 200 13180
+INFO 2025-04-13 14:56:21,248 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:56:22,093 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:56:29,512 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:56:30,291 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:56:31,130 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:56:32,145 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:57:27,144 basehttp "POST /api/conversations/ HTTP/1.1" 200 13184
+INFO 2025-04-13 14:57:28,217 basehttp "POST /api/conversations/ HTTP/1.1" 200 13184
+INFO 2025-04-13 14:57:30,044 basehttp "POST /api/messages/2511143/ HTTP/1.1" 200 1349
+INFO 2025-04-13 14:57:36,252 basehttp "POST /api/conversations/ HTTP/1.1" 200 13184
+INFO 2025-04-13 14:58:15,881 basehttp "POST /api/conversations/ HTTP/1.1" 200 13184
+INFO 2025-04-13 14:58:17,806 basehttp "POST /api/messages/2511143/ HTTP/1.1" 200 1342
+INFO 2025-04-13 14:58:24,526 basehttp "POST /api/conversations/ HTTP/1.1" 200 13184
+INFO 2025-04-13 14:58:31,392 basehttp "POST /api/messages/send/ HTTP/1.1" 200 122
+INFO 2025-04-13 14:58:38,437 basehttp "POST /api/conversations/ HTTP/1.1" 200 13182
+INFO 2025-04-13 14:58:40,359 basehttp "POST /api/messages/2511143/ HTTP/1.1" 200 1562
+INFO 2025-04-13 14:58:47,084 basehttp "POST /api/conversations/ HTTP/1.1" 200 13182
+INFO 2025-04-13 14:58:47,216 basehttp "POST /api/messages/send/ HTTP/1.1" 200 122
+INFO 2025-04-13 14:58:54,534 basehttp "POST /api/conversations/ HTTP/1.1" 200 13183
+INFO 2025-04-13 14:58:56,760 basehttp "POST /api/messages/2511143/ HTTP/1.1" 200 1729
+INFO 2025-04-13 14:59:00,378 basehttp "OPTIONS /api/messages/1/ HTTP/1.1" 200 0
+INFO 2025-04-13 14:59:00,650 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:59:01,689 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:59:01,893 basehttp "POST /api/messages/1/ HTTP/1.1" 200 30
+INFO 2025-04-13 14:59:02,452 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:59:02,878 basehttp - Broken pipe from ('127.0.0.1', 49562)
+INFO 2025-04-13 14:59:03,334 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:59:05,700 basehttp "POST /api/conversations/ HTTP/1.1" 200 13183
+INFO 2025-04-13 14:59:06,065 basehttp "POST /api/conversations/ HTTP/1.1" 200 13183
+INFO 2025-04-13 14:59:06,406 basehttp "POST /api/conversations/ HTTP/1.1" 200 13183
+INFO 2025-04-13 14:59:06,637 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:59:07,150 basehttp "POST /api/conversations/ HTTP/1.1" 200 13183
+INFO 2025-04-13 14:59:07,390 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:59:07,458 basehttp "POST /api/conversations/ HTTP/1.1" 200 13183
+INFO 2025-04-13 14:59:07,541 basehttp "POST /api/messages/2511143/ HTTP/1.1" 200 1722
+INFO 2025-04-13 14:59:10,496 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:59:11,243 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 14:59:12,077 basehttp "POST /api/conversations/ HTTP/1.1" 200 13183
+INFO 2025-04-13 14:59:13,338 basehttp "POST /api/conversations/ HTTP/1.1" 200 13183
+INFO 2025-04-13 14:59:13,842 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 6125
+INFO 2025-04-13 14:59:23,169 basehttp "POST /api/messages/send/ HTTP/1.1" 200 122
+INFO 2025-04-13 14:59:31,662 basehttp "POST /api/conversations/ HTTP/1.1" 200 13179
+INFO 2025-04-13 14:59:36,567 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 6278
+INFO 2025-04-13 14:59:42,761 basehttp "POST /api/conversations/ HTTP/1.1" 200 13179
+INFO 2025-04-13 14:59:46,738 basehttp "GET /api/users-for-assignment/?tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 830
+INFO 2025-04-13 14:59:49,641 basehttp "OPTIONS /api/assign-chat/ HTTP/1.1" 200 0
+INFO 2025-04-13 14:59:50,048 basehttp "POST /api/assign-chat/ HTTP/1.1" 200 134
+INFO 2025-04-13 14:59:57,686 basehttp "POST /api/conversations/ HTTP/1.1" 200 13179
+INFO 2025-04-13 15:00:02,098 basehttp "POST /api/messages/2475966/ HTTP/1.1" 200 6271
+INFO 2025-04-13 15:00:04,653 basehttp "GET /api/users-for-assignment/?tenant_id=ce781194-477e-4cb0-bf67-b438b735b81b HTTP/1.1" 200 830
+INFO 2025-04-13 15:00:08,104 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 15:00:08,424 basehttp "POST /api/conversations/ HTTP/1.1" 200 13179
+INFO 2025-04-13 15:00:08,919 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 15:00:10,117 basehttp "POST /api/messages/2511143/ HTTP/1.1" 200 1722
+INFO 2025-04-13 15:00:24,202 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 15:00:24,546 basehttp "POST /api/messages/2507920/ HTTP/1.1" 200 285
+INFO 2025-04-13 15:00:24,961 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 15:00:33,881 basehttp "POST /api/messages/send/ HTTP/1.1" 200 122
+INFO 2025-04-13 15:00:36,533 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 15:00:37,283 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 15:00:37,297 basehttp "POST /api/messages/2510426/ HTTP/1.1" 200 403
+INFO 2025-04-13 15:00:38,043 basehttp "POST /api/conversations/ HTTP/1.1" 200 13179
+INFO 2025-04-13 15:00:41,704 basehttp "POST /api/conversations/ HTTP/1.1" 200 13193
+INFO 2025-04-13 15:00:42,601 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 15:00:43,216 basehttp "POST /api/messages/2507920/ HTTP/1.1" 200 436
+INFO 2025-04-13 15:00:43,359 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 15:00:43,360 basehttp "POST /api/messages/2507920/ HTTP/1.1" 200 429
+INFO 2025-04-13 15:00:45,327 basehttp "POST /api/conversations/ HTTP/1.1" 200 13193
+INFO 2025-04-13 15:00:49,347 basehttp "POST /api/conversations/ HTTP/1.1" 200 13193
+INFO 2025-04-13 15:00:49,929 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
+INFO 2025-04-13 15:00:50,462 basehttp "POST /api/messages/2508552/ HTTP/1.1" 200 719
+INFO 2025-04-13 15:00:51,216 basehttp "GET /api/auth/users/?tenant=ce781194-477e-4cb0-bf67-b438b735b81b&is_active=true HTTP/1.1" 200 3601
