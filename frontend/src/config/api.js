@@ -4,7 +4,7 @@
 
 // Base URL for API requests
 // In Vite, environment variables are accessed via import.meta.env and prefixed with VITE_
-export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Default request timeout in milliseconds
 export const API_TIMEOUT = 30000;

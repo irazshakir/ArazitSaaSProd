@@ -90,6 +90,11 @@ import Chat from '../components/chats/Chat';
 // Reminder Components
 import ReminderActivities from '../components/reminders/reminderActivities';
 
+// Travel & Tourism Pages
+import TravelPackageIndex from '../components/travelPackages/travelPackageIndex';
+import TravelPackageCreate from '../components/forms/products/travelPackages/travelPackageCreate';
+import TravelPackageEdit from '../components/forms/products/travelPackages/travelPackageEdit';
+
 const AppRoutes = () => {
   return (
     <ErrorBoundary>
@@ -172,6 +177,13 @@ const AppRoutes = () => {
           <Route path="departments/create" element={<CreateDepartment />} />
           <Route path="departments/:id" element={<DepartmentDetail />} />
           <Route path="departments/:id/edit" element={<EditDepartment />} />
+          
+          {/* Travel & Tourism Routes */}
+          <Route path="travel">
+            <Route path="travel-packages" element={<TravelPackageIndex />} />
+            <Route path="travel-packages/create" element={<TravelPackageCreate />} />
+            <Route path="travel-packages/:id/edit" element={<TravelPackageEdit />} />
+          </Route>
           
           {/* Settings Routes */}
           <Route path="settings">

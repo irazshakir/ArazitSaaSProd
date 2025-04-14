@@ -450,7 +450,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         } catch (error) {
           // Try a direct fetch to debug the issue with the correct path
           try {
-            const fullUrl = `http://localhost:8000/api/auth/active-by-tenant/?tenant=${tenantId}`;
+            const fullUrl = `${import.meta.env.VITE_API_BASE_URL}/api/auth/active-by-tenant/?tenant=${tenantId}`;
             
             const response = await fetch(fullUrl, {
               headers: {

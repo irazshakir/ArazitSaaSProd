@@ -62,7 +62,8 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
     analytics: false,
     settings: false,
     hajjUmrah: false,
-    immigration: false
+    immigration: false,
+    travelTourism: false
   });
 
   useEffect(() => {
@@ -92,9 +93,10 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
   // Determine if industry-specific menus should be shown - MOVED UP before it's used
   const showHajjUmrahMenu = localUser?.industry === 'hajj_umrah';
   const showImmigrationMenu = localUser?.industry === 'immigration';
+  const showTravelTourismMenu = localUser?.industry === 'travel_tourism';
 
   // Now define showIndustryMenus AFTER its dependent variables are declared
-  const showIndustryMenus = isAdmin && (showHajjUmrahMenu || showImmigrationMenu);
+  const showIndustryMenus = isAdmin && (showHajjUmrahMenu || showImmigrationMenu || showTravelTourismMenu);
 
   // Core menu items - available to all authenticated users
   const coreMenuItems = [
@@ -150,6 +152,11 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
   const immigrationMenuItems = [
     { text: 'Countries', icon: <PublicIcon />, path: '/dashboard/immigration/countries' },
     { text: 'Universities', icon: <SchoolIcon />, path: '/dashboard/immigration/universities' },
+  ];
+
+  // Travel & Tourism specific menu items
+  const travelTourismMenuItems = [
+    { text: 'Travel Packages', icon: <LuggageIcon />, path: '/dashboard/travel/travel-packages' },
   ];
 
   const renderMenuItems = (items) => {
@@ -597,6 +604,88 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
           </>
         )}
         */}
+
+        {/* Travel & Tourism Settings - Admin only */}
+        {isAdmin && showTravelTourismMenu && (
+          <>
+            <ListItem sx={{ pt: 2, pb: 1 }}>
+              <Typography 
+                variant="overline" 
+                color="text.secondary"
+                sx={{ 
+                  fontSize: '0.7rem', 
+                  fontWeight: 600,
+                  letterSpacing: '0.08em'
+                }}
+              >
+                TRAVEL & TOURISM
+              </Typography>
+            </ListItem>
+            <ListItem disablePadding sx={{ mb: 0.5 }}>
+              <ListItemButton 
+                onClick={() => handleMenuToggle('travelTourism')}
+                sx={{ 
+                  borderRadius: 1,
+                  '&:hover': {
+                    backgroundColor: 'rgba(157, 39, 124, 0.08)',
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <LuggageIcon />
+                </ListItemIcon>
+                <ListItemText 
+                  primary="Travel & Tourism" 
+                  primaryTypographyProps={{ 
+                    fontSize: '0.8rem',
+                    fontWeight: 500
+                  }}
+                />
+                {openMenus.travelTourism ? <ExpandLess /> : <ExpandMore />}
+              </ListItemButton>
+            </ListItem>
+            <Collapse in={openMenus.travelTourism} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding>
+                {travelTourismMenuItems.map((item) => (
+                  <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
+                    <ListItemButton 
+                      onClick={() => navigate(item.path)}
+                      sx={{ 
+                        borderRadius: 1,
+                        pl: 4,
+                        '&:hover': {
+                          backgroundColor: 'rgba(157, 39, 124, 0.08)',
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: 'rgba(157, 39, 124, 0.16)',
+                          '&:hover': {
+                            backgroundColor: 'rgba(157, 39, 124, 0.24)',
+                          },
+                        },
+                      }}
+                      selected={location.pathname === item.path}
+                    >
+                      <ListItemIcon sx={{ 
+                        minWidth: 40,
+                        color: location.pathname === item.path ? '#9d277c' : 'inherit'
+                      }}>
+                        {item.icon}
+                      </ListItemIcon>
+                      <ListItemText 
+                        primary={item.text} 
+                        primaryTypographyProps={{ 
+                          fontSize: '0.8rem',
+                          fontWeight: location.pathname === item.path ? 600 : 400,
+                          color: location.pathname === item.path ? '#9d277c' : 'inherit'
+                        }}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+              </List>
+            </Collapse>
+          </>
+        )}
       </List>
       <Divider sx={{ mt: 2 }} />
       <Box sx={{ p: 2 }}>

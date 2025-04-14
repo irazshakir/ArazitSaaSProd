@@ -220,7 +220,7 @@ const Chat = () => {
       const token = localStorage.getItem('token');
       
       // Fetch conversations
-      const response = await fetch('http://localhost:8000/api/conversations/', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/conversations/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -354,7 +354,7 @@ const Chat = () => {
       const tenantId = localStorage.getItem('tenant_id');
       const token = localStorage.getItem('token');
       
-      await fetch(`http://localhost:8000/api/messages/${chatId}/`, {
+      await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/messages/${chatId}/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

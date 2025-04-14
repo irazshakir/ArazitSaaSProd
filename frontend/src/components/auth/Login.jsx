@@ -97,7 +97,7 @@ const Login = () => {
         } else {
           // Attempt to explicitly fetch user details including tenant_id
           try {
-            const userDetailsResponse = await fetch(`http://localhost:8000/api/auth/me/`, {
+            const userDetailsResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/auth/me/`, {
               headers: {
                 'Authorization': `Bearer ${response.token}`
               }

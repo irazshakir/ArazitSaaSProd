@@ -219,7 +219,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
       const tenantId = localStorage.getItem('tenant_id');
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`http://localhost:8000/api/users-for-assignment/?tenant_id=${tenantId}`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users-for-assignment/?tenant_id=${tenantId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -257,7 +257,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
       const tenantId = localStorage.getItem('tenant_id');
       const token = localStorage.getItem('token');
       
-      const response = await fetch('http://localhost:8000/api/assign-chat/', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/assign-chat/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
