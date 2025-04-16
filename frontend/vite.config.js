@@ -6,8 +6,21 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
-    strictPort: false,
-    open: true,
+    strictPort: true,
+    host: true, // Listen on all addresses
+  },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: false,
+    manifest: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+        },
+      },
+    },
   },
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx'],

@@ -32,7 +32,7 @@ import UmrahPackageEdit from '../components/forms/products/umrahPackages/umrahPa
 
 // Leads Pages
 import LeadsIndex from '../components/leads/leadsIndex';
-import LeadCreate from '../components/leads/LeadCreate';
+import LeadCreate from '../components/leads/leadCreate';
 import LeadEdit from '../components/leads/leadEdit';
 import LeadView from '../components/leads/leadView';
 
@@ -43,8 +43,8 @@ import CannedEdit from '../components/cannedMessages/cannedEdit';
 
 // Groups Pages
 import { GroupIndex } from '../components/groups/GroupIndex';
-import { GroupCreate } from '../components/groups/groupCreate';
-import { GroupEdit } from '../components/groups/groupEdit';
+import { GroupCreate } from '../components/groups/GroupCreate';
+import { GroupEdit } from '../components/groups/GroupEdit';
 
 // Invoice Pages
 import InvoiceIndex from '../components/invoices/invoiceIndex';

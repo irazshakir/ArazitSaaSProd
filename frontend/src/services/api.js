@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 
-const API_URL = `${API_BASE_URL}/api`;
+// Use the API_BASE_URL from config, defaulting to the deployed API URL if not available
+const API_URL = API_BASE_URL || 'https://api.arazit.com';
 
 // Create axios instance
 const api = axios.create({
@@ -71,63 +72,74 @@ api.interceptors.response.use(
 export const authService = {
   // Login user
   login: async (email, password) => {
-    // Get the authentication token
-    const response = await api.post('/auth/token/', { email, password });
-    
-    // Extract user data from response
-    const userData = response.data.user || { email };
-    
-    // If no user data from token response, fetch user details
-    if (!userData.id) {
-      try {
-        // Set token to make authenticated requests
-        api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
-        
-        // Get user details
-        const userResponse = await api.get('/auth/me/');
-        Object.assign(userData, userResponse.data);
-      } catch (err) {
-        // Handle error silently
-      }
-    }
-    
-    // Try to get tenant information for the user
     try {
-      if (userData.id) {
-        // Try to get user tenants
-        const tenantsResponse = await api.get('/auth/user-tenants/');
-        
-        if (tenantsResponse.data && Array.isArray(tenantsResponse.data) && tenantsResponse.data.length > 0) {
-          // Add first tenant to user data
-          userData.tenant_id = tenantsResponse.data[0].tenant.id;
-          userData.tenant_details = tenantsResponse.data[0].tenant;
-          userData.tenant_role = tenantsResponse.data[0].role;
+      // Get the authentication token - try both email and username fields for compatibility
+      const response = await api.post('/api/auth/token/', { 
+        email: email,
+        username: email,  // Try both email and username fields
+        password: password
+      });
+      
+      // Extract user data from response
+      const userData = response.data.user || { email };
+      
+      // If no user data from token response, fetch user details
+      if (!userData.id) {
+        try {
+          // Set token to make authenticated requests
+          api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
           
-          // Store current tenant in session storage
-          sessionStorage.setItem('currentTenant', JSON.stringify(userData.tenant_details));
+          // Get user details
+          const userResponse = await api.get('/api/auth/me/');
+          Object.assign(userData, userResponse.data);
+        } catch (err) {
+          // Handle error silently
+          console.log('Error fetching user details:', err);
         }
       }
-    } catch (err) {
-      // Handle error silently
+      
+      // Try to get tenant information for the user
+      try {
+        if (userData.id) {
+          // Try to get user tenants
+          const tenantsResponse = await api.get('/api/auth/user-tenants/');
+          
+          if (tenantsResponse.data && Array.isArray(tenantsResponse.data) && tenantsResponse.data.length > 0) {
+            // Add first tenant to user data
+            userData.tenant_id = tenantsResponse.data[0].tenant.id;
+            userData.tenant_details = tenantsResponse.data[0].tenant;
+            userData.tenant_role = tenantsResponse.data[0].role;
+            
+            // Store current tenant in session storage
+            sessionStorage.setItem('currentTenant', JSON.stringify(userData.tenant_details));
+          }
+        }
+      } catch (err) {
+        // Handle error silently
+        console.log('Error fetching tenant information:', err);
+      }
+      
+      // Return complete user data
+      return {
+        token: response.data.access,
+        refreshToken: response.data.refresh,
+        user: userData
+      };
+    } catch (error) {
+      console.error('Login error details:', error.response?.data);
+      throw error;
     }
-    
-    // Return complete user data
-    return {
-      token: response.data.access,
-      refreshToken: response.data.refresh,
-      user: userData
-    };
   },
 
   // Register user
   register: async (userData) => {
-    const response = await api.post('/auth/register/', userData);
+    const response = await api.post('/api/auth/register/', userData);
     return response.data;
   },
 
   // Get current user
   getCurrentUser: async () => {
-    const response = await api.get('/auth/me/');
+    const response = await api.get('/api/auth/me/');
     return response.data;
   },
 
@@ -143,31 +155,31 @@ export const authService = {
 export const userService = {
   // Get all users
   getUsers: async () => {
-    const response = await api.get('/auth/users/');
+    const response = await api.get('/api/auth/users/');
     return response.data;
   },
 
   // Get user by ID
   getUser: async (id) => {
-    const response = await api.get(`/auth/users/${id}/`);
+    const response = await api.get(`/api/auth/users/${id}/`);
     return response.data;
   },
 
   // Create user
   createUser: async (userData) => {
-    const response = await api.post('/auth/users/', userData);
+    const response = await api.post('/api/auth/users/', userData);
     return response.data;
   },
 
   // Update user
   updateUser: async (id, userData) => {
-    const response = await api.put(`/auth/users/${id}/`, userData);
+    const response = await api.put(`/api/auth/users/${id}/`, userData);
     return response.data;
   },
 
   // Delete user
   deleteUser: async (id) => {
-    const response = await api.delete(`/auth/users/${id}/`);
+    const response = await api.delete(`/api/auth/users/${id}/`);
     return response.data;
   }
 };
@@ -181,9 +193,9 @@ export const departmentService = {
       
       // Try these endpoints in order
       const endpoints = [
-        '/departments/',
-        '/auth/departments/',
-        '/users/departments/'
+        '/api/departments/',
+        '/api/auth/departments/',
+        '/api/users/departments/'
       ];
       
       let lastError = null;
@@ -227,11 +239,11 @@ export const departmentService = {
   // Get department by ID
   getDepartment: async (id) => {
     try {
-      const response = await api.get(`/departments/${id}/`);
+      const response = await api.get(`/api/departments/${id}/`);
       return response.data;
     } catch (error) {
       if (error.response && error.response.status === 404) {
-        const authResponse = await api.get(`/auth/departments/${id}/`);
+        const authResponse = await api.get(`/api/auth/departments/${id}/`);
         return authResponse.data;
       }
       throw error;
@@ -240,19 +252,19 @@ export const departmentService = {
 
   // Create department
   createDepartment: async (departmentData) => {
-    const response = await api.post('/departments/', departmentData);
+    const response = await api.post('/api/departments/', departmentData);
     return response.data;
   },
 
   // Update department
   updateDepartment: async (id, departmentData) => {
-    const response = await api.put(`/departments/${id}/`, departmentData);
+    const response = await api.put(`/api/departments/${id}/`, departmentData);
     return response.data;
   },
 
   // Delete department
   deleteDepartment: async (id) => {
-    const response = await api.delete(`/departments/${id}/`);
+    const response = await api.delete(`/api/departments/${id}/`);
     return response.data;
   }
 };
@@ -266,9 +278,9 @@ export const branchService = {
       
       // Try these endpoints in order
       const endpoints = [
-        '/branches/',
-        '/auth/branches/',
-        '/users/branches/'
+        '/api/branches/',
+        '/api/auth/branches/',
+        '/api/users/branches/'
       ];
       
       let lastError = null;
@@ -312,7 +324,7 @@ export const branchService = {
   // Get branch by ID
   getBranch: async (id) => {
     try {
-      const response = await api.get(`/users/branches/${id}/`);
+      const response = await api.get(`/api/users/branches/${id}/`);
       return response.data;
     } catch (error) {
       throw error;
@@ -321,19 +333,19 @@ export const branchService = {
 
   // Create branch
   createBranch: async (branchData) => {
-    const response = await api.post('/users/branches/', branchData);
+    const response = await api.post('/api/users/branches/', branchData);
     return response.data;
   },
 
   // Update branch
   updateBranch: async (id, branchData) => {
-    const response = await api.put(`/users/branches/${id}/`, branchData);
+    const response = await api.put(`/api/users/branches/${id}/`, branchData);
     return response.data;
   },
 
   // Delete branch
   deleteBranch: async (id) => {
-    const response = await api.delete(`/users/branches/${id}/`);
+    const response = await api.delete(`/api/users/branches/${id}/`);
     return response.data;
   }
 };
@@ -343,12 +355,12 @@ export const leadService = {
   // Get leads with role-based filtering
   getLeadsByRole: async (params) => {
     try {
-      const response = await api.get('/leads/by-role/', { params });
+      const response = await api.get('/api/leads/by-role/', { params });
       return response.data;
     } catch (error) {
       // If 404, fall back to the main leads endpoint
       if (error.response && error.response.status === 404) {
-        const fallbackResponse = await api.get('/leads/', { params });
+        const fallbackResponse = await api.get('/api/leads/', { params });
         return fallbackResponse.data;
       }
       throw error;
@@ -357,31 +369,31 @@ export const leadService = {
   
   // Get all leads
   getLeads: async (params) => {
-    const response = await api.get('/leads/', { params });
+    const response = await api.get('/api/leads/', { params });
     return response.data;
   },
   
   // Get lead by ID
   getLead: async (id) => {
-    const response = await api.get(`/leads/${id}/`);
+    const response = await api.get(`/api/leads/${id}/`);
     return response.data;
   },
   
   // Create lead
   createLead: async (leadData) => {
-    const response = await api.post('/leads/', leadData);
+    const response = await api.post('/api/leads/', leadData);
     return response.data;
   },
   
   // Update lead
   updateLead: async (id, leadData) => {
-    const response = await api.put(`/leads/${id}/`, leadData);
+    const response = await api.put(`/api/leads/${id}/`, leadData);
     return response.data;
   },
   
   // Delete lead
   deleteLead: async (id) => {
-    const response = await api.delete(`/leads/${id}/`);
+    const response = await api.delete(`/api/leads/${id}/`);
     return response.data;
   }
 };

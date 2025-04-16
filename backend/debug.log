@@ -22131,3 +22131,453 @@ INFO 2025-04-15 00:03:11,799 basehttp "GET /api/auth/me/ HTTP/1.1" 200 302
 INFO 2025-04-15 00:03:12,075 basehttp "OPTIONS /api/analytics/dashboard-stats?date_from=2025-03-31&date_to=2025-04-29&tenant_id=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f HTTP/1.1" 200 0
 INFO 2025-04-15 00:03:12,104 basehttp "OPTIONS /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f HTTP/1.1" 200 0
 INFO 2025-04-15 00:03:15,430 basehttp "GET /api/analytics/dashboard-stats/?date_from=2025-03-31&date_to=2025-04-29&tenant_id=dd5b42af-8cfe-4842-bd7e-8a21f2696d7f HTTP/1.1" 200 505
+ERROR 2025-04-15 11:44:21,601 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 11:44:21,880 log Bad Request: /
+ERROR 2025-04-15 11:44:38,881 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+ERROR 2025-04-15 11:44:38,886 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 11:44:38,909 log Bad Request: /
+WARNING 2025-04-15 11:44:39,110 log Bad Request: /
+ERROR 2025-04-15 11:44:46,026 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 11:44:46,303 log Bad Request: /
+ERROR 2025-04-15 11:44:53,330 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 11:44:53,353 log Bad Request: /
+ERROR 2025-04-15 11:45:02,221 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 11:45:02,618 log Bad Request: /
+ERROR 2025-04-15 11:45:10,505 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 11:45:10,530 log Bad Request: /
+ERROR 2025-04-15 11:49:45,222 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 11:49:45,393 log Bad Request: /
+ERROR 2025-04-15 12:29:31,962 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 12:29:32,348 log Bad Request: /
+ERROR 2025-04-15 12:29:33,334 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 12:29:33,529 log Bad Request: /favicon.ico
+ERROR 2025-04-15 13:08:51,093 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 13:08:51,448 log Bad Request: /
+ERROR 2025-04-15 13:26:09,135 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 13:26:09,717 log Bad Request: /api/auth/token/
+ERROR 2025-04-15 13:54:02,634 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 13:54:02,975 log Bad Request: /favicon.ico
+ERROR 2025-04-15 13:56:01,169 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 13:56:01,208 log Bad Request: /
+ERROR 2025-04-15 13:56:01,287 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 13:56:01,450 log Bad Request: /
+ERROR 2025-04-15 13:56:14,113 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 13:56:14,139 log Bad Request: /
+ERROR 2025-04-15 13:57:02,806 exception Invalid HTTP_HOST header: 'api.arazit.com:443'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com:443'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 13:57:02,857 log Bad Request: /favicon.ico
+ERROR 2025-04-15 16:07:41,701 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 16:07:43,406 log Bad Request: /robots.txt
+ERROR 2025-04-15 16:07:44,615 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 16:07:46,396 log Bad Request: /
+ERROR 2025-04-15 19:47:26,961 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 19:47:30,469 log Bad Request: /api/auth/token/
+ERROR 2025-04-15 19:48:13,371 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 19:48:17,172 log Bad Request: /api/auth/token/
+ERROR 2025-04-15 19:50:42,971 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 19:50:48,167 log Bad Request: /api/auth/token/
+ERROR 2025-04-15 20:45:58,066 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 20:46:02,262 log Bad Request: /api/auth/industry-choices/
+ERROR 2025-04-15 20:46:56,358 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 20:46:59,263 log Bad Request: /api/auth/token/
+ERROR 2025-04-15 20:50:56,862 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 20:51:00,763 log Bad Request: /api/auth/token/
+ERROR 2025-04-15 20:58:41,761 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 20:58:42,962 log Bad Request: /api/auth/token/
+ERROR 2025-04-15 20:59:13,463 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 20:59:16,470 log Bad Request: /api/auth/token/
+ERROR 2025-04-15 21:01:22,962 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 21:01:23,361 log Bad Request: /api/auth/token/
+ERROR 2025-04-15 21:19:46,564 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 21:19:47,167 log Bad Request: /admin/
+ERROR 2025-04-15 21:23:11,359 exception Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
+WARNING 2025-04-15 21:23:15,362 log Bad Request: /api/auth/token/
