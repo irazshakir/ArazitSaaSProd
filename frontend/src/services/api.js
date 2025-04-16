@@ -73,10 +73,9 @@ export const authService = {
   // Login user
   login: async (email, password) => {
     try {
-      // Get the authentication token - try both email and username fields for compatibility
+      // Get the authentication token using only email
       const response = await api.post('/api/auth/token/', { 
         email: email,
-        username: email,  // Try both email and username fields
         password: password
       });
       
@@ -93,7 +92,6 @@ export const authService = {
           const userResponse = await api.get('/api/auth/me/');
           Object.assign(userData, userResponse.data);
         } catch (err) {
-          // Handle error silently
           console.log('Error fetching user details:', err);
         }
       }
@@ -101,11 +99,9 @@ export const authService = {
       // Try to get tenant information for the user
       try {
         if (userData.id) {
-          // Try to get user tenants
           const tenantsResponse = await api.get('/api/auth/user-tenants/');
           
           if (tenantsResponse.data && Array.isArray(tenantsResponse.data) && tenantsResponse.data.length > 0) {
-            // Add first tenant to user data
             userData.tenant_id = tenantsResponse.data[0].tenant.id;
             userData.tenant_details = tenantsResponse.data[0].tenant;
             userData.tenant_role = tenantsResponse.data[0].role;
@@ -115,11 +111,9 @@ export const authService = {
           }
         }
       } catch (err) {
-        // Handle error silently
         console.log('Error fetching tenant information:', err);
       }
       
-      // Return complete user data
       return {
         token: response.data.access,
         refreshToken: response.data.refresh,

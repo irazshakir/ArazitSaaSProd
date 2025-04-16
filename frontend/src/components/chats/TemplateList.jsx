@@ -49,7 +49,7 @@ const TemplateList = () => {
       const tenantId = localStorage.getItem('tenant_id');
       const token = localStorage.getItem('token');
       
-      const response = await fetch('http://localhost:8000/api/templates/', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/templates/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -121,7 +121,7 @@ const TemplateList = () => {
       // Format phone number to remove any spaces and ensure it starts with '+'
       const formattedPhone = phoneNumber.trim().replace(/^\+?/, '+');
 
-      const response = await fetch('http://localhost:8000/api/templates/', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/templates/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

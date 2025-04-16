@@ -25,6 +25,16 @@ const DashboardLayout = () => {
     if (storedUser) {
       try {
         const parsedUser = JSON.parse(storedUser);
+        
+        // Ensure industry is included in the user object
+        if (!parsedUser.industry && parsedUser.tenant_id) {
+          // Try to get industry from localStorage if it exists
+          const storedIndustry = localStorage.getItem('user_industry');
+          if (storedIndustry) {
+            parsedUser.industry = storedIndustry;
+          }
+        }
+        
         setUser(parsedUser);
         
         // If userRole is not in localStorage but is in the user object, use that
@@ -34,6 +44,11 @@ const DashboardLayout = () => {
         // Store role in localStorage if it came from the user object
         if (!storedRole && parsedUser.role) {
           localStorage.setItem('user_role', parsedUser.role);
+        }
+        
+        // Store industry in localStorage if it exists in user data
+        if (parsedUser.industry) {
+          localStorage.setItem('user_industry', parsedUser.industry);
         }
       } catch (error) {
         navigate('/login');

@@ -39,7 +39,7 @@ const ContactList = () => {
       const tenantId = localStorage.getItem('tenant_id');
       const token = localStorage.getItem('token');
       
-      const response = await fetch('http://localhost:8000/api/contacts/', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/contacts/`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

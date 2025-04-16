@@ -257,6 +257,16 @@ class TenantUserViewSet(viewsets.ModelViewSet):
         # Get all tenant users for the user's tenant
         return TenantUser.objects.filter(tenant_id=user.tenant_id)
 
+    @action(detail=False, methods=['get'])
+    def user_tenants(self, request):
+        """
+        Get all tenants associated with the current user, including industry information.
+        """
+        user = request.user
+        tenant_users = TenantUser.objects.filter(user=user).select_related('tenant')
+        serializer = self.get_serializer(tenant_users, many=True)
+        return Response(serializer.data)
+
 
 class DepartmentViewSet(viewsets.ModelViewSet):
     """

@@ -1,20 +1,25 @@
 import multiprocessing
+import os
 
 # Binding
-bind = "0.0.0.0:8000"  # Change to direct bind to see if it works
+bind = "unix:/var/www/ArazitSaaS/backend/gunicorn.sock"  # Using Unix socket instead of direct port binding
 
 # Worker processes
-workers = 3  # Simplified number of workers
+workers = multiprocessing.cpu_count() * 2 + 1
 worker_class = 'sync'
-timeout = 60
-keepalive = 2
+timeout = 120  # Increased timeout
+keepalive = 5
 
 # Process naming
 proc_name = 'arazit_backend'
 
 # Logging
-errorlog = '-'  # Log to stderr
-loglevel = 'debug'  # Increase log level for debugging
+accesslog = '/var/log/gunicorn/access.log'
+errorlog = '/var/log/gunicorn/error.log'
+loglevel = 'info'
+
+# Reload workers when code changes (development only)
+reload = os.environ.get('DEBUG', 'False') == 'True'
 
 # SSL (if needed)
 # keyfile = '/etc/ssl/private/api.arazit.com.key'
@@ -23,4 +28,9 @@ loglevel = 'debug'  # Increase log level for debugging
 # Security
 limit_request_line = 4094
 limit_request_fields = 100
-limit_request_field_size = 8190 
+limit_request_field_size = 8190
+
+# Worker configurations
+worker_tmp_dir = '/dev/shm'  # Using RAM for temp files
+max_requests = 1000
+max_requests_jitter = 50 

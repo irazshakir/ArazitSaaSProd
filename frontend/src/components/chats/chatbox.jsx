@@ -97,12 +97,19 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
 
   const fetchCannedMessages = async () => {
     try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.arazit.com'; // Fallback URL
+      console.log('Using API Base URL:', apiBaseUrl); // Debug log
+      
       setLoadingCannedMessages(true);
       
       const tenantId = localStorage.getItem('tenant_id');
       const token = localStorage.getItem('token');
       
-      const response = await fetch('http://localhost:8000/api/canned-messages/?is_active=true', {
+      if (!tenantId || !token) {
+        throw new Error('Missing tenant ID or authentication token');
+      }
+      
+      const response = await fetch(`${apiBaseUrl}/api/canned-messages/?is_active=true`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -214,12 +221,13 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
     if (loadingUsers) return;
 
     try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.arazit.com';
       setLoadingUsers(true);
       
       const tenantId = localStorage.getItem('tenant_id');
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/users-for-assignment/?tenant_id=${tenantId}`, {
+      const response = await fetch(`${apiBaseUrl}/api/users-for-assignment/?tenant_id=${tenantId}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -251,13 +259,14 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
     if (!activeChat?.id || assigningUser) return;
     
     try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.arazit.com';
       setAssigningUser(true);
       setAssignmentSuccess(null);
       
       const tenantId = localStorage.getItem('tenant_id');
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/assign-chat/`, {
+      const response = await fetch(`${apiBaseUrl}/api/assign-chat/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -317,18 +326,18 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
     if (!activeChat?.id) return;
     
     try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.arazit.com';
       if (!silentCheck) {
         setLoading(true);
       }
       
-      setNoApiConfigured(false);
       setRefreshing(true);
       setNoPermission(false);
       
       const tenantId = localStorage.getItem('tenant_id');
       const token = localStorage.getItem('token');
       
-      const response = await fetch(`http://localhost:8000/api/messages/${activeChat.id}/`, {
+      const response = await fetch(`${apiBaseUrl}/api/messages/${activeChat.id}/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -443,6 +452,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
 
     setSending(true);
     try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.arazit.com';
       let response;
       let newMessage;
       
@@ -457,7 +467,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
           formData.append('caption', message.trim());
         }
 
-        response = await fetch('http://localhost:8000/api/messages/send-image/', {
+        response = await fetch(`${apiBaseUrl}/api/messages/send-image/`, {
           method: 'POST',
           headers: {
             'X-Tenant-ID': tenantId,
@@ -512,7 +522,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
           message: message.trim()
         };
 
-        response = await fetch('http://localhost:8000/api/messages/send/', {
+        response = await fetch(`${apiBaseUrl}/api/messages/send/`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

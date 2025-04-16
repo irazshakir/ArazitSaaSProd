@@ -32,6 +32,9 @@ urlpatterns = [
     # Current User
     path('me/', UserViewSet.as_view({'get': 'me'}), name='me'),
     
+    # User Tenants
+    path('user-tenants/', TenantUserViewSet.as_view({'get': 'user_tenants'}), name='user_tenants'),
+    
     # Industry Choices
     path('industry-choices/', UserViewSet.as_view({'get': 'industry_choices'}), name='industry_choices'),
     

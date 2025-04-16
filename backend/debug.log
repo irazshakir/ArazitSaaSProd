@@ -22581,3 +22581,251 @@ Traceback (most recent call last):
     raise DisallowedHost(msg)
 django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'api.arazit.com'. You may need to add 'api.arazit.com' to ALLOWED_HOSTS.
 WARNING 2025-04-15 21:23:15,362 log Bad Request: /api/auth/token/
+WARNING 2025-04-16 16:48:00,163 log Not Found: /api/auth/user-tenants/
+ERROR 2025-04-16 17:18:20,929 exception Invalid HTTP_HOST header: '194.164.149.219'. You may need to add '194.164.149.219' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '194.164.149.219'. You may need to add '194.164.149.219' to ALLOWED_HOSTS.
+WARNING 2025-04-16 17:18:20,994 log Bad Request: /
+WARNING 2025-04-16 18:03:09,664 log Unauthorized: /api/conversations/
+WARNING 2025-04-16 18:03:10,179 log Unauthorized: /api/conversations/
+WARNING 2025-04-16 18:03:17,216 log Unauthorized: /api/conversations/
+WARNING 2025-04-16 18:03:17,554 log Unauthorized: /api/conversations/
+WARNING 2025-04-16 18:03:22,794 log Unauthorized: /api/auth/me/
+ERROR 2025-04-16 18:03:32,587 exception Invalid HTTP_HOST header: 'www.ediscoconsultancy.com'. You may need to add 'www.ediscoconsultancy.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'www.ediscoconsultancy.com'. You may need to add 'www.ediscoconsultancy.com' to ALLOWED_HOSTS.
+WARNING 2025-04-16 18:03:32,715 log Bad Request: /robots.txt
+ERROR 2025-04-16 18:15:01,476 exception Invalid HTTP_HOST header: '194.164.149.219'. You may need to add '194.164.149.219' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '194.164.149.219'. You may need to add '194.164.149.219' to ALLOWED_HOSTS.
+WARNING 2025-04-16 18:15:01,627 log Bad Request: /ReportServer
+ERROR 2025-04-16 18:16:17,966 exception Invalid HTTP_HOST header: '/var/www/ArazitSaaS/backend/gunicorn.sock:'. The domain name provided is not valid according to RFC 1034/1035.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '/var/www/ArazitSaaS/backend/gunicorn.sock:'. The domain name provided is not valid according to RFC 1034/1035.
+WARNING 2025-04-16 18:16:18,083 log Bad Request: /
+ERROR 2025-04-16 18:16:18,497 exception Invalid HTTP_HOST header: 'srv701511.hstgr.cloud'. You may need to add 'srv701511.hstgr.cloud' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'srv701511.hstgr.cloud'. You may need to add 'srv701511.hstgr.cloud' to ALLOWED_HOSTS.
+WARNING 2025-04-16 18:16:18,604 log Bad Request: /
+ERROR 2025-04-16 18:16:19,150 exception Invalid HTTP_HOST header: 'srv701511.hstgr.cloud'. You may need to add 'srv701511.hstgr.cloud' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'srv701511.hstgr.cloud'. You may need to add 'srv701511.hstgr.cloud' to ALLOWED_HOSTS.
+WARNING 2025-04-16 18:16:19,162 log Bad Request: /favicon.ico
+WARNING 2025-04-16 18:16:19,676 log Not Found: /
+ERROR 2025-04-16 18:16:38,775 exception Invalid HTTP_HOST header: '/var/www/ArazitSaaS/backend/gunicorn.sock:'. The domain name provided is not valid according to RFC 1034/1035.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: '/var/www/ArazitSaaS/backend/gunicorn.sock:'. The domain name provided is not valid according to RFC 1034/1035.
+WARNING 2025-04-16 18:16:38,791 log Bad Request: /
+ERROR 2025-04-16 18:16:39,111 exception Invalid HTTP_HOST header: 'srv701511.hstgr.cloud'. You may need to add 'srv701511.hstgr.cloud' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'srv701511.hstgr.cloud'. You may need to add 'srv701511.hstgr.cloud' to ALLOWED_HOSTS.
+WARNING 2025-04-16 18:16:39,129 log Bad Request: /
+ERROR 2025-04-16 18:20:14,005 exception Invalid HTTP_HOST header: 'ediscoconsultancy.com'. You may need to add 'ediscoconsultancy.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'ediscoconsultancy.com'. You may need to add 'ediscoconsultancy.com' to ALLOWED_HOSTS.
+WARNING 2025-04-16 18:20:14,018 log Bad Request: /robots.txt
+WARNING 2025-04-16 18:35:55,793 log Not Found: /api/auth/user-tenants/
+WARNING 2025-04-16 18:36:06,637 log Not Found: /api/leads/7912b56d-45c7-4dfa-8931-9b79dbe17390/notes/
+WARNING 2025-04-16 18:39:15,688 log Not Found: /api/auth/user-tenants/
+WARNING 2025-04-16 18:56:45,000 log Not Found: /auth/token/
+WARNING 2025-04-16 18:57:42,685 log Not Found: /auth/token/
+WARNING 2025-04-16 19:17:48,951 log Not Found: /auth/me/
+WARNING 2025-04-16 19:17:49,980 log Not Found: /analytics/dashboard-stats
+WARNING 2025-04-16 19:18:05,310 log Not Found: /leads/by-role/
+WARNING 2025-04-16 19:18:12,609 log Not Found: /auth/users/
+WARNING 2025-04-16 19:18:12,834 log Not Found: /auth/users/
+WARNING 2025-04-16 19:18:13,053 log Not Found: /users/
+WARNING 2025-04-16 19:18:13,258 log Not Found: /users/
+WARNING 2025-04-16 19:18:14,505 log Not Found: /auth/users/
+WARNING 2025-04-16 19:18:14,721 log Not Found: /users/
+WARNING 2025-04-16 19:18:32,771 log Not Found: /auth/users/
+WARNING 2025-04-16 19:18:32,982 log Not Found: /users/
+WARNING 2025-04-16 19:18:33,381 log Not Found: /auth/users/
+WARNING 2025-04-16 19:18:33,592 log Not Found: /users/
+WARNING 2025-04-16 19:18:40,862 log Not Found: /auth/users/
+WARNING 2025-04-16 19:18:41,078 log Not Found: /users/
+WARNING 2025-04-16 19:18:46,082 log Not Found: /auth/users/
+WARNING 2025-04-16 19:18:46,295 log Not Found: /users/
+WARNING 2025-04-16 19:19:03,403 log Not Found: /auth/users/
+WARNING 2025-04-16 19:19:03,618 log Not Found: /users/
+WARNING 2025-04-16 19:19:13,896 log Not Found: /analytics/dashboard-stats
+WARNING 2025-04-16 19:19:22,871 log Not Found: /invoices/
+WARNING 2025-04-16 19:19:28,077 log Not Found: /leads/by-role/
+WARNING 2025-04-16 19:19:38,102 log Not Found: /analytics/dashboard-stats
+WARNING 2025-04-16 19:19:45,254 log Not Found: /analytics/dashboard-stats
+ERROR 2025-04-16 19:39:36,072 exception Invalid HTTP_HOST header: 'leadbuzz.xyz'. You may need to add 'leadbuzz.xyz' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'leadbuzz.xyz'. You may need to add 'leadbuzz.xyz' to ALLOWED_HOSTS.
+WARNING 2025-04-16 19:39:36,130 log Bad Request: /
+WARNING 2025-04-16 20:31:11,510 log Not Found: /auth/me/
+WARNING 2025-04-16 20:31:14,082 log Not Found: /analytics/dashboard-stats
+WARNING 2025-04-16 20:31:47,868 log Not Found: /leads/by-role/
+WARNING 2025-04-16 20:31:52,326 log Not Found: /analytics/dashboard-stats
+WARNING 2025-04-16 20:33:41,375 log Not Found: /analytics/dashboard-stats
+WARNING 2025-04-16 20:35:36,099 log Not Found: /company-settings/
+WARNING 2025-04-16 20:35:41,407 log Not Found: /branches/
+WARNING 2025-04-16 20:35:41,835 log Not Found: /auth/branches/
+WARNING 2025-04-16 20:35:42,262 log Not Found: /branches/
+WARNING 2025-04-16 20:43:55,547 log Not Found: /auth/me/
+WARNING 2025-04-16 20:43:56,785 log Not Found: /analytics/dashboard-stats
+WARNING 2025-04-16 20:50:11,892 log Not Found: /api/auth/user-tenants/
+WARNING 2025-04-16 20:50:12,392 log Not Found: /analytics/dashboard-stats
+WARNING 2025-04-16 21:01:30,330 log Not Found: /analytics/dashboard-stats
+ERROR 2025-04-16 21:10:53,439 exception Invalid HTTP_HOST header: 'www.ediscoconsultancy.com'. You may need to add 'www.ediscoconsultancy.com' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'www.ediscoconsultancy.com'. You may need to add 'www.ediscoconsultancy.com' to ALLOWED_HOSTS.
+WARNING 2025-04-16 21:10:53,596 log Bad Request: /
+WARNING 2025-04-16 21:11:23,754 log Not Found: /analytics/dashboard-stats
+WARNING 2025-04-16 21:12:16,972 log Not Found: /analytics/dashboard-stats
+WARNING 2025-04-16 21:12:32,706 log Not Found: /analytics/dashboard-stats
+WARNING 2025-04-16 21:12:36,204 log Not Found: /analytics/dashboard-stats
+WARNING 2025-04-16 21:12:43,909 log Not Found: /analytics/dashboard-stats
+WARNING 2025-04-16 21:12:56,356 log Not Found: /analytics/filter-options
+WARNING 2025-04-16 21:12:56,893 log Not Found: /analytics/lead-analytics
+WARNING 2025-04-16 21:13:03,862 log Not Found: /leads/by-role/
+WARNING 2025-04-16 21:13:06,095 log Not Found: /analytics/dashboard-stats
+WARNING 2025-04-16 21:14:19,953 log Not Found: /analytics/dashboard-stats
+WARNING 2025-04-16 21:14:33,526 log Not Found: /branches/
+WARNING 2025-04-16 21:14:33,743 log Not Found: /auth/branches/
+WARNING 2025-04-16 21:14:33,959 log Not Found: /branches/
+WARNING 2025-04-16 21:14:41,192 log Not Found: /analytics/dashboard-stats
+WARNING 2025-04-16 21:15:27,111 log Not Found: /analytics/dashboard-stats
+WARNING 2025-04-16 21:15:33,811 log Not Found: /leads/by-role/
+WARNING 2025-04-16 21:15:36,339 log Not Found: /hajj-packages/
+WARNING 2025-04-16 21:15:36,550 log Not Found: /auth/active-by-tenant/
+WARNING 2025-04-16 21:15:36,759 log Not Found: /visit-visas/
+WARNING 2025-04-16 21:15:36,957 log Not Found: /auth/branches/
+WARNING 2025-04-16 21:15:36,966 log Not Found: /study/
+WARNING 2025-04-16 21:15:37,163 log Not Found: /leads/
+WARNING 2025-04-16 21:15:37,373 log Not Found: /auth/branches/
+WARNING 2025-04-16 21:15:44,971 log Not Found: /analytics/dashboard-stats
+WARNING 2025-04-16 21:22:01,770 log Not Found: /analytics/dashboard-stats
+WARNING 2025-04-16 21:22:24,583 log Not Found: /analytics/dashboard-stats
+WARNING 2025-04-16 21:22:35,207 log Not Found: /analytics/dashboard-stats
+WARNING 2025-04-16 21:39:37,091 log Not Found: /auth/users/
+WARNING 2025-04-16 21:39:37,697 log Not Found: /users/
+WARNING 2025-04-16 21:39:38,037 log Not Found: /auth/users/
+WARNING 2025-04-16 21:39:38,527 log Not Found: /users/
+WARNING 2025-04-16 21:39:40,447 log Not Found: /auth/users/
+WARNING 2025-04-16 21:39:40,659 log Not Found: /users/

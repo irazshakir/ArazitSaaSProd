@@ -134,7 +134,7 @@ const analyticsService = {
   getDashboardStats: async (filters = {}) => {
     try {
       const secureParams = buildSecureQuery(filters);
-      const response = await api.get('/analytics/dashboard-stats', { params: secureParams });
+      const response = await api.get('/api/analytics/dashboard-stats', { params: secureParams });
       return response.data;
     } catch (error) {
       throw error;

@@ -74,7 +74,17 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
       // Otherwise try to get from localStorage
       const storedUser = localStorage.getItem('user');
       if (storedUser) {
-        setLocalUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        
+        // If industry is not in user data, try to get it from localStorage
+        if (!parsedUser.industry) {
+          const storedIndustry = localStorage.getItem('user_industry');
+          if (storedIndustry) {
+            parsedUser.industry = storedIndustry;
+          }
+        }
+        
+        setLocalUser(parsedUser);
       }
     }
   }, [user]);
@@ -83,6 +93,17 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
   const isAdmin = userRole === 'admin';
   const isStandardUser = ['department_head', 'manager', 'team_lead', 'sales_agent', 'support_agent', 'processor'].includes(userRole);
 
+  // Get industry from user data or localStorage
+  const userIndustry = localUser?.industry || localStorage.getItem('user_industry');
+
+  // Determine if industry-specific menus should be shown
+  const showHajjUmrahMenu = userIndustry === 'hajj_umrah';
+  const showImmigrationMenu = userIndustry === 'immigration';
+  const showTravelTourismMenu = userIndustry === 'travel_tourism';
+
+  // Now define showIndustryMenus AFTER its dependent variables are declared
+  const showIndustryMenus = isAdmin && (showHajjUmrahMenu || showImmigrationMenu || showTravelTourismMenu);
+
   const handleMenuToggle = (menu) => {
     setOpenMenus(prev => ({
       ...prev,
@@ -90,20 +111,11 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
     }));
   };
 
-  // Determine if industry-specific menus should be shown - MOVED UP before it's used
-  const showHajjUmrahMenu = localUser?.industry === 'hajj_umrah';
-  const showImmigrationMenu = localUser?.industry === 'immigration';
-  const showTravelTourismMenu = localUser?.industry === 'travel_tourism';
-
-  // Now define showIndustryMenus AFTER its dependent variables are declared
-  const showIndustryMenus = isAdmin && (showHajjUmrahMenu || showImmigrationMenu || showTravelTourismMenu);
-
   // Core menu items - available to all authenticated users
   const coreMenuItems = [
     ...(isAdmin ? [{ text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' }] : []),
     { text: 'Chats', icon: <ChatIcon />, path: '/dashboard/chats' },
     { text: 'Leads', icon: <PersonIcon />, path: '/dashboard/leads' },
-    // { text: 'Groups', icon: <GroupIcon />, path: '/dashboard/groups' },
   ];
 
   // Analytics submenu - available only to admin
@@ -246,8 +258,6 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
                   <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
                     <ListItemButton 
                       onClick={() => {
-                        console.log('Navigating to:', item.path);
-                        console.log('Current location:', location.pathname);
                         navigate(item.path);
                       }}
                       sx={{ 
@@ -438,7 +448,6 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
         )}
 
         {/* Hajj and Umrah Settings - Admin only */}
-        {/* 
         {isAdmin && showHajjUmrahMenu && (
           <>
             <ListItem sx={{ pt: 2, pb: 1 }}>
@@ -519,10 +528,9 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
             </Collapse>
           </>
         )}
-        */}
 
         {/* Immigration Settings - Admin only */}
-        {/*
+        
         {isAdmin && showImmigrationMenu && (
           <>
             <ListItem sx={{ pt: 2, pb: 1 }}>
@@ -603,7 +611,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
             </Collapse>
           </>
         )}
-        */}
+       
 
         {/* Travel & Tourism Settings - Admin only */}
         {isAdmin && showTravelTourismMenu && (
