@@ -24,7 +24,21 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
     
     def get_queryset(self):
-        queryset = Invoice.objects.all().order_by('-created_at')
+        user = self.request.user
+        # Get tenant IDs associated with the user
+        tenant_ids = user.tenant_users.values_list('tenant', flat=True)
+        
+        # Handle specific tenant_id from request
+        tenant_id = (
+            self.request.query_params.get('tenant_id') or 
+            self.request.headers.get('X-Tenant-ID') or
+            self.request.COOKIES.get('tenant_id')
+        )
+        
+        if tenant_id and tenant_id in str(tenant_ids):
+            queryset = Invoice.objects.filter(tenant_id=tenant_id).order_by('-created_at')
+        else:
+            queryset = Invoice.objects.filter(tenant_id__in=tenant_ids).order_by('-created_at')
         
         # Filter by status if provided
         status = self.request.query_params.get('status')
@@ -56,13 +70,29 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def stats(self, request):
         """Get invoice statistics"""
-        total_invoices = Invoice.objects.count()
-        total_amount = Invoice.objects.aggregate(total=Sum('total_amount'))['total'] or 0
-        paid_amount = Invoice.objects.aggregate(total=Sum('paid_amount'))['total'] or 0
+        user = request.user
+        # Get tenant IDs associated with the user
+        tenant_ids = user.tenant_users.values_list('tenant', flat=True)
         
-        paid_invoices = Invoice.objects.filter(status='PAID').count()
-        partially_paid = Invoice.objects.filter(status='PARTIALLY_PAID').count()
-        no_payment = Invoice.objects.filter(status='NO_PAYMENT').count()
+        # Handle specific tenant_id from request
+        tenant_id = (
+            request.query_params.get('tenant_id') or 
+            request.headers.get('X-Tenant-ID') or
+            request.COOKIES.get('tenant_id')
+        )
+        
+        if tenant_id and tenant_id in str(tenant_ids):
+            queryset = Invoice.objects.filter(tenant_id=tenant_id)
+        else:
+            queryset = Invoice.objects.filter(tenant_id__in=tenant_ids)
+            
+        total_invoices = queryset.count()
+        total_amount = queryset.aggregate(total=Sum('total_amount'))['total'] or 0
+        paid_amount = queryset.aggregate(total=Sum('paid_amount'))['total'] or 0
+        
+        paid_invoices = queryset.filter(status='PAID').count()
+        partially_paid = queryset.filter(status='PARTIALLY_PAID').count()
+        no_payment = queryset.filter(status='NO_PAYMENT').count()
         
         return Response({
             'total_invoices': total_invoices,
@@ -80,8 +110,15 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         lead_id = request.query_params.get('lead_id')
         if not lead_id:
             return Response({"error": "lead_id parameter is required"}, status=400)
+        
+        user = request.user
+        tenant_ids = user.tenant_users.values_list('tenant', flat=True)
             
-        invoices = Invoice.objects.filter(lead_id=lead_id).order_by('-created_at')
+        invoices = Invoice.objects.filter(
+            lead_id=lead_id,
+            tenant_id__in=tenant_ids
+        ).order_by('-created_at')
+        
         serializer = InvoiceListSerializer(invoices, many=True)
         return Response(serializer.data)
 
@@ -94,7 +131,21 @@ class PaymentHistoryViewSet(viewsets.ModelViewSet):
     ordering_fields = ['payment_date', 'amount']
     
     def get_queryset(self):
-        queryset = PaymentHistory.objects.all().order_by('-payment_date')
+        user = self.request.user
+        # Get tenant IDs associated with the user
+        tenant_ids = user.tenant_users.values_list('tenant', flat=True)
+        
+        # Handle specific tenant_id from request
+        tenant_id = (
+            self.request.query_params.get('tenant_id') or 
+            self.request.headers.get('X-Tenant-ID') or
+            self.request.COOKIES.get('tenant_id')
+        )
+        
+        if tenant_id and tenant_id in str(tenant_ids):
+            queryset = PaymentHistory.objects.filter(tenant_id=tenant_id).order_by('-payment_date')
+        else:
+            queryset = PaymentHistory.objects.filter(tenant_id__in=tenant_ids).order_by('-payment_date')
         
         # Filter by invoice if provided
         invoice_id = self.request.query_params.get('invoice')

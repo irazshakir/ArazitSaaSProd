@@ -49,7 +49,17 @@ const InvoiceCreate = () => {
     const fetchLeads = async () => {
       try {
         setLoadingLeads(true);
-        const response = await api.get('leads/');
+        // Get tenant_id from localStorage for filtering leads
+        const tenantId = localStorage.getItem('tenant_id');
+        
+        // Add tenant_id to request if available
+        const config = {};
+        if (tenantId) {
+          config.params = { tenant_id: tenantId };
+          config.headers = { 'X-Tenant-ID': tenantId };
+        }
+        
+        const response = await api.get('leads/', config);
         
         // Process response data
         let leadsArray = Array.isArray(response.data) 
@@ -120,14 +130,34 @@ const InvoiceCreate = () => {
         return;
       }
       
+      // Get tenant_id from localStorage
+      const tenantId = localStorage.getItem('tenant_id');
+      
+      if (!tenantId) {
+        message.error('Tenant information is missing. Please log in again.');
+        navigate('/login');
+        setLoading(false);
+        return;
+      }
+      
       // Prepare data for API
       const invoiceData = {
         ...formData,
-        total_amount: parseFloat(formData.total_amount)
+        total_amount: parseFloat(formData.total_amount),
+        tenant: tenantId
+      };
+      
+      console.log('Submitting invoice with data:', invoiceData);
+      
+      // Submit to API with tenant headers
+      const config = {
+        headers: {
+          'X-Tenant-ID': tenantId
+        }
       };
       
       // Submit to API
-      const response = await api.post('invoices/', invoiceData);
+      const response = await api.post('invoices/', invoiceData, config);
       
       setLoading(false);
       message.success('Invoice created successfully!');

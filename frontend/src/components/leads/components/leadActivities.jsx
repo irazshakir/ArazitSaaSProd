@@ -48,19 +48,6 @@ const LeadActivities = ({ leadId, activities = [] }) => {
   const tenantId = user.tenant_id;
   const userId = user.id;
 
-  // Add debug logging for initial props and state
-  useEffect(() => {
-    console.log('LeadActivities Component Mounted:', {
-      leadId,
-      initialActivities: activities,
-      user: {
-        tenantId,
-        userId,
-        fullUser: user
-      }
-    });
-  }, []);
-
   // Fetch activities if not provided
   useEffect(() => {
     if (!activities || activities.length === 0) {
@@ -73,7 +60,6 @@ const LeadActivities = ({ leadId, activities = [] }) => {
   // Fetch activities from API
   const fetchActivities = async () => {
     if (!leadId) {
-      console.error('No leadId provided');
       return;
     }
 
@@ -88,7 +74,6 @@ const LeadActivities = ({ leadId, activities = [] }) => {
       } catch (error) {
         if (error.response?.status === 404) {
           // Fallback to the filtered endpoint
-          console.log('Falling back to filtered activities endpoint');
           const fallbackResponse = await api.get(`/lead-activities/?lead=${leadId}`);
           activitiesArray = Array.isArray(fallbackResponse.data) 
             ? fallbackResponse.data
@@ -100,10 +85,8 @@ const LeadActivities = ({ leadId, activities = [] }) => {
         }
       }
       
-      console.log(`Retrieved ${activitiesArray.length} activities for lead ${leadId}`);
       setLeadActivities(activitiesArray);
     } catch (error) {
-      console.error('Error fetching activities:', error);
       // Only show error message if we're not using initial activities
       if (!activities || activities.length === 0) {
         message.error('Failed to load activities');
@@ -113,28 +96,19 @@ const LeadActivities = ({ leadId, activities = [] }) => {
     }
   };
   
-  // Updated handleAddActivity function with detailed debugging
+  // Updated handleAddActivity function
   const handleAddActivity = async (values) => {
     try {
       setSubmitting(true);
       
-      // Debug: Log form values
-      console.log('Form Values Received:', values);
-      
       // Validate required IDs
       if (!leadId) {
-        console.error('Missing leadId:', leadId);
         message.error('Lead ID is required');
         return false;
       }
 
       // Validate tenant and user info
       if (!tenantId || !userId) {
-        console.error('Authentication Details:', {
-          tenantId,
-          userId,
-          user: JSON.parse(localStorage.getItem('user') || '{}')
-        });
         message.error('Session information not available. Please log in again.');
         return false;
       }
@@ -152,44 +126,22 @@ const LeadActivities = ({ leadId, activities = [] }) => {
         updated_at: now,
         due_date: values.due_date ? values.due_date.toISOString() : null,
       };
-      
-      // Debug: Log prepared data
-      console.log('Activity Data to Submit:', {
-        rawData: values,
-        processedData: activityData,
-        endpoint: `/leads/${leadId}/add-activity/`
-      });
 
       // Make API call with explicit content type and prevent default
-      console.log('Making API call...');
       const response = await api.post(`/leads/${leadId}/add-activity/`, activityData, {
         headers: {
           'Content-Type': 'application/json'
         }
       });
       
-      // Log the complete response
-      console.log('Complete API Response:', {
-        status: response.status,
-        data: response.data,
-        headers: response.headers
-      });
-      
       // Verify response data
       if (!response.data) {
         throw new Error('No data received from server');
       }
-      
-      // Debug: Log success data
-      console.log('Activity Created Successfully:', {
-        newActivity: response.data,
-        currentActivities: leadActivities.length
-      });
 
       // Update activities list
       setLeadActivities(prevActivities => {
         const newActivities = [response.data, ...prevActivities];
-        console.log('Updated Activities List:', newActivities);
         return newActivities;
       });
       
@@ -199,20 +151,6 @@ const LeadActivities = ({ leadId, activities = [] }) => {
       message.success('Activity added successfully');
       return false; // Explicitly return false to prevent form submission
     } catch (error) {
-      // Enhanced error logging
-      console.error('Activity Creation Error:', {
-        error,
-        errorMessage: error.message,
-        errorResponse: error.response?.data,
-        errorStatus: error.response?.status,
-        requestData: values,
-        fullError: {
-          config: error.config,
-          request: error.request,
-          response: error.response
-        }
-      });
-      
       // More specific error messages
       if (error.response?.status === 401) {
         message.error('Authentication failed. Please log in again.');
@@ -233,17 +171,9 @@ const LeadActivities = ({ leadId, activities = [] }) => {
     if (event && event.preventDefault) {
       event.preventDefault();
     }
-
-    console.log('Form Submit Triggered:', {
-      values,
-      leadId,
-      tenantId,
-      userId
-    });
     
     // Prevent form submission if we don't have required IDs
     if (!leadId || !tenantId || !userId) {
-      console.error('Missing required IDs:', { leadId, tenantId, userId });
       message.error('Missing required information. Please try again.');
       return;
     }
@@ -261,12 +191,11 @@ const LeadActivities = ({ leadId, activities = [] }) => {
       
       message.success('Activity deleted successfully');
     } catch (error) {
-      console.error('Error deleting activity:', error);
       message.error('Failed to delete activity');
     }
   };
   
-  // Updated activity icon logic
+  // Activity icon logic
   const getActivityIcon = (type) => {
     // Simple icon mapping based on common activity types
     switch(type.toLowerCase()) {
@@ -321,7 +250,6 @@ const LeadActivities = ({ leadId, activities = [] }) => {
           >
             <Input 
               placeholder="Enter activity type (e.g., Call, Email, Meeting, Task)" 
-              onChange={(e) => console.log('Activity Type Changed:', e.target.value)}
             />
           </Form.Item>
           
@@ -335,7 +263,6 @@ const LeadActivities = ({ leadId, activities = [] }) => {
               placeholder="Enter activity description..." 
               maxLength={500} 
               showCount 
-              onChange={(e) => console.log('Description Changed:', e.target.value)}
             />
           </Form.Item>
           
@@ -347,7 +274,6 @@ const LeadActivities = ({ leadId, activities = [] }) => {
               showTime 
               format="YYYY-MM-DD HH:mm"
               placeholder="Select due date and time (optional)"
-              onChange={(date) => console.log('Due Date Changed:', date)}
             />
           </Form.Item>
           

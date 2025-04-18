@@ -50,6 +50,12 @@ const InvoiceIndex = () => {
       const userRole = getUserRole();
       const tenantId = localStorage.getItem('tenant_id');
       
+      if (!tenantId) {
+        message.error('Tenant information is missing. Please log in again.');
+        navigate('/login');
+        return;
+      }
+      
       setUser(userData);
       setUserRole(userRole);
       setTenantId(tenantId);
@@ -178,13 +184,20 @@ const InvoiceIndex = () => {
         try {
           setLoading(true);
           
-          const response = await api.get('invoices/', {
+          // Configure request with tenant_id in params and headers
+          const config = {
             params: {
               page: pagination.page,
               page_size: pagination.pageSize,
+              tenant_id: tenantId,
               ...activeFilters
+            },
+            headers: {
+              'X-Tenant-ID': tenantId
             }
-          });
+          };
+          
+          const response = await api.get('invoices/', config);
           
           // Process response data
           let invoicesArray = response.data.results || [];
@@ -208,6 +221,7 @@ const InvoiceIndex = () => {
           }));
           setLoading(false);
         } catch (error) {
+          console.error('Error fetching invoices:', error);
           setLoading(false);
           message.error('Failed to load invoices. Please try again.');
         }
@@ -333,8 +347,15 @@ const InvoiceIndex = () => {
       // Show loading message
       message.loading('Deleting invoice...', 0);
       
+      // Configure request with tenant_id header
+      const config = {
+        headers: {
+          'X-Tenant-ID': tenantId
+        }
+      };
+      
       // Make the delete request
-      await api.delete(`invoices/${invoice.id}/`);
+      await api.delete(`invoices/${invoice.id}/`, config);
       
       // Hide loading message
       message.destroy();
@@ -361,7 +382,17 @@ const InvoiceIndex = () => {
       try {
         setLoading(true);
         
-        const response = await api.get('invoices/');
+        // Configure request with tenant_id in params and headers
+        const config = {
+          params: {
+            tenant_id: tenantId
+          },
+          headers: {
+            'X-Tenant-ID': tenantId
+          }
+        };
+        
+        const response = await api.get('invoices/', config);
         
         // Process response data
         let invoicesArray = Array.isArray(response.data) 
@@ -382,6 +413,7 @@ const InvoiceIndex = () => {
         setFilteredInvoices(formattedData);
         setLoading(false);
       } catch (error) {
+        console.error('Error refreshing invoices:', error);
         setLoading(false);
         message.error('Failed to refresh invoices. Please try again.');
       }

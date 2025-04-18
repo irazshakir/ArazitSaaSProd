@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils import timezone
-from users.models import User
+from users.models import User, Tenant
 from leads.models import Lead
 
 
@@ -16,6 +16,7 @@ class Invoice(models.Model):
     customer_email = models.EmailField(blank=True, null=True)
     customer_phone = models.CharField(max_length=20, blank=True, null=True)
     lead = models.ForeignKey(Lead, on_delete=models.SET_NULL, null=True, blank=True, related_name='invoices')
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='invoices', null=True, blank=True)
     issue_date = models.DateField(default=timezone.now)
     due_date = models.DateField()
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -38,6 +39,11 @@ class Invoice(models.Model):
             self.status = InvoiceStatusChoices.PARTIALLY_PAID
         else:
             self.status = InvoiceStatusChoices.NO_PAYMENT
+        
+        # Set tenant from lead if available and not already set
+        if not self.tenant_id and self.lead_id:
+            self.tenant = self.lead.tenant
+            
         super().save(*args, **kwargs)
     
     def __str__(self):
@@ -46,6 +52,7 @@ class Invoice(models.Model):
 
 class PaymentHistory(models.Model):
     invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name='payments')
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='payment_histories', null=True, blank=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     payment_date = models.DateField(default=timezone.now)
     payment_method = models.CharField(max_length=50)
@@ -55,6 +62,10 @@ class PaymentHistory(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     
     def save(self, *args, **kwargs):
+        # Set tenant from invoice if not already set
+        if not self.tenant_id and self.invoice_id:
+            self.tenant = self.invoice.tenant
+            
         super().save(*args, **kwargs)
         # Update the invoice's paid amount and status
         invoice = self.invoice
