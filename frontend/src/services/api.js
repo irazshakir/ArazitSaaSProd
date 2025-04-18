@@ -4,9 +4,9 @@ import { API_BASE_URL } from '../config/api';
 // Use the API_BASE_URL from config, defaulting to the deployed API URL if not available
 const API_URL = API_BASE_URL || 'https://api.arazit.com';
 
-// Create axios instance
+// Create axios instance with /api/ prefix in baseURL
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: `${API_URL}/api`,  // Add /api to the base URL
   headers: {
     'Content-Type': 'application/json',
   },
@@ -35,6 +35,11 @@ api.interceptors.request.use(
       
     if (csrfToken) {
       config.headers['X-CSRFToken'] = csrfToken;
+    }
+    
+    // Ensure the URL starts with /api/
+    if (!config.url.startsWith('/')) {
+      config.url = `/${config.url}`;
     }
     
     return config;
@@ -74,7 +79,7 @@ export const authService = {
   login: async (email, password) => {
     try {
       // Get the authentication token using only email
-      const response = await api.post('/api/auth/token/', { 
+      const response = await api.post('/auth/token/', { 
         email: email,
         password: password
       });
@@ -89,17 +94,17 @@ export const authService = {
           api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
           
           // Get user details
-          const userResponse = await api.get('/api/auth/me/');
+          const userResponse = await api.get('/auth/me/');
           Object.assign(userData, userResponse.data);
         } catch (err) {
-          console.log('Error fetching user details:', err);
+          // Error fetching user details
         }
       }
       
       // Try to get tenant information for the user
       try {
         if (userData.id) {
-          const tenantsResponse = await api.get('/api/auth/user-tenants/');
+          const tenantsResponse = await api.get('/auth/user-tenants/');
           
           if (tenantsResponse.data && Array.isArray(tenantsResponse.data) && tenantsResponse.data.length > 0) {
             userData.tenant_id = tenantsResponse.data[0].tenant.id;
@@ -111,7 +116,7 @@ export const authService = {
           }
         }
       } catch (err) {
-        console.log('Error fetching tenant information:', err);
+        // Error fetching tenant information
       }
       
       return {
@@ -127,13 +132,13 @@ export const authService = {
 
   // Register user
   register: async (userData) => {
-    const response = await api.post('/api/auth/register/', userData);
+    const response = await api.post('/auth/register/', userData);
     return response.data;
   },
 
   // Get current user
   getCurrentUser: async () => {
-    const response = await api.get('/api/auth/me/');
+    const response = await api.get('/auth/me/');
     return response.data;
   },
 
@@ -149,31 +154,31 @@ export const authService = {
 export const userService = {
   // Get all users
   getUsers: async () => {
-    const response = await api.get('/api/auth/users/');
+    const response = await api.get('/auth/users/');
     return response.data;
   },
 
   // Get user by ID
   getUser: async (id) => {
-    const response = await api.get(`/api/auth/users/${id}/`);
+    const response = await api.get(`/auth/users/${id}/`);
     return response.data;
   },
 
   // Create user
   createUser: async (userData) => {
-    const response = await api.post('/api/auth/users/', userData);
+    const response = await api.post('/auth/users/', userData);
     return response.data;
   },
 
   // Update user
   updateUser: async (id, userData) => {
-    const response = await api.put(`/api/auth/users/${id}/`, userData);
+    const response = await api.put(`/auth/users/${id}/`, userData);
     return response.data;
   },
 
   // Delete user
   deleteUser: async (id) => {
-    const response = await api.delete(`/api/auth/users/${id}/`);
+    const response = await api.delete(`/auth/users/${id}/`);
     return response.data;
   }
 };
@@ -187,9 +192,9 @@ export const departmentService = {
       
       // Try these endpoints in order
       const endpoints = [
-        '/api/departments/',
-        '/api/auth/departments/',
-        '/api/users/departments/'
+        '/departments/',
+        '/auth/departments/',
+        '/users/departments/'
       ];
       
       let lastError = null;
@@ -233,11 +238,11 @@ export const departmentService = {
   // Get department by ID
   getDepartment: async (id) => {
     try {
-      const response = await api.get(`/api/departments/${id}/`);
+      const response = await api.get(`/departments/${id}/`);
       return response.data;
     } catch (error) {
       if (error.response && error.response.status === 404) {
-        const authResponse = await api.get(`/api/auth/departments/${id}/`);
+        const authResponse = await api.get(`/auth/departments/${id}/`);
         return authResponse.data;
       }
       throw error;
@@ -246,19 +251,19 @@ export const departmentService = {
 
   // Create department
   createDepartment: async (departmentData) => {
-    const response = await api.post('/api/departments/', departmentData);
+    const response = await api.post('/departments/', departmentData);
     return response.data;
   },
 
   // Update department
   updateDepartment: async (id, departmentData) => {
-    const response = await api.put(`/api/departments/${id}/`, departmentData);
+    const response = await api.put(`/departments/${id}/`, departmentData);
     return response.data;
   },
 
   // Delete department
   deleteDepartment: async (id) => {
-    const response = await api.delete(`/api/departments/${id}/`);
+    const response = await api.delete(`/departments/${id}/`);
     return response.data;
   }
 };
@@ -267,79 +272,63 @@ export const departmentService = {
 export const branchService = {
   // Get all branches
   getBranches: async (tenantId) => {
-    try {
-      const params = tenantId ? { tenant: tenantId } : {};
-      
-      // Try these endpoints in order
-      const endpoints = [
-        '/api/branches/',
-        '/api/auth/branches/',
-        '/api/users/branches/'
-      ];
-      
-      let lastError = null;
-      
-      for (const endpoint of endpoints) {
-        try {
-          const response = await api.get(endpoint, { params });
-          
-          // Ensure we return an array
-          if (Array.isArray(response.data)) {
-            return response.data;
-          } else if (response.data && typeof response.data === 'object') {
-            // Check if it's a paginated response
-            if (Array.isArray(response.data.results)) {
-              return response.data.results;
-            } else {
-              // Try to convert object to array if possible
-              return Object.values(response.data);
-            }
-          }
-          
-          // If none of the above, return empty array
-          return [];
-          
-        } catch (error) {
-          lastError = error;
-          // Only continue if it's a 404
-          if (error.response && error.response.status !== 404) {
-            throw error;
-          }
-        }
-      }
-      
-      // If we get here, all endpoints failed
-      throw lastError;
-    } catch (error) {
-      throw error;
+    if (!tenantId) {
+      throw new Error('Tenant ID is required to fetch branches');
     }
+    
+    const response = await api.get('/auth/branches/', { 
+      params: { tenant: tenantId }
+    });
+    
+    return Array.isArray(response.data) ? response.data : 
+           (response.data?.results || []);
   },
 
   // Get branch by ID
-  getBranch: async (id) => {
-    try {
-      const response = await api.get(`/api/users/branches/${id}/`);
-      return response.data;
-    } catch (error) {
-      throw error;
+  getBranch: async (id, tenantId) => {
+    if (!tenantId) {
+      throw new Error('Tenant ID is required to fetch branch details');
     }
+    
+    const response = await api.get(`/auth/branches/${id}/`, {
+      params: { tenant: tenantId }
+    });
+    
+    return response.data;
   },
 
   // Create branch
   createBranch: async (branchData) => {
-    const response = await api.post('/api/users/branches/', branchData);
+    if (!branchData.tenant) {
+      throw new Error('Tenant ID is required to create branch');
+    }
+    
+    const response = await api.post('/auth/branches/', branchData);
+    
     return response.data;
   },
 
   // Update branch
   updateBranch: async (id, branchData) => {
-    const response = await api.put(`/api/users/branches/${id}/`, branchData);
+    if (!branchData.tenant) {
+      throw new Error('Tenant ID is required to update branch');
+    }
+    
+    const response = await api.put(`/auth/branches/${id}/`, branchData);
+    
     return response.data;
   },
 
   // Delete branch
-  deleteBranch: async (id) => {
-    const response = await api.delete(`/api/users/branches/${id}/`);
+  deleteBranch: async (id, tenantId) => {
+    if (!tenantId) {
+      throw new Error('Tenant ID is required to delete branch');
+    }
+    
+    const response = await api.delete(`/auth/branches/${id}/`, {
+      params: { tenant: tenantId }
+    });
+    
     return response.data;
   }
 };
@@ -349,12 +338,12 @@ export const leadService = {
   // Get leads with role-based filtering
   getLeadsByRole: async (params) => {
     try {
-      const response = await api.get('/api/leads/by-role/', { params });
+      const response = await api.get('/leads/by-role/', { params });
       return response.data;
     } catch (error) {
       // If 404, fall back to the main leads endpoint
       if (error.response && error.response.status === 404) {
-        const fallbackResponse = await api.get('/api/leads/', { params });
+        const fallbackResponse = await api.get('/leads/', { params });
         return fallbackResponse.data;
       }
       throw error;
@@ -363,31 +352,31 @@ export const leadService = {
   
   // Get all leads
   getLeads: async (params) => {
-    const response = await api.get('/api/leads/', { params });
+    const response = await api.get('/leads/', { params });
     return response.data;
   },
   
   // Get lead by ID
   getLead: async (id) => {
-    const response = await api.get(`/api/leads/${id}/`);
+    const response = await api.get(`/leads/${id}/`);
     return response.data;
   },
   
   // Create lead
   createLead: async (leadData) => {
-    const response = await api.post('/api/leads/', leadData);
+    const response = await api.post('/leads/', leadData);
     return response.data;
   },
   
   // Update lead
   updateLead: async (id, leadData) => {
-    const response = await api.put(`/api/leads/${id}/`, leadData);
+    const response = await api.put(`/leads/${id}/`, leadData);
     return response.data;
   },
   
   // Delete lead
   deleteLead: async (id) => {
-    const response = await api.delete(`/api/leads/${id}/`);
+    const response = await api.delete(`/leads/${id}/`);
     return response.data;
   }
 };

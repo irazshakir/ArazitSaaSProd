@@ -100,47 +100,22 @@ const BranchesIndex = () => {
   // Fetch branches data from API
   const fetchBranches = async () => {
     try {
-      // Determine endpoint
-      let endpoint = 'branches/';
-      const params = { tenant: tenantId };
-      
-      // Try 3 different API endpoints in sequence
-      let response = null;
-      let errorMessages = [];
-      
-      // Try main endpoint first
-      try {
-        response = await api.get(endpoint, { params });
-      } catch (error) {
-        errorMessages.push(`Main endpoint error: ${error.message}`);
-        
-        // Try auth endpoint next
-        try {
-          response = await api.get(`auth/${endpoint}`, { params });
-        } catch (error2) {
-          errorMessages.push(`Auth endpoint error: ${error2.message}`);
-          
-          // Try without params as last resort
-          try {
-            response = await api.get(endpoint);
-          } catch (error3) {
-            errorMessages.push(`No params endpoint error: ${error3.message}`);
-            throw new Error(`All API attempts failed: ${errorMessages.join(', ')}`);
-          }
-        }
+      if (!tenantId) {
+        message.error('Tenant ID is required to fetch branches');
+        navigate('/login');
+        return;
       }
-      
-      if (!response) {
-        throw new Error('No valid response from any API endpoint');
-      }
-      
+
+      setLoading(true);
+      const response = await api.get('/auth/branches/', { 
+        params: { tenant: tenantId }
+      });
+
       // Process response data
-      let branchesArray = Array.isArray(response.data) 
-        ? response.data
-        : (response.data?.results && Array.isArray(response.data.results))
-          ? response.data.results
-          : [];
-      
+      const branchesArray = Array.isArray(response.data) 
+        ? response.data 
+        : (response.data?.results || []);
+
       // Transform data for UI representation
       const formattedData = branchesArray.map(branch => ({
         ...branch,
@@ -150,14 +125,18 @@ const BranchesIndex = () => {
       
       setBranches(formattedData);
       setFilteredBranches(formattedData);
+      setLoading(false);
       
     } catch (error) {
-      // Show error message
+      setLoading(false);
       message.error('Failed to load branches. Please try again.');
-      
-      // Set empty state
       setBranches([]);
       setFilteredBranches([]);
+      
+      // If unauthorized, redirect to login
+      if (error.response?.status === 401) {
+        navigate('/login');
+      }
     }
   };
 
@@ -273,40 +252,12 @@ const BranchesIndex = () => {
       // Show loading message
       message.loading('Deleting branch...', 0);
       
-      // Try 3 different API endpoints in sequence
-      let deleteSuccessful = false;
-      let errorMessages = [];
-      
-      // Try main endpoint first
-      try {
-        await api.delete(`branches/${branch.id}/`);
-        deleteSuccessful = true;
-      } catch (error) {
-        errorMessages.push(`Main endpoint error: ${error.message}`);
-        
-        // Try auth endpoint next
-        try {
-          await api.delete(`auth/branches/${branch.id}/`);
-          deleteSuccessful = true;
-        } catch (error2) {
-          errorMessages.push(`Auth endpoint error: ${error2.message}`);
-          
-          // Try users endpoint as last resort
-          try {
-            await api.delete(`users/branches/${branch.id}/`);
-            deleteSuccessful = true;
-          } catch (error3) {
-            errorMessages.push(`Users endpoint error: ${error3.message}`);
-          }
-        }
-      }
+      await api.delete(`auth/branches/${branch.id}/`, {
+        params: { tenant: tenantId }
+      });
       
       // Hide loading message
       message.destroy();
-      
-      if (!deleteSuccessful) {
-        throw new Error(`All API attempts failed: ${errorMessages.join(', ')}`);
-      }
       
       // Show success message
       message.success(`Branch "${branch.name}" deleted successfully`);

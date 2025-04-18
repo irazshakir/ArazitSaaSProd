@@ -304,24 +304,28 @@ class BranchViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         """
-        Filter branches by the authenticated user's tenant.
+        Filter branches by tenant.
         """
-        # Return all branches regardless of tenant
-        return Branch.objects.all()
+        queryset = Branch.objects.all()
+        
+        # Get tenant from query params
+        tenant = self.request.query_params.get('tenant', None)
+        
+        if tenant:
+            queryset = queryset.filter(tenant_id=tenant)
+        
+        return queryset
     
     def perform_create(self, serializer):
         """
         Create a new branch for the current tenant.
         """
-        # Always use the first tenant for all branches
+        tenant_id = self.request.data.get('tenant')
+        if not tenant_id:
+            raise serializers.ValidationError({"tenant": "Tenant ID is required"})
+            
         try:
-            # Get the first tenant in the system
-            tenant = Tenant.objects.first()
-            if not tenant:
-                # If no tenant exists, use the authenticated user's tenant
-                tenant_id = self.request.user.tenant_id
-                tenant = Tenant.objects.get(id=tenant_id)
+            tenant = Tenant.objects.get(id=tenant_id)
+            serializer.save(tenant=tenant)
         except Tenant.DoesNotExist:
-            raise serializers.ValidationError({"tenant": "No tenant found in the system."})
-        
-        serializer.save(tenant=tenant)
+            raise serializers.ValidationError({"tenant": "Invalid tenant ID"})

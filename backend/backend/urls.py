@@ -18,6 +18,7 @@ urlpatterns = [
     path('api/', include('flights.urls')),  # Flights API endpoints
     path('api/', include('study.urls')),  # Study API endpoints
     path('api/', include('canned_messages.urls')),  # Canned Messages API endpoints
+    path('api/', include('location_routing.urls')),
 ]
 
 # Serve media files in development

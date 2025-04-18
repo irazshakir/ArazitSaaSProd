@@ -95,6 +95,9 @@ import TravelPackageIndex from '../components/travelPackages/travelPackageIndex'
 import TravelPackageCreate from '../components/forms/products/travelPackages/travelPackageCreate';
 import TravelPackageEdit from '../components/forms/products/travelPackages/travelPackageEdit';
 
+// Location Routing
+import LocationRoutingIndex from '../components/locationRouting/LocationRoutingIndex';
+
 const AppRoutes = () => {
   return (
     <ErrorBoundary>
@@ -184,6 +187,9 @@ const AppRoutes = () => {
             <Route path="travel-packages/create" element={<TravelPackageCreate />} />
             <Route path="travel-packages/:id/edit" element={<TravelPackageEdit />} />
           </Route>
+          
+          {/* Location Routing Routes */}
+          <Route path="location-routing" element={<LocationRoutingIndex />} />
           
           {/* Settings Routes */}
           <Route path="settings">

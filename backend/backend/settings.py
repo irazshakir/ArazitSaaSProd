@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'study', # Study app for student and education assessment
     'canned_messages', # Canned Messages app for template messages
     'travelPackages',
+    'location_routing',
 ]
 
 MIDDLEWARE = [

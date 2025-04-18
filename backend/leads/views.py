@@ -6,8 +6,13 @@ from rest_framework.exceptions import ValidationError
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework.pagination import PageNumberPagination
+import pandas as pd
+import uuid
+import json
+from datetime import timedelta
+from django.db import transaction
 
-from users.models import User
+from users.models import User, Department, Tenant
 from .models import (
     Lead, LeadActivity, LeadNote, LeadDocument, 
     LeadEvent, LeadProfile, LeadOverdue
@@ -18,6 +23,7 @@ from .serializers import (
     LeadProfileSerializer, LeadOverdueSerializer
 )
 from teams.models import TeamManager, TeamLead, TeamMember
+from location_routing.models import LocationRouting
 
 # Create your views here.
 
@@ -34,6 +40,92 @@ class LeadPagination(PageNumberPagination):
             return 100  # You can adjust this value as needed
         return self.page_size
 
+# Function to assign leads using location routing
+def assign_lead_by_location(tenant, city, lead):
+    """
+    Assigns a lead to a user based on city/location routing
+    Returns the assigned user and whether location routing was used
+    """
+    try:
+        # Normalize the city name
+        normalized_city = city.lower().strip() if city else ""
+        
+        if not normalized_city:
+            return None, False
+            
+        # Check if we have a location routing configuration
+        location_routing = LocationRouting.objects.filter(
+            tenant_id=str(tenant.id),
+            is_active=True
+        ).first()
+        
+        if not location_routing:
+            return None, False
+            
+        # Check if this city exists in the locations
+        if normalized_city in location_routing.locations:
+            # Get the next available user based on round-robin
+            next_user_id = location_routing.get_next_available_user()
+            
+            if next_user_id:
+                user = User.objects.filter(id=next_user_id).first()
+                if user:
+                    # Update branch based on assigned user
+                    if user.branch:
+                        lead.branch = user.branch
+                    return user, True
+    
+    except Exception as e:
+        print(f"Error in location routing: {str(e)}")
+    
+    return None, False
+
+# Function to get next sales agent using round-robin
+def get_next_sales_agent(tenant):
+    """
+    Get the next sales agent for lead assignment using round-robin
+    """
+    # Get all active sales agents for this tenant
+    sales_agents = User.objects.filter(
+        tenant_users__tenant=tenant,
+        role='sales_agent',
+        is_active=True
+    )
+    
+    if not sales_agents.exists():
+        return None
+        
+    # Get lead counts for each agent
+    agent_lead_counts = {}
+    
+    for agent in sales_agents:
+        lead_count = Lead.objects.filter(
+            tenant=tenant,
+            assigned_to_id=agent.id
+        ).count()
+        
+        agent_lead_counts[agent.id] = {
+            'agent': agent,
+            'lead_count': lead_count
+        }
+        
+    # Find the agent with the minimum lead count
+    if agent_lead_counts:
+        min_count = float('inf')
+        next_agent = None
+        
+        for agent_data in agent_lead_counts.values():
+            if agent_data['lead_count'] < min_count:
+                min_count = agent_data['lead_count']
+                next_agent = agent_data['agent']
+                
+        if next_agent:
+            return next_agent
+    
+    # Fallback to the first sales agent
+    return sales_agents.first()
+
+# LeadViewSet with bulk upload action
 class LeadViewSet(viewsets.ModelViewSet):
     """
     ViewSet for Lead model.
@@ -697,6 +789,365 @@ class LeadViewSet(viewsets.ModelViewSet):
         activities = LeadActivity.objects.filter(lead=lead).order_by('-created_at')
         serializer = LeadActivitySerializer(activities, many=True, context={'request': request})
         return Response(serializer.data)
+
+    @action(detail=False, methods=['post'])
+    def bulk_upload(self, request):
+        """Upload and process bulk leads from CSV or Excel file"""
+        file_obj = request.FILES.get('file')
+        if not file_obj:
+            return Response(
+                {"error": "No file uploaded", "success": False},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Get tenant ID from request
+        tenant_id = request.query_params.get('tenant')
+        if not tenant_id:
+            return Response(
+                {"error": "Tenant ID is required", "success": False},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            tenant = Tenant.objects.get(id=tenant_id)
+        except Tenant.DoesNotExist:
+            return Response(
+                {"error": "Invalid tenant ID", "success": False},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        # Get lead type or use default
+        lead_type = request.data.get('lead_type', 'study_visa')
+        
+        # Find the sales department
+        sales_department = Department.objects.filter(
+            tenant=tenant,
+            name__icontains='sales'
+        ).first()
+        
+        # If no sales department found, use the default sales department ID
+        department_id = str(sales_department.id) if sales_department else "8e9a7cbc-7974-4f0d-b937-18bbd616afb0"
+        
+        # Define region city mapping
+        punjab_cities = [
+            "lahore", "faisalabad", "multan", "gujranwala", "sialkot", "bahawalpur", 
+            "sargodha", "sheikhupura", "rahim yar khan", "jhelum", "gujrat", "okara", 
+            "dera ghazi khan", "muzaffargarh", "mianwali", "kasur", "toba tek singh", 
+            "bhakkar", "vehari", "mian channu", "chichawatni", "mandi bahauddin", 
+            "pakpattan", "lodhran", "narowal", "khushab", "hafizabad", "jhang", 
+            "kamalia", "burewala", "samundri", "shorkot", "arifwala", "khanewal", 
+            "daska", "kamoke", "murree", "attock", "kot addu", "chiniot", "talagang", 
+            "haroonabad", "fort abbas", "kabirwala", "tandlianwala", "ahmadpur east", 
+            "kharian", "wazirabad"
+        ]
+        
+        north_cities = [
+            "islamabad", "rawalpindi", "abbottabad", "peshawar", "mardan", "swabi", 
+            "nowshera", "charsadda", "dera ismail khan", "kohat", "bannu", "mansehra", 
+            "haripur", "swat", "mingora", "battagram", "shangla", "buner", "dir lower", 
+            "dir upper", "chitral", "tank", "lakki marwat", "hangu", "karak", "toru", 
+            "takht bhai", "jamrud", "landi kotal", "parachinar", "thall", "alpuri", 
+            "besham", "matta", "timergara", "wana", "miranshah", "torkham", "gomal", 
+            "barikot", "daggar", "topi", "shabqadar", "malakand", "paharpur"
+        ]
+        
+        sindh_cities = [
+            "karachi", "hyderabad", "sukkur", "larkana", "nawabshah", "mirpur khas", 
+            "jacobabad", "shikarpur", "dadu", "khairpur", "thatta", "badin", 
+            "tando adam", "tando allahyar", "jamshoro", "matiari", "umerkot", 
+            "sanghar", "ghotki", "kashmore", "kandhkot", "sehwan", "tharparkar", 
+            "mithi", "tando muhammad khan", "qamber shahdadkot"
+        ]
+        
+        # Define branch names for each region
+        punjab_branches = ["lahore", "faisalabad", "gujrat", "gujranwala", "multan", "sialkot"]
+        north_branches = ["rawalpindi", "peshawar", "islamabad", "swat", "quetta"]
+        sindh_branches = ["karachi", "hyderabad", "sukkur"]
+        
+        # Try to read the file based on extension
+        try:
+            file_ext = file_obj.name.split('.')[-1].lower()
+            
+            if file_ext == 'csv':
+                df = pd.read_csv(file_obj)
+            elif file_ext in ['xls', 'xlsx']:
+                df = pd.read_excel(file_obj)
+            else:
+                return Response(
+                    {"error": "Unsupported file format. Please upload CSV or Excel file.", "success": False},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+                
+            # Standardize column names by converting to lowercase and removing spaces
+            df.columns = [col.lower().replace(' ', '_') for col in df.columns]
+            
+            # Check if required columns exist
+            required_cols = ['name', 'phone']
+            missing_cols = [col for col in required_cols if col not in df.columns]
+            
+            if missing_cols:
+                missing_cols_str = ', '.join(missing_cols)
+                return Response(
+                    {"error": f"Required columns missing: {missing_cols_str}", "success": False},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Define column mappings (handle different column names)
+            column_mappings = {
+                'name': ['name', 'full_name', 'customer_name', 'client_name'],
+                'email': ['email', 'email_address', 'customer_email'],
+                'phone': ['phone', 'phone_number', 'mobile', 'contact_number', 'customer_phone'],
+                'whatsapp': ['whatsapp', 'whatsapp_number', 'whatsapp_contact'],
+                'city': ['city', 'town', 'location', 'customer_city', 'customer_location']
+            }
+            
+            # Map columns based on the mappings
+            for target_col, possible_cols in column_mappings.items():
+                if target_col not in df.columns:
+                    for col in possible_cols:
+                        if col in df.columns:
+                            df[target_col] = df[col]
+                            break
+            
+            # Fill missing values
+            if 'email' not in df.columns:
+                df['email'] = None
+            if 'whatsapp' not in df.columns:
+                df['whatsapp'] = df['phone']
+            if 'city' not in df.columns:
+                df['city'] = None
+            
+            created_leads = []
+            errors = []
+            
+            # Cache users by branch for round-robin assignment
+            users_by_region = {
+                'punjab': [],
+                'north': [],
+                'sindh': [],
+                'default': []
+            }
+            
+            # Get all active users for this tenant
+            all_tenant_users = User.objects.filter(
+                tenant_users__tenant=tenant,
+                is_active=True,
+                role='sales_agent'  # Filter for sales_agent role only
+            )
+            
+            # Group users by their branch
+            for user in all_tenant_users:
+                if user.branch and user.branch.name:
+                    branch_name = user.branch.name.lower()
+                    
+                    if branch_name in punjab_branches:
+                        users_by_region['punjab'].append(user)
+                    elif branch_name in north_branches:
+                        users_by_region['north'].append(user)
+                    elif branch_name in sindh_branches:
+                        users_by_region['sindh'].append(user)
+                    else:
+                        users_by_region['default'].append(user)
+                else:
+                    users_by_region['default'].append(user)
+            
+            # Find an admin user for fallback assignment for unmatched cities
+            admin_user = User.objects.filter(
+                tenant_users__tenant=tenant,
+                is_active=True,
+                role='admin'
+            ).first()
+            
+            # Counters for round-robin assignment
+            region_counters = {
+                'punjab': 0,
+                'north': 0,
+                'sindh': 0,
+                'default': 0
+            }
+            
+            # Function to get next user by region using round-robin
+            def get_next_user_by_region(region):
+                users = users_by_region[region]
+                
+                if not users:
+                    # If no users in the specific region, fallback to default users
+                    users = users_by_region['default']
+                    if not users:
+                        # If no default users either, return None
+                        return None
+                    
+                    # Use the counter for default region
+                    region_to_use = 'default'
+                else:
+                    region_to_use = region
+                
+                # Get the next user index
+                index = region_counters[region_to_use]
+                # Update counter for next time
+                region_counters[region_to_use] = (index + 1) % len(users)
+                
+                # Return the user
+                return users[index] if users else None
+            
+            # Track already processed phone numbers to avoid duplicates
+            processed_phones = set()
+            # Get existing phone numbers in the database for this tenant
+            existing_phones = set(Lead.objects.filter(tenant=tenant).values_list('phone', flat=True))
+            
+            with transaction.atomic():
+                # Process each row in the dataframe
+                for index, row in df.iterrows():
+                    try:
+                        # Create lead with basic information
+                        name = str(row['name'])
+                        phone = str(row['phone'])
+                        
+                        # Skip if this phone has already been processed in this batch
+                        if phone in processed_phones:
+                            continue
+                            
+                        # Skip if this phone already exists in the database
+                        if phone in existing_phones:
+                            continue
+                        
+                        # Add to processed phones set to avoid duplicates later in this batch
+                        processed_phones.add(phone)
+                        
+                        email = str(row['email']) if pd.notna(row['email']) else f"{phone}@gmail.com"
+                        whatsapp = str(row['whatsapp']) if pd.notna(row['whatsapp']) else phone
+                        city = str(row['city']).lower().strip() if pd.notna(row['city']) else None
+                        
+                        # Create a new lead object
+                        lead = Lead(
+                            id=uuid.uuid4(),
+                            tenant=tenant,
+                            created_by=request.user,
+                            lead_type=lead_type,
+                            name=name,
+                            email=email,
+                            phone=phone,
+                            whatsapp=whatsapp,
+                            query_for={},
+                            status='new',
+                            source='fb_form',
+                            lead_activity_status='active',
+                            created_at=timezone.now(),
+                            updated_at=timezone.now(),
+                            last_contacted=timezone.now(),
+                            next_follow_up=timezone.now() + timedelta(days=1),
+                            tags=None,
+                            custom_fields=None,
+                            chat_id=None
+                        )
+                        
+                        # Determine the region based on city
+                        region = 'default'
+                        if city:
+                            if city in punjab_cities:
+                                region = 'punjab'
+                            elif city in north_cities:
+                                region = 'north'
+                            elif city in sindh_cities:
+                                region = 'sindh'
+                            else:
+                                # For unmatched cities, assign directly to admin if available
+                                if admin_user:
+                                    lead.assigned_to = admin_user
+                                    
+                                    # Set branch and department from admin user
+                                    if admin_user.branch:
+                                        lead.branch = admin_user.branch
+                                    
+                                    if admin_user.department:
+                                        lead.department = admin_user.department
+                                    else:
+                                        lead.department_id = department_id
+                                        
+                                    # Skip regular assignment process
+                                    assigned_user = None
+                                    # Save the lead immediately
+                                    lead.save()
+                                    
+                                    # Create an initial open event
+                                    LeadEvent.objects.create(
+                                        lead=lead,
+                                        tenant=tenant,
+                                        event_type=LeadEvent.EVENT_OPEN,
+                                        updated_by=request.user
+                                    )
+                                    
+                                    created_leads.append(lead)
+                                    continue  # Skip to next lead
+                        
+                        # Get the next user for this region using round-robin
+                        assigned_user = get_next_user_by_region(region)
+                        
+                        # If no region-specific user found, try to get any user
+                        if not assigned_user:
+                            # Try default users first
+                            assigned_user = get_next_user_by_region('default')
+                            
+                            # If still no user, try all regions
+                            if not assigned_user:
+                                for r in ['punjab', 'north', 'sindh']:
+                                    if users_by_region[r]:
+                                        assigned_user = get_next_user_by_region(r)
+                                        if assigned_user:
+                                            break
+                                            
+                            # If still no user and we have an admin, use admin as last resort
+                            if not assigned_user and admin_user:
+                                assigned_user = admin_user
+                        
+                        # Set assigned_to and department
+                        if assigned_user:
+                            lead.assigned_to = assigned_user
+                            
+                            # Set branch to the assigned user's branch
+                            if assigned_user.branch:
+                                lead.branch = assigned_user.branch
+                            
+                            # Set department to the assigned user's department or default sales department
+                            if assigned_user.department:
+                                lead.department = assigned_user.department
+                            else:
+                                lead.department_id = department_id
+                        else:
+                            # No user assigned, use default department
+                            lead.department_id = department_id
+                        
+                        # Save the lead
+                        lead.save()
+                        
+                        # Create an initial open event
+                        LeadEvent.objects.create(
+                            lead=lead,
+                            tenant=tenant,
+                            event_type=LeadEvent.EVENT_OPEN,
+                            updated_by=request.user
+                        )
+                        
+                        created_leads.append(lead)
+                    
+                    except Exception as e:
+                        error_msg = f"Error creating lead for {row.get('name', 'unknown')}: {str(e)}"
+                        errors.append(error_msg)
+            
+            return Response({
+                "success": True,
+                "message": f"Successfully uploaded {len(created_leads)} leads",
+                "created_count": len(created_leads),
+                "errors": errors if errors else None
+            }, status=status.HTTP_201_CREATED)
+            
+        except Exception as e:
+            error_msg = f"Error processing file: {str(e)}"
+            import traceback
+            return Response(
+                {"error": error_msg, "success": False},
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 class LeadActivityViewSet(viewsets.ModelViewSet):

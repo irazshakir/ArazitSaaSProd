@@ -24,6 +24,9 @@ urlpatterns = [
     path('leads/by-branch/', LeadViewSet.as_view({'get': 'by_branch'}), name='leads-by-branch'),
     path('leads/overdue/', LeadViewSet.as_view({'get': 'overdue'}), name='leads-overdue'),
     
+    # Bulk upload endpoint
+    path('leads/bulk-upload/', LeadViewSet.as_view({'post': 'bulk_upload'}), name='leads-bulk-upload'),
+    
     # Lead-specific actions
     path('leads/<uuid:pk>/assign/', LeadViewSet.as_view({'post': 'assign'}), name='lead-assign'),
     path('leads/<uuid:pk>/update-status/', LeadViewSet.as_view({'post': 'update_status'}), name='lead-update-status'),

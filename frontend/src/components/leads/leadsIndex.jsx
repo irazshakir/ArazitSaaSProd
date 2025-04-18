@@ -12,6 +12,7 @@ import FilterButton from '../universalComponents/filterButton';
 import CreateButton from '../universalComponents/createButton';
 import TableList from '../universalComponents/tableList';
 import TableSkeleton from '../universalComponents/tableSkeleton';
+import BulkUploadButton from '../universalComponents/bulkUploadButton';
 
 // Import auth utilities
 import { getUser, getUserRole } from '../../utils/auth';
@@ -28,6 +29,7 @@ const LeadsIndex = () => {
   const [userRole, setUserRole] = useState(null);
   const [tenantId, setTenantId] = useState(null);
   const [departmentId, setDepartmentId] = useState(null);
+  const [uploading, setUploading] = useState(false);
   
   // Get current user and role from localStorage
   useEffect(() => {
@@ -848,6 +850,39 @@ const LeadsIndex = () => {
     }
   };
 
+  // Add handler for bulk upload
+  const handleBulkUpload = async (file) => {
+    try {
+      setUploading(true);
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('lead_type', 'study_visa'); // For now, hardcoding study_visa type
+      
+      // Create the full URL for debugging
+      const apiUrl = 'leads/bulk-upload/';
+      
+      const response = await api.post(apiUrl, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+        params: {
+          tenant: tenantId,
+        },
+      });
+      
+      if (response.data.success) {
+        message.success(`Successfully uploaded ${response.data.created_count || 'multiple'} leads`);
+        refreshLeads(); // Refresh the leads list
+      } else {
+        message.error(response.data.message || 'Failed to upload leads');
+      }
+    } catch (error) {
+      message.error(`Failed to upload leads: ${error.response?.data?.error || error.message}`);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <Container maxWidth="xl" sx={{ pt: 2, pb: 4 }}>
       <Grid container spacing={3}>
@@ -871,6 +906,10 @@ const LeadsIndex = () => {
                   data={filteredLeads}
                   filename="leads"
                   onExport={handleExport}
+                />
+                <BulkUploadButton
+                  onUpload={handleBulkUpload}
+                  buttonText="Bulk Upload Leads"
                 />
                 <CreateButton 
                   onClick={handleCreateLead}
