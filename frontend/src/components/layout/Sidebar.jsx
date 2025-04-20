@@ -140,7 +140,7 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
   // Settings submenu - only for admin
   const settingsMenuItems = [
     { text: 'WABA', icon: <WhatsAppIcon />, path: '/dashboard/settings/waba' },
-    { text: 'Messenger', icon: <FacebookIcon />, path: '/dashboard/settings/messenger' },
+    { text: 'Facebook Lead Forms', icon: <FacebookIcon />, path: '/dashboard/settings/facebook' },
     { text: 'Company', icon: <BusinessIcon />, path: '/dashboard/settings/company' },
     { text: 'Branches', icon: <BranchIcon />, path: '/dashboard/branches' },
     { text: 'Departments', icon: <DepartmentIcon />, path: '/dashboard/departments' },

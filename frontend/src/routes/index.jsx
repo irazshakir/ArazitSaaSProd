@@ -20,6 +20,9 @@ import CompanySettings from '../components/company_settings/companySettings';
 // WABA Settings Pages
 import WABASettings from '../components/settings/WABAsettings';
 
+// Facebook Settings Pages
+import FbSettings from '../components/settings/Fbsettings/fbSettings';
+
 // Hajj & Umrah Pages
 /*
 import HajjPackagesIndex from '../components/hajjPackages/hajjPackagesIndex';
@@ -195,6 +198,7 @@ const AppRoutes = () => {
           <Route path="settings">
             <Route path="company" element={<CompanySettings />} />
             <Route path="waba" element={<WABASettings />} />
+            <Route path="facebook" element={<FbSettings />} />
             {/* Add other settings routes here */}
           </Route>
           

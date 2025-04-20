@@ -20,7 +20,18 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-default-key-for-devel
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1,api.arazit.com').split(',')
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'api.arazit.com',
+    '194.164.149.219',  # Added server IP
+]
+
+# Force Django to append slashes to URLs
+APPEND_SLASH = True
+
+# Ensure trailing slashes in URLs
+SLASH_APPEND_SLASH = True
 
 
 # Application definition
@@ -53,6 +64,7 @@ INSTALLED_APPS = [
     'canned_messages', # Canned Messages app for template messages
     'travelPackages',
     'location_routing',
+    'fb_webhook', # Facebook webhook integration for leads
 ]
 
 MIDDLEWARE = [
@@ -265,6 +277,11 @@ LOGGING = {
             'propagate': True,
         },
         'flights': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'fb_webhook': {
             'handlers': ['console', 'file'],
             'level': 'DEBUG',
             'propagate': True,
