@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('fb_webhook', '0003_rename_fb_webhook__created__8af84f_idx_fb_webhook__created_a72e40_idx_and_more'),
+        ('fb_webhook', '0001_initial'),
     ]
 
     operations = [

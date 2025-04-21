@@ -20,6 +20,7 @@ urlpatterns = [
     path('api/', include('canned_messages.urls')),  # Canned Messages API endpoints
     path('api/', include('location_routing.urls')),
     path('api/', include('fb_webhook.urls')),  # Facebook Webhook API endpoints
+    path('api/development-projects/', include('developmentProjects.urls')),  # Development Projects API endpoints
 ]
 
 # Serve media files in development

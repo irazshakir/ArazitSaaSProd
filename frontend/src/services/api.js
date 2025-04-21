@@ -37,9 +37,14 @@ api.interceptors.request.use(
       config.headers['X-CSRFToken'] = csrfToken;
     }
     
-    // Ensure the URL starts with /api/
+    // Ensure URL has leading slash but doesn't duplicate /api/
     if (!config.url.startsWith('/')) {
       config.url = `/${config.url}`;
+    }
+    
+    // Fix duplicate /api/api/ issue
+    if (config.url.startsWith('/api/api/')) {
+      config.url = config.url.replace('/api/api/', '/api/');
     }
     
     return config;

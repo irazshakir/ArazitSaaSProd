@@ -389,15 +389,29 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
           return;
       }
       
+      console.log('Fetching from endpoint:', endpoint); // Debug log
       const response = await api.get(endpoint);
+      console.log('API Response:', response.data); // Debug log
       
-      const options = response.data.map(item => ({
+      // Check if response.data is an array
+      const dataArray = Array.isArray(response.data) 
+        ? response.data 
+        : (response.data?.results && Array.isArray(response.data.results))
+          ? response.data.results
+          : [];
+        
+      console.log('Data array:', dataArray); // Debug log
+      
+      const options = dataArray.map(item => ({
         value: item.id,
-        label: item.name || item.title || item.program_name || item.package_name || `ID: ${item.id}`
+        label: item.package_name || `Package ${item.id}`
       }));
       
+      console.log('Mapped options:', options); // Debug log
       setProductOptions(options);
     } catch (error) {
+      console.error('Error fetching product options:', error);
+      message.error('Failed to load package options');
       setProductOptions([]);
     }
   };
@@ -891,7 +905,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   
   // Handle lead type change
   const handleLeadTypeChange = (value) => {
-    // Update lead type state
+    console.log('Lead type changed to:', value); // Debug log
     setLeadType(value);
     
     // Reset product selection

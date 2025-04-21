@@ -37,6 +37,12 @@ export const API_ENDPOINTS = {
     VEHICLE_TYPES: '/api/umrah-packages-vehicle-types/',
     STATS: '/api/umrah-packages-stats/',
   },
+  
+  // Development Projects endpoints
+  DEVELOPMENT_PROJECTS: {
+    LIST: '/development-projects/projects/',
+    DETAIL: (id) => `/development-projects/projects/${id}/`,
+  },
 
   // Add other endpoints as needed for different package types
 }; 

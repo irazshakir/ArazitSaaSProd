@@ -64,7 +64,8 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
     settings: false,
     hajjUmrah: false,
     immigration: false,
-    travelTourism: false
+    travelTourism: false,
+    realEstate: false
   });
 
   useEffect(() => {
@@ -101,9 +102,10 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
   const showHajjUmrahMenu = userIndustry === 'hajj_umrah';
   const showImmigrationMenu = userIndustry === 'immigration';
   const showTravelTourismMenu = userIndustry === 'travel_tourism';
+  const showRealEstateMenu = userIndustry === 'real_estate';
 
   // Now define showIndustryMenus AFTER its dependent variables are declared
-  const showIndustryMenus = isAdmin && (showHajjUmrahMenu || showImmigrationMenu || showTravelTourismMenu);
+  const showIndustryMenus = isAdmin && (showHajjUmrahMenu || showImmigrationMenu || showTravelTourismMenu || showRealEstateMenu);
 
   const handleMenuToggle = (menu) => {
     setOpenMenus(prev => ({
@@ -156,12 +158,13 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
   const hajjUmrahMenuItems = [
     { text: 'Hajj Packages', icon: <MosqueIcon />, path: '/dashboard/hajj-umrah/hajj-packages' },
     { text: 'Readymade Umrah', icon: <LuggageIcon />, path: '/dashboard/hajj-umrah/umrah-packages' },
-    { text: 'Custom Umrah', icon: <MosqueIcon />, path: '/dashboard/hajj-umrah/custom-umrah' },
+    // Comment out unused menu items
+    // { text: 'Custom Umrah', icon: <MosqueIcon />, path: '/dashboard/hajj-umrah/custom-umrah' },
     // { text: 'Transports', icon: <CarIcon />, path: '/dashboard/hajj-umrah/transports' },
     // { text: 'Visas', icon: <VisaIcon />, path: '/dashboard/hajj-umrah/visas' },
     // { text: 'Ziyarat', icon: <ZiyaratIcon />, path: '/dashboard/hajj-umrah/ziyarat' },
     // { text: 'Hotel Rates', icon: <HotelIcon />, path: '/dashboard/hajj-umrah/hotel-rates' },
-    { text: 'Flights', icon: <VisaIcon />, path: '/dashboard/hajj-umrah/flights' },
+    // { text: 'Flights', icon: <VisaIcon />, path: '/dashboard/hajj-umrah/flights' },
   ];
 
   // Immigration specific menu items
@@ -173,6 +176,11 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
   // Travel & Tourism specific menu items
   const travelTourismMenuItems = [
     { text: 'Travel Packages', icon: <LuggageIcon />, path: '/dashboard/travel/travel-packages' },
+  ];
+
+  // Real Estate specific menu items
+  const realEstateMenuItems = [
+    { text: 'Development Projects', icon: <BusinessIcon />, path: '/dashboard/real-estate/development-projects' },
   ];
 
   const renderMenuItems = (items) => {
@@ -659,6 +667,88 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
             <Collapse in={openMenus.travelTourism} timeout="auto" unmountOnExit>
               <List component="div" disablePadding>
                 {travelTourismMenuItems.map((item) => (
+                  <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
+                    <ListItemButton 
+                      onClick={() => navigate(item.path)}
+                      sx={{ 
+                        borderRadius: 1,
+                        pl: 4,
+                        '&:hover': {
+                          backgroundColor: 'rgba(157, 39, 124, 0.08)',
+                        },
+                        '&.Mui-selected': {
+                          backgroundColor: 'rgba(157, 39, 124, 0.16)',
+                          '&:hover': {
+                            backgroundColor: 'rgba(157, 39, 124, 0.24)',
+                          },
+                        },
+                      }}
+                      selected={location.pathname === item.path}
+                    >
+                      <ListItemIcon sx={{ 
+                        minWidth: 40,
+                        color: location.pathname === item.path ? '#9d277c' : 'inherit'
+                      }}>
+                        {item.icon}
+                      </ListItemIcon>
+                      <ListItemText 
+                        primary={item.text} 
+                        primaryTypographyProps={{ 
+                          fontSize: '0.8rem',
+                          fontWeight: location.pathname === item.path ? 600 : 400,
+                          color: location.pathname === item.path ? '#9d277c' : 'inherit'
+                        }}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+              </List>
+            </Collapse>
+          </>
+        )}
+
+        {/* Real Estate Settings - Admin only */}
+        {isAdmin && showRealEstateMenu && (
+          <>
+            <ListItem sx={{ pt: 2, pb: 1 }}>
+              <Typography 
+                variant="overline" 
+                color="text.secondary"
+                sx={{ 
+                  fontSize: '0.7rem', 
+                  fontWeight: 600,
+                  letterSpacing: '0.08em'
+                }}
+              >
+                REAL ESTATE
+              </Typography>
+            </ListItem>
+            <ListItem disablePadding sx={{ mb: 0.5 }}>
+              <ListItemButton 
+                onClick={() => handleMenuToggle('realEstate')}
+                sx={{ 
+                  borderRadius: 1,
+                  '&:hover': {
+                    backgroundColor: 'rgba(157, 39, 124, 0.08)',
+                  },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <BusinessIcon />
+                </ListItemIcon>
+                <ListItemText 
+                  primary="Real Estate" 
+                  primaryTypographyProps={{ 
+                    fontSize: '0.8rem',
+                    fontWeight: 500
+                  }}
+                />
+                {openMenus.realEstate ? <ExpandLess /> : <ExpandMore />}
+              </ListItemButton>
+            </ListItem>
+            <Collapse in={openMenus.realEstate} timeout="auto" unmountOnExit>
+              <List component="div" disablePadding>
+                {realEstateMenuItems.map((item) => (
                   <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
                     <ListItemButton 
                       onClick={() => navigate(item.path)}

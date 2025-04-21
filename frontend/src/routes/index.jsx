@@ -24,14 +24,14 @@ import WABASettings from '../components/settings/WABAsettings';
 import FbSettings from '../components/settings/Fbsettings/fbSettings';
 
 // Hajj & Umrah Pages
-/*
 import HajjPackagesIndex from '../components/hajjPackages/hajjPackagesIndex';
 import HajjPackageCreate from '../components/forms/products/hajjPackages/HajjPackageCreate';
 import HajjPackageEdit from '../components/forms/products/hajjPackages/HajjPackageEdit';
 import UmrahPackageIndex from '../components/umrahPackages/umrahPackageIndex';
 import UmrahPackageCreate from '../components/forms/products/umrahPackages/umrahPackageCreate';
 import UmrahPackageEdit from '../components/forms/products/umrahPackages/umrahPackageEdit';
-*/
+// import CustomUmrahIndex from '../components/customUmrah/customUmrahIndex';
+// import FlightsIndex from '../components/flights/flightsIndex';
 
 // Leads Pages
 import LeadsIndex from '../components/leads/leadsIndex';
@@ -98,6 +98,11 @@ import TravelPackageIndex from '../components/travelPackages/travelPackageIndex'
 import TravelPackageCreate from '../components/forms/products/travelPackages/travelPackageCreate';
 import TravelPackageEdit from '../components/forms/products/travelPackages/travelPackageEdit';
 
+// Real Estate Pages
+import DevelopmentProjectIndex from '../components/developmentProjects/developmentProjectIndex';
+import DevelopmentProjectCreate from '../components/forms/products/developmentProjects/developmentProjectCreate';
+import DevelopmentProjectEdit from '../components/forms/products/developmentProjects/developmentProjectEdit';
+
 // Location Routing
 import LocationRoutingIndex from '../components/locationRouting/LocationRoutingIndex';
 
@@ -131,7 +136,6 @@ const AppRoutes = () => {
           </Route>
           
           {/* Hajj & Umrah Routes */}
-          {/*
           <Route path="hajj-umrah">
             <Route path="hajj-packages" element={<HajjPackagesIndex />} />
             <Route path="hajj-packages/create" element={<HajjPackageCreate />} />
@@ -140,9 +144,10 @@ const AppRoutes = () => {
             <Route path="umrah-packages" element={<UmrahPackageIndex />} />
             <Route path="umrah-packages/create" element={<UmrahPackageCreate />} />
             <Route path="umrah-packages/:id/edit" element={<UmrahPackageEdit />} />
-            *//* Add other hajj-umrah routes here *//*
+
+            {/* <Route path="custom-umrah" element={<CustomUmrahIndex />} />
+            <Route path="flights" element={<FlightsIndex />} /> */}
           </Route>
-          */}
           
           {/* Branch Management Routes */}
           <Route path="branches" element={<BranchesIndex />} />
@@ -189,6 +194,13 @@ const AppRoutes = () => {
             <Route path="travel-packages" element={<TravelPackageIndex />} />
             <Route path="travel-packages/create" element={<TravelPackageCreate />} />
             <Route path="travel-packages/:id/edit" element={<TravelPackageEdit />} />
+          </Route>
+          
+          {/* Real Estate Routes */}
+          <Route path="real-estate">
+            <Route path="development-projects" element={<DevelopmentProjectIndex />} />
+            <Route path="development-projects/create" element={<DevelopmentProjectCreate />} />
+            <Route path="development-projects/:id/edit" element={<DevelopmentProjectEdit />} />
           </Route>
           
           {/* Location Routing Routes */}

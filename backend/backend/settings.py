@@ -65,6 +65,7 @@ INSTALLED_APPS = [
     'travelPackages',
     'location_routing',
     'fb_webhook', # Facebook webhook integration for leads
+    'developmentProjects',
 ]
 
 MIDDLEWARE = [
