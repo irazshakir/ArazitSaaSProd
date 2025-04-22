@@ -67,6 +67,9 @@ class Lead(models.Model):
     # Travel and Tourism industry lead types
     TYPE_TRAVEL_PACKAGE = 'travel_package'
     
+    # Real Estate industry lead types
+    TYPE_DEVELOPMENT_PROJECT = 'development_project'
+    
     TYPE_CHOICES = [
         # Hajj & Umrah lead types
         (TYPE_HAJJ_PACKAGE, 'Hajj Package'),
@@ -87,6 +90,9 @@ class Lead(models.Model):
         
         # Travel and Tourism lead types
         (TYPE_TRAVEL_PACKAGE, 'Travel Package'),
+        
+        # Real Estate lead types
+        (TYPE_DEVELOPMENT_PROJECT, 'Development Project'),
     ]
     
     # Lead activity status
@@ -125,6 +131,9 @@ class Lead(models.Model):
     # Lead type and related product
     lead_type = models.CharField(max_length=50, choices=TYPE_CHOICES, default=TYPE_HAJJ_PACKAGE)
     hajj_package = models.ForeignKey(HajjPackage, on_delete=models.SET_NULL, null=True, blank=True, related_name='leads')
+    
+    # Add development_project field
+    development_project = models.CharField(max_length=255, null=True, blank=True, help_text="Development project ID for real estate leads")
     
     # Add flight data field
     flight = models.JSONField(null=True, blank=True, help_text="Flight details for flight leads")

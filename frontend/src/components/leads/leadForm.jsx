@@ -154,6 +154,11 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
             ...commonLeadTypes
           ];
           break;
+        case 'real_estate':
+          leadTypes = [
+            { value: 'development_project', label: 'Development Project' }
+          ];
+          break;
         default:
           // Default to hajj_umrah if no industry is specified
           leadTypes = [
@@ -253,7 +258,9 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         infants: queryFor.infants || 0,
         query_notes: queryFor.notes || '',
         // Set branch value
-        branch: initialData.branch || null
+        branch: initialData.branch || null,
+        // Set development_project value if exists
+        development_project: initialData.development_project || null
       };
       
       form.setFieldsValue(updatedValues);
@@ -262,6 +269,18 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       // Set lead type
       if (initialData.lead_type) {
         setLeadType(initialData.lead_type);
+      }
+
+      // If it's a development project lead, fetch the project details
+      if (initialData.lead_type === 'development_project' && initialData.development_project) {
+        try {
+          // Set timeout to ensure lead type is set first so correct endpoint is used
+          setTimeout(() => {
+            handlePackageSelect(initialData.development_project);
+          }, 500);
+        } catch (error) {
+          console.error('Error loading development project:', error);
+        }
       }
     }
   }, [initialData, form]);
@@ -384,31 +403,74 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         case 'study_visa':
           endpoint = 'study/';
           break;
+        case 'development_project':
+          endpoint = 'development-projects/projects/';  // Updated path to match the backend URL configuration
+          break;
         default:
           setProductOptions([]);
           return;
       }
       
       console.log('Fetching from endpoint:', endpoint); // Debug log
-      const response = await api.get(endpoint);
-      console.log('API Response:', response.data); // Debug log
       
-      // Check if response.data is an array
-      const dataArray = Array.isArray(response.data) 
-        ? response.data 
-        : (response.data?.results && Array.isArray(response.data.results))
-          ? response.data.results
-          : [];
+      // For development projects, get tenant_id from localStorage to filter projects
+      if (leadType === 'development_project') {
+        const tenantId = localStorage.getItem('tenant_id');
+        if (tenantId) {
+          // Add tenant_id filter to the API request
+          // Use the correct endpoint based on the URLs.py configuration
+          try {
+            const response = await api.get(endpoint);
+            console.log('API Response for development projects:', response.data); // Debug log
+            
+            // Process the response
+            const dataArray = Array.isArray(response.data) 
+              ? response.data 
+              : (response.data?.results && Array.isArray(response.data.results))
+                ? response.data.results
+                : [];
+            
+            console.log('Data array:', dataArray); // Debug log
+            
+            // Map project data to options format
+            const options = dataArray.map(item => ({
+              value: item.id,
+              label: item.project_name || item.name || `Project ${item.id}`
+            }));
+            
+            console.log('Mapped options:', options); // Debug log
+            setProductOptions(options);
+          } catch (error) {
+            console.error('Error fetching development projects:', error);
+            message.error('Failed to load development projects');
+            setProductOptions([]);
+          }
+        } else {
+          message.error('Tenant information not available');
+          setProductOptions([]);
+        }
+      } else {
+        // Regular API call for other lead types
+        const response = await api.get(endpoint);
+        console.log('API Response:', response.data); // Debug log
         
-      console.log('Data array:', dataArray); // Debug log
-      
-      const options = dataArray.map(item => ({
-        value: item.id,
-        label: item.package_name || `Package ${item.id}`
-      }));
-      
-      console.log('Mapped options:', options); // Debug log
-      setProductOptions(options);
+        // Check if response.data is an array
+        const dataArray = Array.isArray(response.data) 
+          ? response.data 
+          : (response.data?.results && Array.isArray(response.data.results))
+            ? response.data.results
+            : [];
+          
+        console.log('Data array:', dataArray); // Debug log
+        
+        const options = dataArray.map(item => ({
+          value: item.id,
+          label: item.package_name || `Package ${item.id}`
+        }));
+        
+        console.log('Mapped options:', options); // Debug log
+        setProductOptions(options);
+      }
     } catch (error) {
       console.error('Error fetching product options:', error);
       message.error('Failed to load package options');
@@ -936,8 +998,14 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     }
     
     try {
-      // Set the field value
+      // Set the field value in form
       form.setFieldsValue({ [getProductFieldName()]: value });
+      
+      // Also update formValues state to ensure it's saved correctly
+      setFormValues(prev => ({
+        ...prev,
+        [getProductFieldName()]: value
+      }));
       
       // Fetch the package details
       let endpoint = '';
@@ -994,14 +1062,23 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
           endpoint = `travel-packages/${value}/`;
           break;
           
+        // Real Estate lead types
+        case 'development_project':
+          endpoint = `development-projects/projects/${value}/`;  // Updated path to match the backend URL configuration
+          break;
+          
         default:
           return;
       }
       
+      console.log('Fetching project details from:', endpoint);
+      
       const response = await api.get(endpoint);
+      console.log('Project details response:', response.data);
       setSelectedPackageDetails(response.data);
     } catch (error) {
-      message.error(`Failed to load package details`);
+      console.error('Error loading project details:', error);
+      message.error(`Failed to load project details`);
       setSelectedPackageDetails(null);
     }
   };
@@ -1049,6 +1126,19 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       // Check if dates are dayjs objects and convert them to ISO strings
       const isDayjsObject = (obj) => obj && typeof obj === 'object' && typeof obj.isValid === 'function';
       
+      // Prepare the development project data if that's the lead type
+      let developmentProjectData = null;
+      if (formValues.lead_type === 'development_project' && formValues.development_project) {
+        // If it's a string (just the ID), keep it as is
+        if (typeof formValues.development_project === 'string') {
+          developmentProjectData = formValues.development_project;
+        } 
+        // If it's an object, extract the ID
+        else if (typeof formValues.development_project === 'object' && formValues.development_project !== null) {
+          developmentProjectData = formValues.development_project.id || formValues.development_project;
+        }
+      }
+      
       // Create the lead data object
       const leadData = {
         name: formValues.name,
@@ -1078,6 +1168,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         hajj_package: formValues.lead_type === 'hajj_package' ? formValues.hajj_package : null,
         readymade_umrah: formValues.lead_type === 'readymade_umrah' ? formValues.readymade_umrah : null,
         custom_umrah: formValues.lead_type === 'custom_umrah' ? formValues.custom_umrah : null,
+        development_project: formValues.lead_type === 'development_project' ? developmentProjectData : null,
         flight: formValues.lead_type === 'flight' ? {
           travelling_from: formValues.travelling_from,
           travelling_to: formValues.travelling_to,
@@ -1128,12 +1219,16 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         custom_fields: null
       };
       
+      console.log("Submitting lead data:", leadData);
+      
       // Make API call based on edit mode
       if (isEditMode) {
         const response = await api.put(`/leads/${initialData.id}/`, leadData);
+        console.log("Edit response:", response.data);
         message.success('Lead updated successfully');
       } else {
         const response = await api.post('/leads/', leadData);
+        console.log("Create response:", response.data);
         message.success('Lead created successfully');
       }
       
@@ -1141,7 +1236,21 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       else navigate('/dashboard/leads');
     } catch (error) {
       // Error handling
-      message.error('Failed to save lead. Please check the form and try again.');
+      console.error("Error submitting lead:", error);
+      if (error.response) {
+        console.error("Response data:", error.response.data);
+        // Show specific error message if available
+        if (error.response.data && typeof error.response.data === 'object') {
+          const errorMessage = Object.values(error.response.data)
+            .flat()
+            .join(' ');
+          message.error(errorMessage || 'Failed to save lead. Please check the form and try again.');
+        } else {
+          message.error('Failed to save lead. Please check the form and try again.');
+        }
+      } else {
+        message.error('Failed to save lead. Please check the form and try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -1185,6 +1294,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       case 'business_immigration': return 'business_immigration';
       case 'travel_package': return 'travel_package';
       case 'study_visa': return 'study_visa';
+      case 'development_project': return 'development_project';
       default: return 'hajj_package';
     }
   };
@@ -1206,6 +1316,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       case 'business_immigration': return 'Select Business Immigration';
       case 'travel_package': return 'Select Travel Package';
       case 'study_visa': return 'Select Study Program';
+      case 'development_project': return 'Select Development Project';
       default: return 'Select Product';
     }
   };
@@ -1526,13 +1637,20 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
             status: 'new',
             lead_activity_status: 'active',
             branch: initialData.branch || null,
+            development_project: initialData.development_project || null,
             ...initialData
           }}
           onValuesChange={(changedValues, allValues) => {
+            // Update formValues when form values change
             setFormValues(prev => ({
               ...prev,
               ...changedValues
             }));
+            
+            // If development_project is changed, also update formValues.development_project
+            if (changedValues.development_project !== undefined) {
+              console.log('Development project changed to:', changedValues.development_project);
+            }
           }}
         >
           <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 3 }}>
@@ -1879,7 +1997,9 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
                           }}
                         >
                           <Typography variant="h6" sx={{ mb: 2, color: '#9d277c', fontWeight: 'bold' }}>
-                            {selectedPackageDetails.package_name || 'Package Details'}
+                            {leadType === 'development_project' ? 
+                              (selectedPackageDetails.project_name || selectedPackageDetails.name || 'Project Details') : 
+                              (selectedPackageDetails.package_name || 'Package Details')}
                           </Typography>
                           
                           {/* Selling Price Banner */}
@@ -1894,15 +2014,45 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
                             alignItems: 'center'
                           }}>
                             <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
-                              Selling Price:
+                              {leadType === 'development_project' ? 'Project Details:' : 'Selling Price:'}
                             </Typography>
                             <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                              {selectedPackageDetails.selling_price ? 
-                                selectedPackageDetails.selling_price.toLocaleString() : 
-                                (selectedPackageDetails.total_cost ? 
-                                  selectedPackageDetails.total_cost.toLocaleString() : 'Contact for pricing')}
+                              {leadType === 'development_project' ?
+                                (selectedPackageDetails.property_type && selectedPackageDetails.listing_type ? 
+                                  `${selectedPackageDetails.get_property_type_display || selectedPackageDetails.property_type} | ${selectedPackageDetails.get_listing_type_display || selectedPackageDetails.listing_type}` : 
+                                  selectedPackageDetails.property_type || selectedPackageDetails.listing_type || 'Property Details') :
+                                (selectedPackageDetails.selling_price ? 
+                                  selectedPackageDetails.selling_price.toLocaleString() : 
+                                  (selectedPackageDetails.total_cost ? 
+                                    selectedPackageDetails.total_cost.toLocaleString() : 'Contact for pricing'))}
                             </Typography>
                           </Box>
+                          
+                          {/* Additional details for development projects */}
+                          {leadType === 'development_project' && selectedPackageDetails && (
+                            <Box mt={2}>
+                              <Grid container spacing={2}>
+                                <Grid item xs={12} md={6}>
+                                  <Typography variant="subtitle2" color="textSecondary">Location:</Typography>
+                                  <Typography variant="body1">{selectedPackageDetails.location || 'N/A'}</Typography>
+                                </Grid>
+                                {selectedPackageDetails.covered_size && (
+                                  <Grid item xs={12} md={6}>
+                                    <Typography variant="subtitle2" color="textSecondary">Size:</Typography>
+                                    <Typography variant="body1">{selectedPackageDetails.covered_size}</Typography>
+                                  </Grid>
+                                )}
+                                {selectedPackageDetails.features && (
+                                  <Grid item xs={12}>
+                                    <Typography variant="subtitle2" color="textSecondary">Features:</Typography>
+                                    <Typography variant="body1" style={{ whiteSpace: 'pre-wrap' }}>
+                                      {selectedPackageDetails.features}
+                                    </Typography>
+                                  </Grid>
+                                )}
+                              </Grid>
+                            </Box>
+                          )}
                         </Paper>
                       </Grid>
                     )}
