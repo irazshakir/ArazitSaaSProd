@@ -87,7 +87,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   ];
   
   // Function to get lead type options based on industry
-  const getIndustryLeadTypes = () => {
+  const getIndustryLeadTypes = async () => {
     try {
       // Try multiple possible localStorage keys for industry
       const directIndustry = localStorage.getItem('industry') || 
@@ -106,7 +106,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         // Silently handle error
       }
       
-      // Check if industry is available in the user object - this appears to be the key we need based on the screenshot
+      // Check if industry is available in the user object
       const userIndustry = userObj?.industry || '';
       // Also check for userData.industry which is seen in the screenshot
       const userData = userObj?.userData || {};
@@ -122,11 +122,41 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         { value: 'transfer', label: 'Transfer' }
       ];
       
-      // Industry-specific lead types
-      let leadTypes = [];
-      
       // Convert to lowercase and remove quotes for comparison
       const normalizedIndustry = effectiveIndustry ? effectiveIndustry.toLowerCase().replace(/"/g, '') : '';
+
+      // If industry is general, fetch lead types from generalProduct API
+      if (normalizedIndustry === 'general') {
+        try {
+          const tenantId = localStorage.getItem('tenant_id');
+          if (!tenantId) {
+            throw new Error('Tenant ID not found');
+          }
+
+          // Fetch products from generalProduct API
+          const response = await api.get(`/general-product/products/?tenant=${tenantId}`);
+          
+          // Map the products to lead type options format
+          const generalProducts = Array.isArray(response.data) 
+            ? response.data 
+            : (response.data?.results && Array.isArray(response.data.results))
+              ? response.data.results 
+              : [];
+
+          const leadTypes = generalProducts.map(product => ({
+            value: product.productName.toLowerCase().replace(/\s+/g, '_'),
+            label: product.productName
+          }));
+
+          return [...leadTypes, ...commonLeadTypes];
+        } catch (error) {
+          console.error('Error fetching general products:', error);
+          return commonLeadTypes;
+        }
+      }
+      
+      // Industry-specific lead types for other industries
+      let leadTypes = [];
       
       switch(normalizedIndustry) {
         case 'hajj_umrah':
@@ -287,64 +317,68 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   
   // Initialize lead type options based on user's industry
   useEffect(() => {
-    try {
-      // Get industry-specific lead types
-      const industryLeadTypes = getIndustryLeadTypes();
-      setLeadTypeOptions(industryLeadTypes);
-      
-      // Set default lead type if none is provided
-      if ((!initialData.lead_type || initialData.lead_type === '') && industryLeadTypes.length > 0) {
-        const defaultLeadType = industryLeadTypes[0].value;
-        setLeadType(defaultLeadType);
-        form.setFieldValue('lead_type', defaultLeadType);
+    const initializeLeadTypes = async () => {
+      try {
+        // Get industry-specific lead types
+        const industryLeadTypes = await getIndustryLeadTypes();
+        setLeadTypeOptions(industryLeadTypes);
         
-        // Update formValues
-        setFormValues(prev => ({
-          ...prev,
-          lead_type: defaultLeadType
-        }));
-      } else if (initialData.lead_type) {
-        // Check if the provided lead_type is compatible with the industry
-        const isValidType = industryLeadTypes.some(option => option.value === initialData.lead_type);
-        
-        if (!isValidType) {
-          // Use the first valid lead type instead
-          if (industryLeadTypes.length > 0) {
-            const defaultType = industryLeadTypes[0].value;
-            setLeadType(defaultType);
-            form.setFieldValue('lead_type', defaultType);
-            
-            // Update formValues
-            setFormValues(prev => ({
-              ...prev,
-              lead_type: defaultType
-            }));
+        // Set default lead type if none is provided
+        if ((!initialData.lead_type || initialData.lead_type === '') && industryLeadTypes.length > 0) {
+          const defaultLeadType = industryLeadTypes[0].value;
+          setLeadType(defaultLeadType);
+          form.setFieldValue('lead_type', defaultLeadType);
+          
+          // Update formValues
+          setFormValues(prev => ({
+            ...prev,
+            lead_type: defaultLeadType
+          }));
+        } else if (initialData.lead_type) {
+          // Check if the provided lead_type is compatible with the industry
+          const isValidType = industryLeadTypes.some(option => option.value === initialData.lead_type);
+          
+          if (!isValidType) {
+            // Use the first valid lead type instead
+            if (industryLeadTypes.length > 0) {
+              const defaultType = industryLeadTypes[0].value;
+              setLeadType(defaultType);
+              form.setFieldValue('lead_type', defaultType);
+              
+              // Update formValues
+              setFormValues(prev => ({
+                ...prev,
+                lead_type: defaultType
+              }));
+            }
+          } else {
+            // Valid type, make sure it's set everywhere
+            setLeadType(initialData.lead_type);
+            form.setFieldValue('lead_type', initialData.lead_type);
           }
-        } else {
-          // Valid type, make sure it's set everywhere
-          setLeadType(initialData.lead_type);
-          form.setFieldValue('lead_type', initialData.lead_type);
         }
+      } catch (error) {
+        // Set default options as fallback
+        const defaultOptions = [
+          { value: 'hajj_package', label: 'Hajj Package' },
+          { value: 'custom_umrah', label: 'Custom Umrah' },
+          { value: 'readymade_umrah', label: 'Readymade Umrah' },
+          { value: 'flight', label: 'Flight' },
+          { value: 'visa', label: 'Visa' },
+          { value: 'transfer', label: 'Transfer' },
+          { value: 'ziyarat', label: 'Ziyarat' }
+        ];
+        
+        setLeadTypeOptions(defaultOptions);
+        
+        // Set a safe default lead type
+        const safeDefaultType = 'hajj_package';
+        setLeadType(safeDefaultType);
+        form.setFieldValue('lead_type', safeDefaultType);
       }
-    } catch (error) {
-      // Set default options as fallback
-      const defaultOptions = [
-        { value: 'hajj_package', label: 'Hajj Package' },
-        { value: 'custom_umrah', label: 'Custom Umrah' },
-        { value: 'readymade_umrah', label: 'Readymade Umrah' },
-        { value: 'flight', label: 'Flight' },
-        { value: 'visa', label: 'Visa' },
-        { value: 'transfer', label: 'Transfer' },
-        { value: 'ziyarat', label: 'Ziyarat' }
-      ];
-      
-      setLeadTypeOptions(defaultOptions);
-      
-      // Set a safe default lead type
-      const safeDefaultType = 'hajj_package';
-      setLeadType(safeDefaultType);
-      form.setFieldValue('lead_type', safeDefaultType);
-    }
+    };
+
+    initializeLeadTypes();
   }, []);
   
   // Fetch product options based on lead type
@@ -1104,41 +1138,40 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   // Add a ref for the StudyForm component
   const studyFormRef = useRef(null);
   
-  // Handle form submission
+  // Add this function before handleSubmit
+  const isGeneralIndustry = () => {
+    try {
+      const userStr = localStorage.getItem('user');
+      const userObj = userStr ? JSON.parse(userStr) : {};
+      const userData = userObj?.userData || {};
+      const industry = (userData.industry || userObj.industry || localStorage.getItem('industry') || '').toLowerCase();
+      return industry === 'general';
+    } catch (error) {
+      return false;
+    }
+  };
+  
+  // Modify handleSubmit function
   const handleSubmit = async () => {
     try {
       // Validate form fields
       await form.validateFields();
       setLoading(true);
-      
+
       // If it's a study visa lead and we have a studyFormRef, save study data first
       if (formValues.lead_type === 'study_visa' && studyFormRef.current) {
         try {
-          // Try to save study data first using the ref
           await studyFormRef.current.saveStudyData();
         } catch (error) {
           message.error("Failed to save study details. Please try again.");
           setLoading(false);
-          return; // Stop the submission if study data fails to save
+          return;
         }
       }
-      
+
       // Check if dates are dayjs objects and convert them to ISO strings
       const isDayjsObject = (obj) => obj && typeof obj === 'object' && typeof obj.isValid === 'function';
-      
-      // Prepare the development project data if that's the lead type
-      let developmentProjectData = null;
-      if (formValues.lead_type === 'development_project' && formValues.development_project) {
-        // If it's a string (just the ID), keep it as is
-        if (typeof formValues.development_project === 'string') {
-          developmentProjectData = formValues.development_project;
-        } 
-        // If it's an object, extract the ID
-        else if (typeof formValues.development_project === 'object' && formValues.development_project !== null) {
-          developmentProjectData = formValues.development_project.id || formValues.development_project;
-        }
-      }
-      
+
       // Create the lead data object
       const leadData = {
         name: formValues.name,
@@ -1149,7 +1182,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         source: formValues.source,
         status: formValues.status,
         lead_activity_status: formValues.lead_activity_status,
-        // Convert dayjs objects to ISO strings for API
         last_contacted: formValues.last_contacted ? 
           (isDayjsObject(formValues.last_contacted) ? 
             formValues.last_contacted.toISOString() : 
@@ -1164,129 +1196,89 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         branch: formValues.branch || null,
         tenant: localStorage.getItem('tenant_id'),
         created_by: localStorage.getItem('user_id'),
-        // Add product-specific fields based on lead type
-        hajj_package: formValues.lead_type === 'hajj_package' ? formValues.hajj_package : null,
-        readymade_umrah: formValues.lead_type === 'readymade_umrah' ? formValues.readymade_umrah : null,
-        custom_umrah: formValues.lead_type === 'custom_umrah' ? formValues.custom_umrah : null,
-        development_project: formValues.lead_type === 'development_project' ? developmentProjectData : null,
-        flight: formValues.lead_type === 'flight' ? {
-          travelling_from: formValues.travelling_from,
-          travelling_to: formValues.travelling_to,
-          travel_date: formValues.travel_date ? 
-            (isDayjsObject(formValues.travel_date) ? 
-              formValues.travel_date.format('YYYY-MM-DD') : 
-              // Safely convert date strings
-              (typeof formValues.travel_date === 'string' ? 
-                formValues.travel_date : 
-                null)) : 
-            null,
-          return_date: formValues.return_date ? 
-            (isDayjsObject(formValues.return_date) ? 
-              formValues.return_date.format('YYYY-MM-DD') : 
-              // Safely convert date strings
-              (typeof formValues.return_date === 'string' ? 
-                formValues.return_date : 
-                null)) : 
-            null,
-          pnr: formValues.pnr,
-          ticket_status: formValues.ticket_status,
-          carrier: formValues.carrier,
-          passengers: formValues.passengers,
-          passenger_details: formValues.passenger_details ? formValues.passenger_details.map(passenger => ({
-            ...passenger,
-            expiry_date: passenger.expiry_date ? 
-              (isDayjsObject(passenger.expiry_date) ? 
-                passenger.expiry_date.format('YYYY-MM-DD') : 
-                // Safely convert date strings
-                (typeof passenger.expiry_date === 'string' ? 
-                  passenger.expiry_date : 
-                  null)) : 
-              null
-          })) : [],
-          cost_details: formValues.cost_details || {}
-        } : null,
-        visa: formValues.lead_type === 'visa' ? formValues.visa : null,
-        transfer: formValues.lead_type === 'transfer' ? formValues.transfer : null,
-        ziyarat: formValues.lead_type === 'ziyarat' ? formValues.ziyarat : null,
-        study_visa: formValues.lead_type === 'study_visa' ? formValues.study : null,
         query_for: {
           adults: formValues.adults || 0,
           children: formValues.children || 0,
           infants: formValues.infants || 0,
           notes: formValues.query_notes || ''
-        },
-        tags: null,
-        custom_fields: null
+        }
       };
-      
+
+      // If this is a general industry lead, we need to include the general_product reference
+      if (isGeneralIndustry()) {
+        try {
+          // Find the general product ID that matches this lead type
+          const tenantId = localStorage.getItem('tenant_id');
+          const response = await api.get(`/general-product/products/?tenant=${tenantId}`);
+          
+          const products = Array.isArray(response.data) 
+            ? response.data 
+            : (response.data?.results && Array.isArray(response.data.results))
+              ? response.data.results 
+              : [];
+
+          const matchingProduct = products.find(
+            product => product.productName.toLowerCase().replace(/\s+/g, '_') === formValues.lead_type
+          );
+
+          if (matchingProduct) {
+            leadData.general_product = matchingProduct.id;
+          }
+        } catch (error) {
+          console.error('Error fetching general product:', error);
+        }
+      }
+
+      // Add other product-specific fields based on lead type
+      if (!isGeneralIndustry()) {
+        switch(formValues.lead_type) {
+          case 'hajj_package':
+            leadData.hajj_package = formValues.hajj_package;
+            break;
+          case 'development_project':
+            leadData.development_project = formValues.development_project;
+            break;
+          case 'flight':
+            leadData.flight = {
+              travelling_from: formValues.travelling_from,
+              travelling_to: formValues.travelling_to,
+              travel_date: formValues.travel_date?.format('YYYY-MM-DD'),
+              return_date: formValues.return_date?.format('YYYY-MM-DD'),
+              pnr: formValues.pnr,
+              ticket_status: formValues.ticket_status,
+              carrier: formValues.carrier,
+              passengers: formValues.passengers,
+              passenger_details: formValues.passenger_details,
+              cost_details: formValues.cost_details
+            };
+            break;
+          // Add other cases as needed
+        }
+      }
+
       console.log("Submitting lead data:", leadData);
-      
+
       // Make API call based on edit mode
       let response;
       if (isEditMode) {
-        // Get previous assigned_to if we're in edit mode
-        const previousAssignedTo = initialData.assigned_to;
-        
         response = await api.put(`/leads/${initialData.id}/`, leadData);
         console.log("Edit response:", response.data);
         message.success('Lead updated successfully');
-        
-        // Check if lead was assigned to a different user than before
-        if (formValues.assigned_to && formValues.assigned_to !== previousAssignedTo) {
-          // Create notification for lead transfer
-          try {
-            await createLeadNotification({
-              tenant: localStorage.getItem('tenant_id'),
-              user: formValues.assigned_to,
-              notification_type: 'lead_transferred',
-              title: `Lead Transferred: ${formValues.name}`,
-              message: 'A lead has been transferred to you',
-              lead: initialData.id
-            });
-            console.log('Created transfer notification');
-          } catch (notificationError) {
-            console.error('Failed to create notification:', notificationError);
-          }
-        }
       } else {
         response = await api.post('/leads/', leadData);
         console.log("Create response:", response.data);
         message.success('Lead created successfully');
-        
-        // If a user was assigned, create notification
-        if (formValues.assigned_to) {
-          try {
-            await createLeadNotification({
-              tenant: localStorage.getItem('tenant_id'),
-              user: formValues.assigned_to,
-              notification_type: 'lead_assigned',
-              title: `New Lead Assigned: ${formValues.name}`,
-              message: 'You have been assigned a new lead',
-              lead: response.data.id // Use the ID from the response
-            });
-            console.log('Created assignment notification');
-          } catch (notificationError) {
-            console.error('Failed to create notification:', notificationError);
-          }
-        }
       }
-      
+
       if (onSuccess) onSuccess();
       else navigate('/dashboard/leads');
     } catch (error) {
-      // Error handling
       console.error("Error submitting lead:", error);
-      if (error.response) {
-        console.error("Response data:", error.response.data);
-        // Show specific error message if available
-        if (error.response.data && typeof error.response.data === 'object') {
-          const errorMessage = Object.values(error.response.data)
-            .flat()
-            .join(' ');
-          message.error(errorMessage || 'Failed to save lead. Please check the form and try again.');
-        } else {
-          message.error('Failed to save lead. Please check the form and try again.');
-        }
+      if (error.response?.data) {
+        const errorMessage = Object.values(error.response.data)
+          .flat()
+          .join(' ');
+        message.error(errorMessage || 'Failed to save lead. Please check the form and try again.');
       } else {
         message.error('Failed to save lead. Please check the form and try again.');
       }

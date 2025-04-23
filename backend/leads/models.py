@@ -128,9 +128,22 @@ class Lead(models.Model):
         related_name='department_leads'
     )
     
-    # Lead type and related product
-    lead_type = models.CharField(max_length=50, choices=TYPE_CHOICES, default=TYPE_HAJJ_PACKAGE)
+    # Lead type and related product - Modified to handle dynamic types
+    lead_type = models.CharField(
+        max_length=50,
+        default=TYPE_HAJJ_PACKAGE,
+        help_text="Lead type - can be predefined or from general products"
+    )
     hajj_package = models.ForeignKey(HajjPackage, on_delete=models.SET_NULL, null=True, blank=True, related_name='leads')
+    
+    # Add a field to store the general product reference if it's a general industry lead
+    general_product = models.ForeignKey(
+        'generalProduct.GeneralProduct',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='leads'
+    )
     
     # Add development_project field
     development_project = models.CharField(max_length=255, null=True, blank=True, help_text="Development project ID for real estate leads")
@@ -164,6 +177,62 @@ class Lead(models.Model):
     
     # Add a field to store chat_id - can be null for leads not from WhatsApp
     chat_id = models.CharField(max_length=255, null=True, blank=True, help_text="WhatsApp chat ID if lead originated from WhatsApp")
+    
+    def get_lead_type_display(self):
+        """
+        Custom method to get display value for lead_type, handling both predefined and dynamic types
+        """
+        # First check predefined types
+        predefined_types = dict(self.TYPE_CHOICES)
+        if self.lead_type in predefined_types:
+            return predefined_types[self.lead_type]
+        
+        # If not found in predefined types and we have a general_product, use its name
+        if self.general_product:
+            return self.general_product.productName
+            
+        # If nothing matches, return the lead_type as is
+        return self.lead_type
+    
+    def clean(self):
+        """
+        Custom validation to ensure lead_type is either in TYPE_CHOICES
+        or corresponds to a GeneralProduct
+        """
+        from django.core.exceptions import ValidationError
+        
+        # Get list of predefined types
+        predefined_types = [choice[0] for choice in self.TYPE_CHOICES]
+        
+        # If lead_type is in predefined choices, it's valid
+        if self.lead_type in predefined_types:
+            return
+            
+        # If not in predefined types, check if it corresponds to a GeneralProduct
+        if not self.general_product:
+            # Don't raise validation error here, as general_product might be set later
+            pass
+    
+    def save(self, *args, **kwargs):
+        """
+        Override save method to handle both predefined and general product lead types
+        """
+        # If this is a general product lead type but general_product isn't set,
+        # try to find and set it
+        if self.lead_type not in dict(self.TYPE_CHOICES) and not self.general_product:
+            from generalProduct.models import GeneralProduct
+            try:
+                # Try to find matching general product
+                product = GeneralProduct.objects.filter(
+                    tenant=self.tenant,
+                    productName__iexact=self.lead_type.replace('_', ' ')
+                ).first()
+                if product:
+                    self.general_product = product
+            except Exception as e:
+                print(f"Error finding general product: {e}")
+        
+        super().save(*args, **kwargs)
     
     class Meta:
         ordering = ['-created_at']

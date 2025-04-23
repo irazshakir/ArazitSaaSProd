@@ -137,90 +137,48 @@ class LeadViewSet(viewsets.ModelViewSet):
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['name', 'email', 'phone', 'whatsapp']
     ordering_fields = ['created_at', 'updated_at', 'last_contacted', 'next_follow_up', 'status']
-    # Ordering is now handled by custom logic in get_queryset
     pagination_class = LeadPagination
     
     def get_queryset(self):
         """
-        This view should return a list of all the leads
-        for the currently authenticated user based on their role and team hierarchy.
+        Filter queryset to only show leads from tenants the user has access to.
+        Also applies any additional filters from query parameters.
         """
         user = self.request.user
-        tenant_ids = user.tenant_users.values_list('tenant', flat=True)
-        queryset = Lead.objects.filter(tenant__in=tenant_ids)
-        
-        # Apply role-based filtering
-        if user.role == 'admin':
-            # Admin sees all leads in the tenant
-            pass  # No additional filtering needed
-            
-        elif user.role == 'department_head':
-            # Department head sees all leads in their department
-            if user.department_id:
-                queryset = queryset.filter(department_id=user.department_id)
-            
-        elif user.role == 'manager':
-            # Manager sees leads for their teams
-            # First, find teams they manage
-            managed_teams = TeamManager.objects.filter(manager=user).values_list('team_id', flat=True)
-            
-            # Find team leads under those teams
-            team_leads = TeamLead.objects.filter(team_id__in=managed_teams).values_list('team_lead_id', flat=True)
-            
-            # Find team members under those team leads
-            team_members = TeamMember.objects.filter(team_lead__team_lead_id__in=team_leads).values_list('member_id', flat=True)
-            
-            # Return leads assigned to any of these users (or the manager themselves)
-            queryset = queryset.filter(
-                Q(assigned_to=user) | 
-                Q(assigned_to_id__in=team_leads) |
-                Q(assigned_to_id__in=team_members)
-            )
-            
-        elif user.role == 'team_lead':
-            # Team lead sees leads for their team members
-            team_members = TeamMember.objects.filter(team_lead__team_lead=user).values_list('member_id', flat=True)
-            
-            # Return leads assigned to any of these members (or the team lead themselves)
-            queryset = queryset.filter(
-                Q(assigned_to=user) | 
-                Q(assigned_to_id__in=team_members)
-            )
-            
-        else:
-            # Regular users (sales_agent, support_agent, processor) see only their assigned leads
-            queryset = queryset.filter(assigned_to=user)
-        
-        # Apply custom ordering for all lead queries:
-        # 1. First show active leads with passed follow-up dates, ordered by earliest first (most overdue)
-        # 2. Then show other active leads with future follow-up dates, also ordered by earliest first
-        # 3. Then active leads with NULL next_follow_up
-        # 4. Finally show inactive leads (lowest priority)
-        from django.db.models import Case, When, Value, IntegerField, F
-        from django.utils import timezone
-        
-        # Get current datetime
-        now = timezone.now().date()
-        
-        # Add custom ordering fields
-        queryset = queryset.annotate(
-            # Priority 1: active leads with passed next_follow_up (highest priority)
-            # Priority 2: active leads with future next_follow_up dates
-            # Priority 3: active leads with NULL next_follow_up
-            # Priority 4: inactive leads (lowest priority)
-            ordering_priority=Case(
-                When(lead_activity_status='active', next_follow_up__lt=now, then=Value(1)),
-                When(lead_activity_status='active', next_follow_up__isnull=False, then=Value(2)),
-                When(lead_activity_status='active', next_follow_up__isnull=True, then=Value(3)),
-                default=Value(4),
-                output_field=IntegerField()
-            )
-        ).order_by(
-            'ordering_priority',  # First by priority group
-            F('next_follow_up').asc(nulls_last=True)  # Then by next_follow_up date (ascending with nulls last)
-        )
-        
-        return queryset
+        queryset = super().get_queryset()
+
+        # Filter by tenant access
+        accessible_tenants = user.tenant_users.values_list('tenant_id', flat=True)
+        queryset = queryset.filter(tenant_id__in=accessible_tenants)
+
+        # Apply status filter if provided
+        status = self.request.query_params.get('status', None)
+        if status:
+            queryset = queryset.filter(status=status)
+
+        # Apply date range filters if provided
+        created_after = self.request.query_params.get('created_after', None)
+        created_before = self.request.query_params.get('created_before', None)
+        if created_after:
+            queryset = queryset.filter(created_at__gte=created_after)
+        if created_before:
+            queryset = queryset.filter(created_at__lte=created_before)
+
+        # Apply assigned_to filter if provided
+        assigned_to = self.request.query_params.get('assigned_to', None)
+        if assigned_to:
+            if assigned_to.lower() == 'me':
+                queryset = queryset.filter(assigned_to=user)
+            elif assigned_to.lower() == 'unassigned':
+                queryset = queryset.filter(assigned_to__isnull=True)
+            else:
+                try:
+                    assigned_user_id = int(assigned_to)
+                    queryset = queryset.filter(assigned_to_id=assigned_user_id)
+                except ValueError:
+                    pass
+
+        return queryset.select_related('tenant', 'assigned_to', 'created_by', 'branch')
     
     def filter_queryset(self, queryset):
         queryset = super().filter_queryset(queryset)
@@ -271,6 +229,36 @@ class LeadViewSet(viewsets.ModelViewSet):
         if self.action == 'list':
             return LeadListSerializer
         return self.serializer_class
+    
+    def get_serializer_context(self):
+        """
+        Add tenant to serializer context based on user's active tenant.
+        For create/update operations, use the tenant from the request data if provided,
+        otherwise use the first tenant the user belongs to.
+        """
+        context = super().get_serializer_context()
+        user = self.request.user
+        
+        # For create/update operations, check if tenant is specified in request data
+        if self.request.data and 'tenant' in self.request.data:
+            try:
+                tenant_id = self.request.data['tenant']
+                # Verify user has access to this tenant
+                if user.tenant_users.filter(tenant_id=tenant_id).exists():
+                    context['tenant'] = Tenant.objects.get(id=tenant_id)
+                else:
+                    raise PermissionError("User does not have access to the specified tenant")
+            except (Tenant.DoesNotExist, ValueError):
+                raise serializers.ValidationError({"tenant": "Invalid tenant specified"})
+        else:
+            # Default to user's first tenant if not specified
+            tenant = user.tenant_users.first()
+            if tenant:
+                context['tenant'] = tenant.tenant
+            else:
+                raise serializers.ValidationError({"tenant": "User must belong to at least one tenant"})
+        
+        return context
     
     def perform_create(self, serializer):
         """Set the tenant and department based on the user."""
@@ -815,7 +803,8 @@ class LeadViewSet(viewsets.ModelViewSet):
             if hasattr(assigned_to, 'branch') and assigned_to.branch and not serializer.validated_data.get('branch'):
                 serializer.validated_data['branch'] = assigned_to.branch
         
-        serializer.save()
+        # Ensure tenant is preserved
+        serializer.save(tenant=self.request.user.tenant)
 
     @action(detail=True, methods=['get'])
     def get_activities(self, request, pk=None):

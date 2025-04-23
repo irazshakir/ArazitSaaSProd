@@ -6,6 +6,7 @@ from .models import (
     LeadEvent, LeadProfile, LeadOverdue, Notification
 )
 from django.utils import timezone
+from generalProduct.models import GeneralProduct
 
 class LeadActivitySerializer(serializers.ModelSerializer):
     """Serializer for the LeadActivity model."""
@@ -161,6 +162,8 @@ class LeadSerializer(serializers.ModelSerializer):
     # Add development_project field
     development_project = serializers.CharField(required=False, allow_null=True)
     
+    general_product_name = serializers.SerializerMethodField()
+    
     class Meta:
         model = Lead
         fields = (
@@ -172,11 +175,59 @@ class LeadSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at', 'last_contacted', 'next_follow_up',
             'tags', 'custom_fields', 'flight', 'development_project',
             'activities', 'notes', 'documents', 'events',
-            'department', 'department_details', 'branch', 'branch_details'
+            'department', 'department_details', 'branch', 'branch_details',
+            'general_product_name'
         )
         read_only_fields = ('id', 'created_at', 'updated_at', 'created_by')
     
+    def get_general_product_name(self, obj):
+        if obj.general_product:
+            return obj.general_product.productName
+        return None
+
+    def validate(self, data):
+        # Get the tenant from the context
+        tenant = self.context.get('tenant')
+        if not tenant:
+            raise serializers.ValidationError("Tenant information is required")
+        
+        lead_type = data.get('lead_type')
+        if not lead_type:
+            raise serializers.ValidationError("Lead type is required")
+
+        # Check if it's a predefined lead type
+        predefined_types = dict(Lead.TYPE_CHOICES)
+        if lead_type in predefined_types:
+            return data
+
+        # If not a predefined type, try to find matching general product
+        try:
+            product = GeneralProduct.objects.filter(
+                tenant=tenant,
+                productName__iexact=lead_type.replace('_', ' ')
+            ).first()
+            
+            if product:
+                data['general_product'] = product
+            else:
+                raise serializers.ValidationError(
+                    f"Invalid lead type '{lead_type}'. Must be either a predefined type or match a general product."
+                )
+        except Exception as e:
+            raise serializers.ValidationError(f"Error validating lead type: {str(e)}")
+
+        return data
+
     def create(self, validated_data):
+        # If this is a general product lead, ensure the relationship is set
+        lead_type = validated_data.get('lead_type')
+        if lead_type not in dict(Lead.TYPE_CHOICES):
+            # The general_product should have been set in validate()
+            if 'general_product' not in validated_data:
+                raise serializers.ValidationError(
+                    "General product reference is required for custom lead types"
+                )
+
         # Set the created_by field to the current user
         validated_data['created_by'] = self.context['request'].user
         
