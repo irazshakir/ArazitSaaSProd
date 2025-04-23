@@ -28654,3 +28654,159 @@ WARNING 2025-04-23 22:35:02,790 log Bad Request: /static/admin/javascript/hetong
 WARNING 2025-04-23 22:37:42,912 log Not Found: /api/leads/37f6769d-5fe1-4b99-b60b-d1999657400b/notes/
 WARNING 2025-04-23 22:38:20,875 log Not Found: /api/leads/37f6769d-5fe1-4b99-b60b-d1999657400b/notes/
 WARNING 2025-04-23 22:38:30,821 log Not Found: /api/leads/37f6769d-5fe1-4b99-b60b-d1999657400b/notes/
+WARNING 2025-04-23 22:44:35,635 log Not Found: /api/company-settings/dc2d16b5-19e6-4ef4-b2cc-17816d39e405/
+WARNING 2025-04-23 22:44:36,006 log Not Found: /api/api/company-settings/dc2d16b5-19e6-4ef4-b2cc-17816d39e405/
+WARNING 2025-04-23 22:44:56,993 log Bad Request: /api/conversations/
+WARNING 2025-04-23 22:44:56,994 log Bad Request: /api/conversations/
+WARNING 2025-04-23 22:44:56,996 log Bad Request: /api/conversations/
+ERROR 2025-04-23 22:44:57,089 log Internal Server Error: /api/messages/1/
+WARNING 2025-04-23 22:44:57,199 log Bad Request: /api/conversations/
+WARNING 2025-04-23 22:45:18,752 log Not Found: /api/leads/f48eea28-30ba-485b-86f2-36e42b19ea6d/notes/
+WARNING 2025-04-23 22:45:24,745 log Not Found: /api/leads/f48eea28-30ba-485b-86f2-36e42b19ea6d/notes/
+WARNING 2025-04-23 22:45:42,070 log Not Found: /api/departments/
+ERROR 2025-04-23 22:59:20,117 exception Invalid HTTP_HOST header: 'leadbuzz.xyz'. You may need to add 'leadbuzz.xyz' to ALLOWED_HOSTS.
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/utils/deprecation.py", line 133, in __call__
+    response = self.process_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/middleware/common.py", line 48, in process_request
+    host = request.get_host()
+           ^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/http/request.py", line 150, in get_host
+    raise DisallowedHost(msg)
+django.core.exceptions.DisallowedHost: Invalid HTTP_HOST header: 'leadbuzz.xyz'. You may need to add 'leadbuzz.xyz' to ALLOWED_HOSTS.
+WARNING 2025-04-23 22:59:20,184 log Bad Request: /
+WARNING 2025-04-23 23:01:13,226 log Bad Request: /api/conversations/
+WARNING 2025-04-23 23:01:13,249 log Bad Request: /api/conversations/
+WARNING 2025-04-23 23:01:13,284 log Bad Request: /api/conversations/
+ERROR 2025-04-23 23:01:13,298 log Internal Server Error: /api/messages/1/
+WARNING 2025-04-23 23:15:55,320 log Not Found: /.env
+WARNING 2025-04-23 23:15:56,913 log Not Found: /.git/config
+WARNING 2025-04-23 23:18:53,358 log Not Found: /api/leads/3886caa8-cf1c-4e6b-9145-4004953d17c9/notes/
+ERROR 2025-04-23 23:19:04,214 log Internal Server Error: /api/leads/3886caa8-cf1c-4e6b-9145-4004953d17c9/
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/rest_framework/viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/leads/views.py", line 799, in update
+    self.perform_update(serializer)
+  File "/var/www/ArazitSaaS/backend/leads/views.py", line 818, in perform_update
+    serializer.save(tenant=self.request.user.tenant)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'User' object has no attribute 'tenant'
+WARNING 2025-04-23 23:19:26,055 log Not Found: /api/leads/3886caa8-cf1c-4e6b-9145-4004953d17c9/notes/
+ERROR 2025-04-23 23:19:35,949 log Internal Server Error: /api/leads/3886caa8-cf1c-4e6b-9145-4004953d17c9/
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/rest_framework/viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/leads/views.py", line 799, in update
+    self.perform_update(serializer)
+  File "/var/www/ArazitSaaS/backend/leads/views.py", line 818, in perform_update
+    serializer.save(tenant=self.request.user.tenant)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'User' object has no attribute 'tenant'
+WARNING 2025-04-23 23:19:46,522 log Not Found: /api/leads/3886caa8-cf1c-4e6b-9145-4004953d17c9/notes/
+ERROR 2025-04-23 23:20:23,270 log Internal Server Error: /api/leads/3886caa8-cf1c-4e6b-9145-4004953d17c9/
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/rest_framework/viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/leads/views.py", line 799, in update
+    self.perform_update(serializer)
+  File "/var/www/ArazitSaaS/backend/leads/views.py", line 818, in perform_update
+    serializer.save(tenant=self.request.user.tenant)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'User' object has no attribute 'tenant'
+WARNING 2025-04-23 23:20:44,337 log Not Found: /api/leads/3886caa8-cf1c-4e6b-9145-4004953d17c9/notes/
+ERROR 2025-04-23 23:20:51,601 log Internal Server Error: /api/leads/3886caa8-cf1c-4e6b-9145-4004953d17c9/
+Traceback (most recent call last):
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/exception.py", line 55, in inner
+    response = get_response(request)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/core/handlers/base.py", line 197, in _get_response
+    response = wrapped_callback(request, *callback_args, **callback_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/django/views/decorators/csrf.py", line 56, in wrapper_view
+    return view_func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/rest_framework/viewsets.py", line 125, in view
+    return self.dispatch(request, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/rest_framework/views.py", line 509, in dispatch
+    response = self.handle_exception(exc)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/rest_framework/views.py", line 469, in handle_exception
+    self.raise_uncaught_exception(exc)
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/rest_framework/views.py", line 480, in raise_uncaught_exception
+    raise exc
+  File "/var/www/ArazitSaaS/backend/venv/lib/python3.12/site-packages/rest_framework/views.py", line 506, in dispatch
+    response = handler(request, *args, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/www/ArazitSaaS/backend/leads/views.py", line 799, in update
+    self.perform_update(serializer)
+  File "/var/www/ArazitSaaS/backend/leads/views.py", line 818, in perform_update
+    serializer.save(tenant=self.request.user.tenant)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'User' object has no attribute 'tenant'
+WARNING 2025-04-23 23:23:26,809 log Not Found: /

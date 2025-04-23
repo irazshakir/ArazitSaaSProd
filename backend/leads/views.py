@@ -356,6 +356,17 @@ class LeadViewSet(viewsets.ModelViewSet):
                 added_by=request.user,
                 note=note_text
             )
+
+            # Create notification for the newly assigned user
+            if user != previous_assigned_to:  # Only create notification if assigned to a different user
+                Notification.objects.create(
+                    tenant=lead.tenant,
+                    user=user,
+                    notification_type=Notification.TYPE_LEAD_ASSIGNED,
+                    title=f"Lead Assigned: {lead.name}",
+                    message=f"A lead has been assigned to you: {lead.name}",
+                    lead=lead
+                )
             
             serializer = self.get_serializer(lead)
             return Response(serializer.data)

@@ -1493,73 +1493,29 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   // Function to update branch when a user is assigned
   const handleUserAssignment = async (userId) => {
     try {
-      // Only proceed if we have a valid user ID
-      if (!userId) return;
-      
-      // Get the previous assigned user
+      // Store previous assigned user for comparison
       const previousAssignedTo = formValues.assigned_to;
       
-      console.log('Lead assignment: Previous user:', previousAssignedTo, 'New user:', userId);
-      
-      // Update the assigned_to field
+      // Update form values with new assigned user
       handleInputChange('assigned_to', userId);
       
-      // Try to fetch user details to get their branch
-      try {
-        const response = await api.get(`auth/users/${userId}/`);
-        const userData = response.data;
-        
-        // If user has a branch assigned, update the branch field
-        if (userData.branch) {
-          form.setFieldValue('branch', userData.branch);
-          setFormValues(prev => ({
-            ...prev,
-            branch: userData.branch
-          }));
-        }
-        
-        // If we're in edit mode and there's a change in user assignment, create notification
-        if (isEditMode && initialData.id && previousAssignedTo !== userId) {
-          // Check if this is a transfer (changing from one user to another) or an initial assignment
-          const notificationType = previousAssignedTo ? 'lead_transferred' : 'lead_assigned';
-          const notificationTitle = previousAssignedTo 
-            ? `Lead Transferred: ${formValues.name}` 
-            : `New Lead Assigned: ${formValues.name}`;
-          const notificationMessage = previousAssignedTo
-            ? 'A lead has been transferred to you'
-            : 'You have been assigned a new lead';
-            
-          console.log('Creating notification:', {
-            type: notificationType,
-            title: notificationTitle,
-            leadId: initialData.id,
-            userId: userId
-          });
-            
-          try {
-            const notificationData = {
-              tenant: localStorage.getItem('tenant_id'),
-              user: userId,
-              notification_type: notificationType,
-              title: notificationTitle,
-              message: notificationMessage,
-              lead: initialData.id,
-              status: 'unread',
-              lead_activity: null,
-              lead_overdue: null,
-              read_at: null
-            };
-            
-            console.log('Notification payload:', notificationData);
-            
-            const notificationResponse = await api.post('/notifications/', notificationData);
-            console.log('Notification created successfully:', notificationResponse.data);
-          } catch (notificationError) {
-            console.error('Failed to create notification:', notificationError.response?.data || notificationError.message);
+      // If we're in edit mode, fetch the user's branch
+      if (isEditMode && userId) {
+        try {
+          const response = await api.get(`auth/users/${userId}/`);
+          const userData = response.data;
+          
+          // If user has a branch assigned, update the branch field
+          if (userData.branch) {
+            form.setFieldValue('branch', userData.branch);
+            setFormValues(prev => ({
+              ...prev,
+              branch: userData.branch
+            }));
           }
+        } catch (error) {
+          console.error('Error during user assignment:', error.response?.data || error.message);
         }
-      } catch (error) {
-        console.error('Error during user assignment:', error.response?.data || error.message);
       }
     } catch (error) {
       console.error('Error in handleUserAssignment:', error);
