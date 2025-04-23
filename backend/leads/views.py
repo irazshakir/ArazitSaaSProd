@@ -15,12 +15,12 @@ from django.db import transaction
 from users.models import User, Department, Tenant
 from .models import (
     Lead, LeadActivity, LeadNote, LeadDocument, 
-    LeadEvent, LeadProfile, LeadOverdue
+    LeadEvent, LeadProfile, LeadOverdue, Notification
 )
 from .serializers import (
     LeadSerializer, LeadListSerializer, LeadActivitySerializer,
     LeadNoteSerializer, LeadDocumentSerializer, LeadEventSerializer,
-    LeadProfileSerializer, LeadOverdueSerializer
+    LeadProfileSerializer, LeadOverdueSerializer, NotificationSerializer
 )
 from teams.models import TeamManager, TeamLead, TeamMember
 from location_routing.models import LocationRouting
@@ -299,11 +299,22 @@ class LeadViewSet(viewsets.ModelViewSet):
             department = user.department
             branch = user.branch
         
-        serializer.save(
+        lead = serializer.save(
             tenant=tenant_user.tenant,
             department=department,
             branch=branch
         )
+        
+        # Create notification for lead assignment if assigned_to is different from created_by
+        if lead.assigned_to and lead.assigned_to != lead.created_by:
+            Notification.objects.create(
+                tenant=lead.tenant,
+                user=lead.assigned_to,
+                notification_type=Notification.TYPE_LEAD_ASSIGNED,
+                title=f"New Lead Assigned: {lead.name}",
+                message=f"You have been assigned a new lead: {lead.name}",
+                lead=lead
+            )
     
     @action(detail=True, methods=['post'])
     def assign(self, request, pk=None):
@@ -515,11 +526,23 @@ class LeadViewSet(viewsets.ModelViewSet):
         )
         
         if serializer.is_valid():
-            serializer.save(lead=lead, tenant=lead.tenant)
+            activity = serializer.save(lead=lead, tenant=lead.tenant)
             
-            # Update last_contacted for any activity
+            # Update last_contacted
             lead.last_contacted = timezone.now()
             lead.save()
+            
+            # Create notification for activity reminder if due_date is set
+            if activity.due_date and activity.user:
+                Notification.objects.create(
+                    tenant=lead.tenant,
+                    user=activity.user,
+                    notification_type=Notification.TYPE_ACTIVITY_REMINDER,
+                    title=f"Activity Reminder: {activity.activity_type}",
+                    message=f"Reminder for activity: {activity.description}",
+                    lead=lead,
+                    lead_activity=activity
+                )
             
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
@@ -586,6 +609,18 @@ class LeadViewSet(viewsets.ModelViewSet):
             tenant=lead.tenant,
             lead_user=lead.assigned_to
         )
+        
+        # Create notification for overdue lead
+        if lead.assigned_to:
+            Notification.objects.create(
+                tenant=lead.tenant,
+                user=lead.assigned_to,
+                notification_type=Notification.TYPE_LEAD_OVERDUE,
+                title=f"Lead Overdue: {lead.name}",
+                message=f"The lead {lead.name} has been marked as overdue",
+                lead=lead,
+                lead_overdue=overdue
+            )
         
         serializer = LeadOverdueSerializer(overdue)
         return Response(serializer.data)
@@ -1305,3 +1340,47 @@ class LeadOverdueViewSet(viewsets.ModelViewSet):
         user = self.request.user
         tenant_ids = user.tenant_users.values_list('tenant', flat=True)
         return LeadOverdue.objects.filter(tenant__in=tenant_ids)
+
+
+class NotificationViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet for Notification model.
+    Provides CRUD operations for Notifications.
+    """
+    queryset = Notification.objects.all()
+    serializer_class = NotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get_queryset(self):
+        """
+        Return notifications for the current user.
+        """
+        user = self.request.user
+        tenant_ids = user.tenant_users.values_list('tenant', flat=True)
+        return Notification.objects.filter(
+            tenant__in=tenant_ids,
+            user=user
+        ).order_by('-created_at')
+    
+    @action(detail=True, methods=['post'])
+    def mark_as_read(self, request, pk=None):
+        """Mark a notification as read."""
+        notification = self.get_object()
+        notification.mark_as_read()
+        return Response(self.get_serializer(notification).data)
+    
+    @action(detail=False, methods=['post'])
+    def mark_all_as_read(self, request):
+        """Mark all unread notifications as read."""
+        queryset = self.get_queryset().filter(status=Notification.STATUS_UNREAD)
+        queryset.update(
+            status=Notification.STATUS_READ,
+            read_at=timezone.now()
+        )
+        return Response({'message': 'All notifications marked as read'})
+    
+    @action(detail=False, methods=['get'])
+    def unread_count(self, request):
+        """Get count of unread notifications."""
+        count = self.get_queryset().filter(status=Notification.STATUS_UNREAD).count()
+        return Response({'count': count})

@@ -454,3 +454,63 @@ class LeadActivity(models.Model):
     
     def __str__(self):
         return f"{self.activity_type} for {self.lead.name}"
+
+
+class Notification(models.Model):
+    """Model for storing notifications for users."""
+    
+    # Notification types
+    TYPE_LEAD_ASSIGNED = 'lead_assigned'
+    TYPE_LEAD_OVERDUE = 'lead_overdue'
+    TYPE_ACTIVITY_REMINDER = 'activity_reminder'
+    
+    TYPE_CHOICES = [
+        (TYPE_LEAD_ASSIGNED, 'Lead Assigned'),
+        (TYPE_LEAD_OVERDUE, 'Lead Overdue'),
+        (TYPE_ACTIVITY_REMINDER, 'Activity Reminder'),
+    ]
+    
+    # Notification status
+    STATUS_UNREAD = 'unread'
+    STATUS_READ = 'read'
+    
+    STATUS_CHOICES = [
+        (STATUS_UNREAD, 'Unread'),
+        (STATUS_READ, 'Read'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    tenant = models.ForeignKey(Tenant, on_delete=models.CASCADE, related_name='notifications')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    
+    # Notification details
+    notification_type = models.CharField(max_length=50, choices=TYPE_CHOICES)
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_UNREAD)
+    
+    # Related objects (can be null for some notification types)
+    lead = models.ForeignKey(Lead, on_delete=models.CASCADE, null=True, blank=True, related_name='notifications')
+    lead_activity = models.ForeignKey(LeadActivity, on_delete=models.CASCADE, null=True, blank=True, related_name='notifications')
+    lead_overdue = models.ForeignKey(LeadOverdue, on_delete=models.CASCADE, null=True, blank=True, related_name='notifications')
+    
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    read_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['user', 'status']),
+            models.Index(fields=['created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.get_notification_type_display()} - {self.title}"
+    
+    def mark_as_read(self):
+        """Mark the notification as read."""
+        if self.status == self.STATUS_UNREAD:
+            self.status = self.STATUS_READ
+            self.read_at = timezone.now()
+            self.save()

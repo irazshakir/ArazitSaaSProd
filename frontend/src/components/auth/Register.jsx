@@ -44,7 +44,8 @@ const Register = () => {
     { value: 'travel_tourism', label: 'Travel and Tourism' },
     { value: 'immigration', label: 'Immigration Consultancy' },
     { value: 'real_estate', label: 'Real Estate' },
-    { value: 'ecommerce', label: 'Ecommerce' }
+    { value: 'ecommerce', label: 'Ecommerce' },
+    { value: 'general', label: 'General' }
   ];
 
   const handleChange = (e) => {

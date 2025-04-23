@@ -21,6 +21,7 @@ urlpatterns = [
     path('api/', include('location_routing.urls')),
     path('api/', include('fb_webhook.urls')),  # Facebook Webhook API endpoints
     path('api/development-projects/', include('developmentProjects.urls')),  # Development Projects API endpoints
+    path('api/general-product/', include('generalProduct.urls')),  # General Product API endpoints
 ]
 
 # Serve media files in development

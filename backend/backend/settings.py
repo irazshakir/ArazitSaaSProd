@@ -66,6 +66,7 @@ INSTALLED_APPS = [
     'location_routing',
     'fb_webhook', # Facebook webhook integration for leads
     'developmentProjects',
+    'generalProduct', # General Product Management app
 ]
 
 MIDDLEWARE = [

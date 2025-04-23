@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     LeadViewSet, LeadActivityViewSet, LeadNoteViewSet,
     LeadDocumentViewSet, LeadEventViewSet, LeadProfileViewSet,
-    LeadOverdueViewSet
+    LeadOverdueViewSet, NotificationViewSet
 )
 
 router = DefaultRouter()
@@ -14,6 +14,7 @@ router.register(r'lead-documents', LeadDocumentViewSet)
 router.register(r'lead-events', LeadEventViewSet)
 router.register(r'lead-profiles', LeadProfileViewSet)
 router.register(r'lead-overdues', LeadOverdueViewSet)
+router.register(r'notifications', NotificationViewSet)
 
 urlpatterns = [
     # IMPORTANT: Custom actions must be defined BEFORE including router.urls
@@ -38,6 +39,11 @@ urlpatterns = [
     path('leads/<uuid:pk>/update-profile/', LeadViewSet.as_view({'post': 'update_profile'}), name='lead-update-profile'),
     path('leads/<uuid:pk>/mark-overdue/', LeadViewSet.as_view({'post': 'mark_overdue'}), name='lead-mark-overdue'),
     path('leads/<uuid:pk>/resolve-overdue/', LeadViewSet.as_view({'post': 'resolve_overdue'}), name='lead-resolve-overdue'),
+    
+    # Notification endpoints
+    path('notifications/<uuid:pk>/mark-as-read/', NotificationViewSet.as_view({'post': 'mark_as_read'}), name='notification-mark-as-read'),
+    path('notifications/mark-all-as-read/', NotificationViewSet.as_view({'post': 'mark_all_as_read'}), name='notification-mark-all-as-read'),
+    path('notifications/unread-count/', NotificationViewSet.as_view({'get': 'unread_count'}), name='notification-unread-count'),
     
     # Include router URLs AFTER the custom actions
     path('', include(router.urls)),

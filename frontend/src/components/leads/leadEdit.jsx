@@ -53,6 +53,23 @@ const LeadEdit = () => {
     navigate('/dashboard/leads');
   };
   
+  // Function to create notification
+  const createLeadNotification = async (notificationData) => {
+    try {
+      const response = await api.post('/notifications/', {
+        ...notificationData,
+        status: 'unread',
+        read_at: null,
+        lead_activity: null,
+        lead_overdue: null
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error creating notification:', error);
+      throw error;
+    }
+  };
+  
   // Show loading state
   if (loading) {
     return (

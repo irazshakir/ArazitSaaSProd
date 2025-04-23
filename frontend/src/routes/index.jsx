@@ -103,6 +103,11 @@ import DevelopmentProjectIndex from '../components/developmentProjects/developme
 import DevelopmentProjectCreate from '../components/forms/products/developmentProjects/developmentProjectCreate';
 import DevelopmentProjectEdit from '../components/forms/products/developmentProjects/developmentProjectEdit';
 
+// General Products Pages
+import GeneralProductIndex from '../components/generalProduct/generalProductIndex';
+import GeneralProductCreate from '../components/generalProduct/generalProductCreate';
+import GeneralProductEdit from '../components/generalProduct/generalProductEdit';
+
 // Location Routing
 import LocationRoutingIndex from '../components/locationRouting/LocationRoutingIndex';
 
@@ -202,6 +207,11 @@ const AppRoutes = () => {
             <Route path="development-projects/create" element={<DevelopmentProjectCreate />} />
             <Route path="development-projects/:id/edit" element={<DevelopmentProjectEdit />} />
           </Route>
+          
+          {/* General Products Routes */}
+          <Route path="general-products" element={<GeneralProductIndex />} />
+          <Route path="general-products/create" element={<GeneralProductCreate />} />
+          <Route path="general-products/:id/edit" element={<GeneralProductEdit />} />
           
           {/* Location Routing Routes */}
           <Route path="location-routing" element={<LocationRoutingIndex />} />

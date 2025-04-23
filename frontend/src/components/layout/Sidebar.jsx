@@ -47,6 +47,7 @@ import {
   AccountBalance as AccountIcon,
   Message as MessageIcon,
   LocationOn as LocationIcon,
+  Category as CategoryIcon,
 } from '@mui/icons-material';
 
 const drawerWidth = 240;
@@ -103,9 +104,10 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
   const showImmigrationMenu = userIndustry === 'immigration';
   const showTravelTourismMenu = userIndustry === 'travel_tourism';
   const showRealEstateMenu = userIndustry === 'real_estate';
+  const showGeneralMenu = userIndustry === 'general';
 
   // Now define showIndustryMenus AFTER its dependent variables are declared
-  const showIndustryMenus = isAdmin && (showHajjUmrahMenu || showImmigrationMenu || showTravelTourismMenu || showRealEstateMenu);
+  const showIndustryMenus = isAdmin && (showHajjUmrahMenu || showImmigrationMenu || showTravelTourismMenu || showRealEstateMenu || showGeneralMenu);
 
   const handleMenuToggle = (menu) => {
     setOpenMenus(prev => ({
@@ -181,6 +183,11 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
   // Real Estate specific menu items
   const realEstateMenuItems = [
     { text: 'Development Projects', icon: <BusinessIcon />, path: '/dashboard/real-estate/development-projects' },
+  ];
+
+  // General Products menu items
+  const generalProductsMenuItems = [
+    { text: 'Products', icon: <CategoryIcon />, path: '/dashboard/general-products' },
   ];
 
   const renderMenuItems = (items) => {
@@ -786,6 +793,62 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
                 ))}
               </List>
             </Collapse>
+          </>
+        )}
+
+        {/* General Products Settings - Admin only */}
+        {isAdmin && showGeneralMenu && (
+          <>
+            <ListItem sx={{ pt: 2, pb: 1 }}>
+              <Typography 
+                variant="overline" 
+                color="text.secondary"
+                sx={{ 
+                  fontSize: '0.7rem', 
+                  fontWeight: 600,
+                  letterSpacing: '0.08em'
+                }}
+              >
+                GENERAL PRODUCTS
+              </Typography>
+            </ListItem>
+            <List component="div" disablePadding>
+              {generalProductsMenuItems.map((item) => (
+                <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
+                  <ListItemButton 
+                    onClick={() => navigate(item.path)}
+                    sx={{ 
+                      borderRadius: 1,
+                      '&:hover': {
+                        backgroundColor: 'rgba(157, 39, 124, 0.08)',
+                      },
+                      '&.Mui-selected': {
+                        backgroundColor: 'rgba(157, 39, 124, 0.16)',
+                        '&:hover': {
+                          backgroundColor: 'rgba(157, 39, 124, 0.24)',
+                        },
+                      },
+                    }}
+                    selected={location.pathname === item.path}
+                  >
+                    <ListItemIcon sx={{ 
+                      minWidth: 40,
+                      color: location.pathname === item.path ? '#9d277c' : 'inherit'
+                    }}>
+                      {item.icon}
+                    </ListItemIcon>
+                    <ListItemText 
+                      primary={item.text} 
+                      primaryTypographyProps={{ 
+                        fontSize: '0.8rem',
+                        fontWeight: location.pathname === item.path ? 600 : 400,
+                        color: location.pathname === item.path ? '#9d277c' : 'inherit'
+                      }}
+                    />
+                  </ListItemButton>
+                </ListItem>
+              ))}
+            </List>
           </>
         )}
       </List>

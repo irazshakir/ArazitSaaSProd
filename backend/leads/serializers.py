@@ -3,7 +3,7 @@ from users.serializers import UserSerializer, BranchSerializer
 from hajjPackages.serializers import HajjPackageSerializer
 from .models import (
     Lead, LeadActivity, LeadNote, LeadDocument, 
-    LeadEvent, LeadProfile, LeadOverdue
+    LeadEvent, LeadProfile, LeadOverdue, Notification
 )
 from django.utils import timezone
 
@@ -323,3 +323,28 @@ class LeadListSerializer(serializers.ModelSerializer):
                 'name': obj.branch.name
             }
         return None 
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    """Serializer for the Notification model."""
+    
+    user_details = UserSerializer(source='user', read_only=True)
+    lead_details = LeadSerializer(source='lead', read_only=True)
+    lead_activity_details = LeadActivitySerializer(source='lead_activity', read_only=True)
+    lead_overdue_details = LeadOverdueSerializer(source='lead_overdue', read_only=True)
+    
+    notification_type_display = serializers.CharField(source='get_notification_type_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    
+    class Meta:
+        model = Notification
+        fields = (
+            'id', 'tenant', 'user', 'user_details',
+            'notification_type', 'notification_type_display',
+            'title', 'message', 'status', 'status_display',
+            'lead', 'lead_details',
+            'lead_activity', 'lead_activity_details',
+            'lead_overdue', 'lead_overdue_details',
+            'created_at', 'read_at'
+        )
+        read_only_fields = ('id', 'created_at', 'read_at') 

@@ -152,6 +152,7 @@ class TenantUser(models.Model):
     INDUSTRY_IMMIGRATION = 'immigration'
     INDUSTRY_REAL_ESTATE = 'real_estate'
     INDUSTRY_ECOMMERCE = 'ecommerce'
+    INDUSTRY_GENERAL = 'general'
     
     INDUSTRY_CHOICES = [
         (INDUSTRY_HAJJ_UMRAH, 'Hajj and Umrah'),
@@ -159,6 +160,7 @@ class TenantUser(models.Model):
         (INDUSTRY_IMMIGRATION, 'Immigration Consultancy'),
         (INDUSTRY_REAL_ESTATE, 'Real Estate'),
         (INDUSTRY_ECOMMERCE, 'Ecommerce'),
+        (INDUSTRY_GENERAL, 'General'),
     ]
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='tenant_users')

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   AppBar,
@@ -13,7 +13,11 @@ import {
   InputBase,
   ListItemIcon,
   Tooltip,
-  Divider
+  Divider,
+  Card,
+  CardContent,
+  Slide,
+  Snackbar
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -23,10 +27,17 @@ import {
   Logout as LogoutIcon,
   Person as PersonIcon,
   Settings as SettingsIcon,
-  Help as HelpIcon
+  Help as HelpIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 import { styled, alpha } from '@mui/material/styles';
 import { authService } from '../../services/api';
+import NotificationCenter from '../universalComponents/NotificationCenter';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import { message } from 'antd';
+
+dayjs.extend(relativeTime);
 
 const drawerWidth = 240;
 
@@ -75,6 +86,10 @@ const Header = ({ mobileOpen, handleDrawerToggle, user }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [notificationsAnchorEl, setNotificationsAnchorEl] = useState(null);
   const [messagesAnchorEl, setMessagesAnchorEl] = useState(null);
+  const [popupNotification, setPopupNotification] = useState(null);
+  const [showPopup, setShowPopup] = useState(false);
+  const [notificationSound] = useState(new Audio('/notification-bell.mp3'));
+  const notificationRef = useRef(null);
 
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -103,6 +118,85 @@ const Header = ({ mobileOpen, handleDrawerToggle, user }) => {
   const handleLogout = () => {
     authService.logout();
     navigate('/login');
+  };
+
+  const handleNotificationClick = (notification) => {
+    console.log('Header received notification click:', notification);
+    
+    // Close any open menus
+    handleNotificationsMenuClose();
+    setPopupNotification(null);
+    
+    // Safety check for notification
+    if (!notification) {
+      console.error('Notification object is null or undefined');
+      return;
+    }
+    
+    // Handle navigation based on notification type
+    try {
+      switch (notification.notification_type) {
+        case 'lead_assigned':
+        case 'lead_overdue':
+          if (notification.lead && notification.lead.id) {
+            console.log(`Navigating to lead: ${notification.lead.id}`);
+            navigate(`/dashboard/leads/${notification.lead.id}`);
+          } else {
+            console.error('Lead ID not found in notification:', notification);
+            message.error('Could not navigate to lead: missing ID');
+          }
+          break;
+          
+        case 'activity_reminder':
+          if (notification.lead_activity && notification.lead_activity.lead && notification.lead_activity.lead.id) {
+            console.log(`Navigating to lead activity: ${notification.lead_activity.lead.id}`);
+            navigate(`/dashboard/leads/${notification.lead_activity.lead.id}`);
+          } else {
+            console.error('Lead activity or lead ID not found in notification:', notification);
+            message.error('Could not navigate to activity: missing lead ID');
+          }
+          break;
+          
+        case 'lead_transferred':
+          if (notification.lead && notification.lead.id) {
+            console.log(`Navigating to transferred lead: ${notification.lead.id}`);
+            navigate(`/dashboard/leads/${notification.lead.id}`);
+          } else {
+            console.error('Lead ID not found in transferred notification:', notification);
+            message.error('Could not navigate to transferred lead: missing ID');
+          }
+          break;
+          
+        default:
+          console.log(`Unknown notification type: ${notification.notification_type}`);
+          break;
+      }
+    } catch (error) {
+      console.error('Error handling notification navigation:', error);
+      message.error('Failed to navigate to the appropriate page');
+    }
+  };
+
+  const handleNewNotification = (notification) => {
+    console.log('New notification received:', notification);
+    
+    // Play notification sound
+    notificationSound.play().catch(error => console.error('Error playing sound:', error));
+    
+    // Show popup notification
+    setPopupNotification(notification);
+    setShowPopup(true);
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+      setPopupNotification(null);
+      setShowPopup(false);
+    }, 5000);
+  };
+
+  // Function to handle popup close
+  const handlePopupClose = () => {
+    setShowPopup(false);
   };
 
   return (
@@ -143,17 +237,10 @@ const Header = ({ mobileOpen, handleDrawerToggle, user }) => {
             </IconButton>
           </Tooltip>
           
-          <Tooltip title="Notifications">
-            <IconButton
-              color="inherit"
-              onClick={handleNotificationsMenuOpen}
-              size="large"
-            >
-              <Badge badgeContent={17} color="error">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
-          </Tooltip>
+          <NotificationCenter 
+            onNewNotification={handleNewNotification} 
+            onClick={handleNotificationClick}
+          />
           
           <Tooltip title="Account">
             <IconButton
@@ -235,78 +322,6 @@ const Header = ({ mobileOpen, handleDrawerToggle, user }) => {
         </MenuItem>
       </Menu>
       
-      {/* Notifications Menu */}
-      <Menu
-        anchorEl={notificationsAnchorEl}
-        id="notifications-menu"
-        open={Boolean(notificationsAnchorEl)}
-        onClose={handleNotificationsMenuClose}
-        onClick={handleNotificationsMenuClose}
-        PaperProps={{
-          elevation: 0,
-          sx: {
-            overflow: 'visible',
-            filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.1))',
-            mt: 1.5,
-            width: 320,
-          },
-        }}
-        transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-        anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-      >
-        <Box sx={{ p: 2 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-            Notifications
-          </Typography>
-        </Box>
-        <Divider />
-        <MenuItem>
-          <Box sx={{ py: 0.5 }}>
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-              New user registered
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-              2 minutes ago
-            </Typography>
-          </Box>
-        </MenuItem>
-        <MenuItem>
-          <Box sx={{ py: 0.5 }}>
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-              New message received
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-              1 hour ago
-            </Typography>
-          </Box>
-        </MenuItem>
-        <MenuItem>
-          <Box sx={{ py: 0.5 }}>
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-              Server error reported
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.75rem' }}>
-              2 hours ago
-            </Typography>
-          </Box>
-        </MenuItem>
-        <Divider />
-        <Box sx={{ p: 1, textAlign: 'center' }}>
-          <Typography 
-            variant="body2" 
-            color="primary" 
-            sx={{ 
-              cursor: 'pointer', 
-              fontWeight: 500,
-              '&:hover': { textDecoration: 'underline' }
-            }}
-            onClick={() => navigate('/dashboard/notifications')}
-          >
-            View all notifications
-          </Typography>
-        </Box>
-      </Menu>
-      
       {/* Messages Menu */}
       <Menu
         anchorEl={messagesAnchorEl}
@@ -378,6 +393,51 @@ const Header = ({ mobileOpen, handleDrawerToggle, user }) => {
           </Typography>
         </Box>
       </Menu>
+      
+      {/* Popup Notification */}
+      <Snackbar
+        open={!!popupNotification && showPopup}
+        autoHideDuration={6000}
+        onClose={handlePopupClose}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        TransitionComponent={Slide}
+      >
+        <Card 
+          sx={{ 
+            minWidth: 300,
+            maxWidth: 400,
+            backgroundColor: '#fff',
+            boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)',
+            borderRadius: '8px'
+          }}
+          onClick={() => handleNotificationClick(popupNotification)}
+        >
+          <CardContent>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <Box>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                  {popupNotification?.title}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {popupNotification?.message}
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                  {dayjs(popupNotification?.created_at).fromNow()}
+                </Typography>
+              </Box>
+              <IconButton 
+                size="small" 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handlePopupClose();
+                }}
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          </CardContent>
+        </Card>
+      </Snackbar>
     </AppBar>
   );
 };
