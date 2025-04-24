@@ -142,7 +142,7 @@ class LeadViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         """
         Filter queryset to only show leads from tenants the user has access to.
-        Also applies any additional filters from query parameters.
+        Also applies role-based filtering and additional filters from query parameters.
         """
         user = self.request.user
         queryset = super().get_queryset()
@@ -150,6 +150,44 @@ class LeadViewSet(viewsets.ModelViewSet):
         # Filter by tenant access
         accessible_tenants = user.tenant_users.values_list('tenant_id', flat=True)
         queryset = queryset.filter(tenant_id__in=accessible_tenants)
+
+        # Apply role-based filtering
+        if user.role == 'admin':
+            # Admin sees all leads in their tenant(s)
+            pass  # No additional filtering needed
+        elif user.role == 'department_head':
+            # Department head sees all leads in their department
+            if user.department_id:
+                queryset = queryset.filter(department_id=user.department_id)
+        elif user.role == 'manager':
+            # Manager sees leads for their teams
+            # First, find teams they manage
+            managed_teams = TeamManager.objects.filter(manager=user).values_list('team_id', flat=True)
+            
+            # Find team leads under those teams
+            team_leads = TeamLead.objects.filter(team_id__in=managed_teams).values_list('team_lead_id', flat=True)
+            
+            # Find team members under those team leads
+            team_members = TeamMember.objects.filter(team_lead__team_lead_id__in=team_leads).values_list('member_id', flat=True)
+            
+            # Return leads assigned to any of these users (or the manager themselves)
+            queryset = queryset.filter(
+                Q(assigned_to=user) | 
+                Q(assigned_to_id__in=team_leads) |
+                Q(assigned_to_id__in=team_members)
+            )
+        elif user.role == 'team_lead':
+            # Team lead sees leads for their team members
+            team_members = TeamMember.objects.filter(team_lead__team_lead=user).values_list('member_id', flat=True)
+            
+            # Return leads assigned to any of these members (or the team lead themselves)
+            queryset = queryset.filter(
+                Q(assigned_to=user) | 
+                Q(assigned_to_id__in=team_members)
+            )
+        elif user.role in ['sales_agent', 'support_agent', 'processor']:
+            # These roles only see leads assigned to them
+            queryset = queryset.filter(assigned_to=user)
 
         # Apply status filter if provided
         status = self.request.query_params.get('status', None)
@@ -750,72 +788,110 @@ class LeadViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         """Override update method to handle department changes when assigned_to changes."""
-        # Get the lead object
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
         
+        # Create a mutable copy of the request data
+        data = request.data.copy()
+        
         # Check if we're updating assigned_to
-        assigned_to_id = request.data.get('assigned_to')
+        assigned_to_id = data.get('assigned_to')
         if assigned_to_id and str(instance.assigned_to_id) != str(assigned_to_id):
             print(f"Lead reassignment detected via update. Old: {instance.assigned_to_id}, New: {assigned_to_id}")
             
             try:
-                # Get the new assigned user
+                # Get the new user
                 new_user = User.objects.get(id=assigned_to_id)
                 
-                # Check if we need to update the department
+                # Update the lead's department to match the new user's department
                 if new_user.department_id:
-                    # Store old department for logging
-                    old_department = instance.department
+                    data['department'] = str(new_user.department_id)
+                
+                # Add a note about the reassignment and department change
+                note_text = f"Lead reassigned to {new_user.get_full_name() or new_user.email}"
+                if new_user.department:
+                    note_text += f" and moved to {new_user.department.name} department"
+                
+                # Check if we need to update the branch
+                if new_user.branch_id:
+                    # Update the lead's branch to match the new user's branch
+                    data['branch'] = str(new_user.branch_id)
                     
-                    # Update the lead's department to match the new user's department
-                    request.data['department'] = str(new_user.department_id)
-                    
-                    # Add a note about the reassignment and department change
-                    note_text = f"Lead reassigned to {new_user.get_full_name() or new_user.email} and moved to {new_user.department.name} department"
-                    
-                    # Check if we need to update the branch
-                    if new_user.branch_id:
-                        old_branch = instance.branch
-                        
-                        # Update the lead's branch to match the new user's branch
-                        request.data['branch'] = str(new_user.branch_id)
-                        
-                        # Add branch information to the note
+                    # Add branch information to the note
+                    if new_user.branch:
                         note_text += f" and assigned to {new_user.branch.name} branch"
-                    
+                
+                try:
                     LeadNote.objects.create(
                         lead=instance,
                         tenant=instance.tenant,
                         added_by=request.user,
                         note=note_text
                     )
+                except Exception as e:
+                    print(f"Error creating lead note: {str(e)}")
+                    # Continue with the update even if note creation fails
+                    pass
+
+                # Create notification for the newly assigned user
+                try:
+                    Notification.objects.create(
+                        tenant=instance.tenant,
+                        user=new_user,
+                        notification_type=Notification.TYPE_LEAD_ASSIGNED,
+                        title=f"Lead Assigned: {instance.name}",
+                        message=f"A lead has been assigned to you: {instance.name}",
+                        lead=instance
+                    )
+                    print(f"Created notification for user {new_user.id} for lead {instance.id}")
+                except Exception as e:
+                    print(f"Error creating notification: {str(e)}")
+                    # Continue with the update even if notification creation fails
+                    pass
+                    
             except User.DoesNotExist:
                 print(f"Warning: Couldn't find user with ID {assigned_to_id}")
+                # Don't update department/branch if user doesn't exist
+                pass
         
-        # Continue with normal update
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        # Continue with normal update using the modified data
+        serializer = self.get_serializer(instance, data=data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-
+        
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+        
         return Response(serializer.data)
 
     def perform_update(self, serializer):
         """Custom update logic to ensure department alignment with assigned user."""
-        # Get the assigned_to value from validated data
-        assigned_to = serializer.validated_data.get('assigned_to')
-        
-        # If assigned_to is being updated, make sure department matches
-        if assigned_to:
-            if hasattr(assigned_to, 'department') and assigned_to.department and not serializer.validated_data.get('department'):
-                serializer.validated_data['department'] = assigned_to.department
+        try:
+            # Get the assigned_to value from validated data
+            assigned_to = serializer.validated_data.get('assigned_to')
             
-            # Also make sure branch matches
-            if hasattr(assigned_to, 'branch') and assigned_to.branch and not serializer.validated_data.get('branch'):
-                serializer.validated_data['branch'] = assigned_to.branch
-        
-        # Ensure tenant is preserved
-        serializer.save(tenant=self.request.user.tenant)
+            # If we're updating assigned_to, ensure department and branch alignment
+            if assigned_to:
+                if assigned_to.department:
+                    serializer.validated_data['department'] = assigned_to.department
+                if assigned_to.branch:
+                    serializer.validated_data['branch'] = assigned_to.branch
+            
+            # Get the tenant from the user's tenant_users relationship
+            tenant = self.request.user.tenant_users.first().tenant if self.request.user.tenant_users.exists() else None
+            
+            if tenant:
+                serializer.save(tenant=tenant)
+            else:
+                # If no tenant found, just save without updating tenant
+                serializer.save()
+                
+        except Exception as e:
+            print(f"Error in perform_update: {str(e)}")
+            # Re-raise the exception to be handled by DRF
+            raise
 
     @action(detail=True, methods=['get'])
     def get_activities(self, request, pk=None):
