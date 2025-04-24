@@ -8,31 +8,33 @@ from .models import (
 from django.utils import timezone
 from generalProduct.models import GeneralProduct
 
-class LeadActivitySerializer(serializers.ModelSerializer):
-    """Serializer for the LeadActivity model."""
+# First define serializers with no dependencies
+class LeadListSerializer(serializers.ModelSerializer):
+    """Simplified serializer for listing leads."""
     
-    user_details = UserSerializer(source='user', read_only=True)
+    assigned_to_details = UserSerializer(source='assigned_to', read_only=True)
+    lead_type_display = serializers.CharField(source='get_lead_type_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    source_display = serializers.CharField(source='get_source_display', read_only=True)
+    branch_details = serializers.SerializerMethodField()
     
     class Meta:
-        model = LeadActivity
+        model = Lead
         fields = (
-            'id', 'lead', 'tenant', 'user', 'user_details', 
-            'activity_type', 'description', 'due_date',
-            'created_at', 'updated_at'
+            'id', 'name', 'email', 'phone', 'whatsapp',
+            'lead_type', 'lead_type_display', 'status', 'status_display',
+            'source', 'source_display', 'lead_activity_status',
+            'assigned_to_details', 'created_at', 'next_follow_up',
+            'branch', 'branch_details'
         )
-        read_only_fields = ('id', 'created_at', 'updated_at')
-    
-    def create(self, validated_data):
-        # Ensure the lead is provided
-        if 'lead' not in validated_data:
-            raise serializers.ValidationError({'lead': 'Lead ID is required'})
-            
-        # Set the user to the current user
-        validated_data['user'] = self.context['request'].user
-        # Set the tenant to the lead's tenant
-        validated_data['tenant'] = validated_data['lead'].tenant
-        return super().create(validated_data)
 
+    def get_branch_details(self, obj):
+        if obj.branch:
+            return {
+                'id': obj.branch.id,
+                'name': obj.branch.name
+            }
+        return None
 
 class LeadNoteSerializer(serializers.ModelSerializer):
     """Serializer for the LeadNote model."""
@@ -48,13 +50,10 @@ class LeadNoteSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'timestamp', 'added_by')
     
     def create(self, validated_data):
-        # Set the added_by to the current user
         validated_data['added_by'] = self.context['request'].user
-        # Set the tenant to the lead's tenant
         if 'lead' in validated_data and not 'tenant' in validated_data:
             validated_data['tenant'] = validated_data['lead'].tenant
         return super().create(validated_data)
-
 
 class LeadDocumentSerializer(serializers.ModelSerializer):
     """Serializer for the LeadDocument model."""
@@ -70,13 +69,10 @@ class LeadDocumentSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'timestamp', 'uploaded_by')
     
     def create(self, validated_data):
-        # Set the uploaded_by to the current user
         validated_data['uploaded_by'] = self.context['request'].user
-        # Set the tenant to the lead's tenant
         if 'lead' in validated_data and not 'tenant' in validated_data:
             validated_data['tenant'] = validated_data['lead'].tenant
         return super().create(validated_data)
-
 
 class LeadEventSerializer(serializers.ModelSerializer):
     """Serializer for the LeadEvent model."""
@@ -93,13 +89,57 @@ class LeadEventSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'timestamp', 'updated_by')
     
     def create(self, validated_data):
-        # Set the updated_by to the current user
         validated_data['updated_by'] = self.context['request'].user
-        # Set the tenant to the lead's tenant
         if 'lead' in validated_data and not 'tenant' in validated_data:
             validated_data['tenant'] = validated_data['lead'].tenant
         return super().create(validated_data)
 
+class LeadActivitySerializer(serializers.ModelSerializer):
+    """Serializer for the LeadActivity model."""
+    
+    user_details = UserSerializer(source='user', read_only=True)
+    lead_details = serializers.SerializerMethodField()
+    due_date_formatted = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = LeadActivity
+        fields = (
+            'id', 'lead', 'tenant', 'user', 'user_details', 'lead_details',
+            'activity_type', 'description', 'due_date', 'due_date_formatted',
+            'created_at', 'updated_at'
+        )
+        read_only_fields = ('id', 'created_at', 'updated_at', 'user', 'tenant')
+    
+    def get_due_date_formatted(self, obj):
+        """Return formatted due date."""
+        if obj.due_date:
+            return obj.due_date.strftime('%d/%b/%Y %H:%M')
+        return None
+    
+    def get_lead_details(self, obj):
+        """Get simplified lead details to avoid circular imports."""
+        if obj.lead:
+            return {
+                'id': obj.lead.id,
+                'name': obj.lead.name,
+                'phone': obj.lead.phone,
+                'email': obj.lead.email,
+                'status': obj.lead.status,
+                'status_display': obj.lead.get_status_display(),
+                'lead_type': obj.lead.lead_type,
+                'lead_type_display': obj.lead.get_lead_type_display()
+            }
+        return None
+    
+    def create(self, validated_data):
+        if 'lead' not in validated_data:
+            raise serializers.ValidationError({'lead': 'Lead ID is required'})
+        
+        # These will be set in perform_create of the viewset
+        validated_data.pop('user', None)
+        validated_data.pop('tenant', None)
+        
+        return super().create(validated_data)
 
 class LeadProfileSerializer(serializers.ModelSerializer):
     """Serializer for the LeadProfile model."""
@@ -117,11 +157,9 @@ class LeadProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'created_at', 'updated_at', 'overall_score')
     
     def create(self, validated_data):
-        # Set the tenant to the lead's tenant
         if 'lead' in validated_data and not 'tenant' in validated_data:
             validated_data['tenant'] = validated_data['lead'].tenant
         return super().create(validated_data)
-
 
 class LeadOverdueSerializer(serializers.ModelSerializer):
     """Serializer for the LeadOverdue model."""
@@ -136,7 +174,7 @@ class LeadOverdueSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ('id', 'timestamp')
 
-
+# Finally define LeadSerializer after all other serializers
 class LeadSerializer(serializers.ModelSerializer):
     """Serializer for the Lead model."""
     
@@ -158,10 +196,7 @@ class LeadSerializer(serializers.ModelSerializer):
     
     department_details = serializers.SerializerMethodField()
     branch_details = serializers.SerializerMethodField()
-    
-    # Add development_project field
     development_project = serializers.CharField(required=False, allow_null=True)
-    
     general_product_name = serializers.SerializerMethodField()
     
     class Meta:
@@ -179,154 +214,11 @@ class LeadSerializer(serializers.ModelSerializer):
             'general_product_name'
         )
         read_only_fields = ('id', 'created_at', 'updated_at', 'created_by')
-    
+
     def get_general_product_name(self, obj):
         if obj.general_product:
             return obj.general_product.productName
         return None
-
-    def validate(self, data):
-        # Get the tenant from the context
-        tenant = self.context.get('tenant')
-        if not tenant:
-            raise serializers.ValidationError("Tenant information is required")
-        
-        lead_type = data.get('lead_type')
-        if not lead_type:
-            raise serializers.ValidationError("Lead type is required")
-
-        # Check if it's a predefined lead type
-        predefined_types = dict(Lead.TYPE_CHOICES)
-        if lead_type in predefined_types:
-            return data
-
-        # If not a predefined type, try to find matching general product
-        try:
-            product = GeneralProduct.objects.filter(
-                tenant=tenant,
-                productName__iexact=lead_type.replace('_', ' ')
-            ).first()
-            
-            if product:
-                data['general_product'] = product
-            else:
-                raise serializers.ValidationError(
-                    f"Invalid lead type '{lead_type}'. Must be either a predefined type or match a general product."
-                )
-        except Exception as e:
-            raise serializers.ValidationError(f"Error validating lead type: {str(e)}")
-
-        return data
-
-    def create(self, validated_data):
-        # If this is a general product lead, ensure the relationship is set
-        lead_type = validated_data.get('lead_type')
-        if lead_type not in dict(Lead.TYPE_CHOICES):
-            # The general_product should have been set in validate()
-            if 'general_product' not in validated_data:
-                raise serializers.ValidationError(
-                    "General product reference is required for custom lead types"
-                )
-
-        # Set the created_by field to the current user
-        validated_data['created_by'] = self.context['request'].user
-        
-        # Create the lead
-        lead = super().create(validated_data)
-        
-        # Create an initial open event
-        LeadEvent.objects.create(
-            lead=lead,
-            tenant=lead.tenant,
-            event_type=LeadEvent.EVENT_OPEN,
-            updated_by=self.context['request'].user
-        )
-        
-        return lead
-        
-    def update(self, instance, validated_data):
-        """
-        Override update method to ensure we properly track user for lead events
-        """
-        request = self.context.get('request')
-        user = request.user if request else None
-        
-        # Store the current status and activity status before updating
-        original_status = instance.status
-        original_activity_status = instance.lead_activity_status
-        
-        # Update the instance with all validated data
-        lead = super().update(instance, validated_data)
-        
-        # Check for status changes that require events to be created manually
-        # This will be a fallback in case the model's save method didn't capture it
-        # or we need to use the request's user instead of assigned_to/created_by
-        
-        # Status change to won
-        if original_status != lead.status and lead.status == lead.STATUS_WON and user:
-            existing_event = LeadEvent.objects.filter(
-                lead=lead,
-                event_type=LeadEvent.EVENT_WON,
-                timestamp__gte=timezone.now() - timezone.timedelta(minutes=1)
-            ).exists()
-            
-            if not existing_event:
-                LeadEvent.objects.create(
-                    lead=lead,
-                    tenant=lead.tenant,
-                    event_type=LeadEvent.EVENT_WON,
-                    updated_by=user
-                )
-                
-        # Status change to lost
-        elif original_status != lead.status and lead.status == lead.STATUS_LOST and user:
-            existing_event = LeadEvent.objects.filter(
-                lead=lead,
-                event_type=LeadEvent.EVENT_LOST,
-                timestamp__gte=timezone.now() - timezone.timedelta(minutes=1)
-            ).exists()
-            
-            if not existing_event:
-                LeadEvent.objects.create(
-                    lead=lead,
-                    tenant=lead.tenant,
-                    event_type=LeadEvent.EVENT_LOST,
-                    updated_by=user
-                )
-                
-        # Activity status change to inactive
-        if original_activity_status != lead.lead_activity_status and lead.lead_activity_status == lead.ACTIVITY_STATUS_INACTIVE and user:
-            existing_event = LeadEvent.objects.filter(
-                lead=lead,
-                event_type=LeadEvent.EVENT_CLOSED,
-                timestamp__gte=timezone.now() - timezone.timedelta(minutes=1)
-            ).exists()
-            
-            if not existing_event:
-                LeadEvent.objects.create(
-                    lead=lead,
-                    tenant=lead.tenant,
-                    event_type=LeadEvent.EVENT_CLOSED,
-                    updated_by=user
-                )
-                
-        # Activity status change from inactive to active
-        elif original_activity_status != lead.lead_activity_status and lead.lead_activity_status == lead.ACTIVITY_STATUS_ACTIVE and user:
-            existing_event = LeadEvent.objects.filter(
-                lead=lead,
-                event_type=LeadEvent.EVENT_REOPENED,
-                timestamp__gte=timezone.now() - timezone.timedelta(minutes=1)
-            ).exists()
-            
-            if not existing_event:
-                LeadEvent.objects.create(
-                    lead=lead,
-                    tenant=lead.tenant,
-                    event_type=LeadEvent.EVENT_REOPENED,
-                    updated_by=user
-                )
-                
-        return lead
 
     def get_department_details(self, obj):
         if obj.department:
@@ -343,38 +235,6 @@ class LeadSerializer(serializers.ModelSerializer):
                 'name': obj.branch.name
             }
         return None
-
-
-class LeadListSerializer(serializers.ModelSerializer):
-    """Simplified serializer for listing leads."""
-    
-    assigned_to_details = UserSerializer(source='assigned_to', read_only=True)
-    lead_type_display = serializers.CharField(source='get_lead_type_display', read_only=True)
-    status_display = serializers.CharField(source='get_status_display', read_only=True)
-    source_display = serializers.CharField(source='get_source_display', read_only=True)
-    branch_details = serializers.SerializerMethodField()
-    
-    class Meta:
-        model = Lead
-        fields = (
-            'id', 'name', 'email', 'phone', 'whatsapp',
-            'lead_type', 'lead_type_display', 'status', 'status_display',
-            'source', 'source_display', 'lead_activity_status',
-            'assigned_to_details', 'created_at', 'next_follow_up',
-            'branch', 'branch_details'
-        ) 
-
-    def get_full_name(self, obj):
-        return obj.name  # Use name directly instead of combining first_name and last_name
-        
-    def get_branch_details(self, obj):
-        if obj.branch:
-            return {
-                'id': obj.branch.id,
-                'name': obj.branch.name
-            }
-        return None 
-
 
 class NotificationSerializer(serializers.ModelSerializer):
     """Serializer for the Notification model."""

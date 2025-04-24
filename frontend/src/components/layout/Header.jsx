@@ -225,7 +225,8 @@ const Header = ({ mobileOpen, handleDrawerToggle, user }) => {
         <Box sx={{ flexGrow: 1 }} />
         
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Tooltip title="Messages">
+          {/* Commenting out Messages icon for now */}
+          {/* <Tooltip title="Messages">
             <IconButton 
               color="inherit" 
               onClick={handleMessagesMenuOpen}
@@ -235,11 +236,13 @@ const Header = ({ mobileOpen, handleDrawerToggle, user }) => {
                 <MailIcon />
               </Badge>
             </IconButton>
-          </Tooltip>
+          </Tooltip> */}
+         
           
           <NotificationCenter 
             onNewNotification={handleNewNotification} 
             onClick={handleNotificationClick}
+            sx={{ '& .MuiSvgIcon-root': { fontSize: '28px' } }}  
           />
           
           <Tooltip title="Account">

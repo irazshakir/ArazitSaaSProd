@@ -11,6 +11,8 @@ import uuid
 import json
 from datetime import timedelta
 from django.db import transaction
+from django.utils.dateparse import parse_datetime
+from django_filters.rest_framework import DjangoFilterBackend
 
 from users.models import User, Department, Tenant
 from .models import (
@@ -1269,26 +1271,81 @@ class LeadActivityViewSet(viewsets.ModelViewSet):
     queryset = LeadActivity.objects.all()
     serializer_class = LeadActivitySerializer
     permission_classes = [permissions.IsAuthenticated]
-    
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter, DjangoFilterBackend]
+    search_fields = ['description', 'lead__name', 'lead__phone']
+    ordering_fields = ['due_date', 'created_at']
+    ordering = ['due_date']  # Default ordering
+    filterset_fields = ['tenant', 'lead', 'activity_type']
+    pagination_class = LeadPagination  # Use the same pagination as LeadViewSet
+
     def get_queryset(self):
         """
-        This view should return activities for leads in the user's tenant,
-        filtered by lead ID if provided.
+        Filter queryset to only show activities from tenants the user has access to.
         """
         user = self.request.user
         tenant_ids = user.tenant_users.values_list('tenant', flat=True)
-        queryset = LeadActivity.objects.filter(tenant__in=tenant_ids)
-        
-        # Filter by lead ID if provided in query params
-        lead_id = self.request.query_params.get('lead')
-        if lead_id:
-            queryset = queryset.filter(lead_id=lead_id)
-            
-        return queryset.order_by('-created_at')  # Most recent first
-    
+        queryset = super().get_queryset().filter(tenant_id__in=tenant_ids)
+
+        # Apply role-based filtering similar to LeadViewSet
+        if user.role == 'admin':
+            # Admin sees all activities in their tenant(s)
+            pass
+        elif user.role == 'department_head':
+            # Department head sees activities in their department
+            if user.department_id:
+                queryset = queryset.filter(lead__department_id=user.department_id)
+        elif user.role == 'manager':
+            # Manager sees activities for their teams
+            managed_teams = TeamManager.objects.filter(manager=user).values_list('team_id', flat=True)
+            team_leads = TeamLead.objects.filter(team_id__in=managed_teams).values_list('team_lead_id', flat=True)
+            team_members = TeamMember.objects.filter(team_lead__team_lead_id__in=team_leads).values_list('member_id', flat=True)
+            queryset = queryset.filter(
+                Q(user=user) | 
+                Q(user_id__in=team_leads) |
+                Q(user_id__in=team_members)
+            )
+        elif user.role == 'team_lead':
+            # Team lead sees activities for their team members
+            team_members = TeamMember.objects.filter(team_lead__team_lead=user).values_list('member_id', flat=True)
+            queryset = queryset.filter(
+                Q(user=user) | 
+                Q(user_id__in=team_members)
+            )
+        else:
+            # Other roles only see their own activities
+            queryset = queryset.filter(user=user)
+
+        # Apply date range filters if provided
+        due_date_after = self.request.query_params.get('due_date_after')
+        due_date_before = self.request.query_params.get('due_date_before')
+
+        if due_date_after:
+            try:
+                due_date_after = parse_datetime(due_date_after)
+                if due_date_after:
+                    queryset = queryset.filter(due_date__gte=due_date_after)
+            except (ValueError, TypeError):
+                pass
+
+        if due_date_before:
+            try:
+                due_date_before = parse_datetime(due_date_before)
+                if due_date_before:
+                    queryset = queryset.filter(due_date__lte=due_date_before)
+            except (ValueError, TypeError):
+                pass
+
+        return queryset.select_related('tenant', 'lead', 'user')
+
     def perform_create(self, serializer):
-        """Set the user to the current user."""
-        serializer.save(user=self.request.user)
+        """Ensure proper tenant and user assignment on creation."""
+        user = self.request.user
+        tenant = user.tenant_users.first().tenant if user.tenant_users.exists() else None
+        
+        if not tenant:
+            raise serializers.ValidationError({"tenant": "User must belong to at least one tenant"})
+            
+        serializer.save(tenant=tenant, user=user)
 
 
 class LeadNoteViewSet(viewsets.ModelViewSet):
