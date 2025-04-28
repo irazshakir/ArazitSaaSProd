@@ -64,7 +64,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
   const cannedMessagesRef = useRef(null);
   const inputRef = useRef(null);
   const [currentChatId, setCurrentChatId] = useState(null);
-  const lastProcessedRefreshTime = useRef(0);
 
   // Update noApiConfigured state when parent prop changes
   useEffect(() => {
@@ -140,7 +139,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
     });
   };
 
-  // Remove auto-refresh effect
+  // Remove auto-refresh effect and replace with a simpler effect to fetch messages when chat changes
   useEffect(() => {
     if (activeChat?.id && activeChat.id !== currentChatId) {
       setCurrentChatId(activeChat.id);
@@ -434,6 +433,11 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
     }
   };
 
+  // Add manual refresh function
+  const handleManualRefresh = () => {
+    fetchMessages();
+  };
+
   const handleImageSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -584,10 +588,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
     } finally {
       setSending(false);
     }
-  };
-
-  const handleManualRefresh = () => {
-    fetchMessages();
   };
 
   // Filter canned messages based on user input

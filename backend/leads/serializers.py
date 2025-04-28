@@ -108,7 +108,7 @@ class LeadActivitySerializer(serializers.ModelSerializer):
             'activity_type', 'description', 'due_date', 'due_date_formatted',
             'created_at', 'updated_at'
         )
-        read_only_fields = ('id', 'created_at', 'updated_at', 'user', 'tenant')
+        read_only_fields = ('id', 'created_at', 'updated_at')
     
     def get_due_date_formatted(self, obj):
         """Return formatted due date."""
@@ -135,9 +135,11 @@ class LeadActivitySerializer(serializers.ModelSerializer):
         if 'lead' not in validated_data:
             raise serializers.ValidationError({'lead': 'Lead ID is required'})
         
-        # These will be set in perform_create of the viewset
-        validated_data.pop('user', None)
-        validated_data.pop('tenant', None)
+        if 'tenant' not in validated_data and 'lead' in validated_data:
+            validated_data['tenant'] = validated_data['lead'].tenant
+            
+        if 'user' not in validated_data and self.context.get('request'):
+            validated_data['user'] = self.context['request'].user
         
         return super().create(validated_data)
 
@@ -174,7 +176,6 @@ class LeadOverdueSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ('id', 'timestamp')
 
-# Finally define LeadSerializer after all other serializers
 class LeadSerializer(serializers.ModelSerializer):
     """Serializer for the Lead model."""
     
@@ -182,13 +183,11 @@ class LeadSerializer(serializers.ModelSerializer):
     assigned_to_details = UserSerializer(source='assigned_to', read_only=True)
     hajj_package_details = HajjPackageSerializer(source='hajj_package', read_only=True)
     
-    # Related data
     activities = LeadActivitySerializer(many=True, read_only=True)
     notes = LeadNoteSerializer(many=True, read_only=True)
     documents = LeadDocumentSerializer(many=True, read_only=True)
     events = LeadEventSerializer(many=True, read_only=True)
     
-    # Display fields
     lead_type_display = serializers.CharField(source='get_lead_type_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     source_display = serializers.CharField(source='get_source_display', read_only=True)

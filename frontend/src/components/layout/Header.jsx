@@ -121,15 +121,12 @@ const Header = ({ mobileOpen, handleDrawerToggle, user }) => {
   };
 
   const handleNotificationClick = (notification) => {
-    console.log('Header received notification click:', notification);
-    
     // Close any open menus
     handleNotificationsMenuClose();
     setPopupNotification(null);
     
     // Safety check for notification
     if (!notification) {
-      console.error('Notification object is null or undefined');
       return;
     }
     
@@ -139,49 +136,39 @@ const Header = ({ mobileOpen, handleDrawerToggle, user }) => {
         case 'lead_assigned':
         case 'lead_overdue':
           if (notification.lead && notification.lead.id) {
-            console.log(`Navigating to lead: ${notification.lead.id}`);
             navigate(`/dashboard/leads/${notification.lead.id}`);
           } else {
-            console.error('Lead ID not found in notification:', notification);
             message.error('Could not navigate to lead: missing ID');
           }
           break;
           
         case 'activity_reminder':
           if (notification.lead_activity && notification.lead_activity.lead && notification.lead_activity.lead.id) {
-            console.log(`Navigating to lead activity: ${notification.lead_activity.lead.id}`);
             navigate(`/dashboard/leads/${notification.lead_activity.lead.id}`);
           } else {
-            console.error('Lead activity or lead ID not found in notification:', notification);
             message.error('Could not navigate to activity: missing lead ID');
           }
           break;
           
         case 'lead_transferred':
           if (notification.lead && notification.lead.id) {
-            console.log(`Navigating to transferred lead: ${notification.lead.id}`);
             navigate(`/dashboard/leads/${notification.lead.id}`);
           } else {
-            console.error('Lead ID not found in transferred notification:', notification);
             message.error('Could not navigate to transferred lead: missing ID');
           }
           break;
           
         default:
-          console.log(`Unknown notification type: ${notification.notification_type}`);
           break;
       }
     } catch (error) {
-      console.error('Error handling notification navigation:', error);
       message.error('Failed to navigate to the appropriate page');
     }
   };
 
   const handleNewNotification = (notification) => {
-    console.log('New notification received:', notification);
-    
     // Play notification sound
-    notificationSound.play().catch(error => console.error('Error playing sound:', error));
+    notificationSound.play().catch(error => {});
     
     // Show popup notification
     setPopupNotification(notification);

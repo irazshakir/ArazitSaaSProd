@@ -1,116 +1,60 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Typography, Spin, Alert, Space, Breadcrumb, message } from 'antd';
+import { Typography, Spin, Alert, Space, Breadcrumb, message, Form } from 'antd';
 import { HomeOutlined, UserOutlined } from '@ant-design/icons';
 import api from '../../services/api';
 import UserForm from './userForm';
+import axios from 'axios';
 
 /**
  * Container component for editing existing users
  */
 const UserEdit = () => {
-  const navigate = useNavigate();
   const { id } = useParams();
-  const [userData, setUserData] = useState(null);
-  const [departments, setDepartments] = useState([]);
+  const navigate = useNavigate();
+  const [form] = Form.useForm();
   const [loading, setLoading] = useState(true);
+  const [initialData, setInitialData] = useState(null);
+  const [departments, setDepartments] = useState([]);
   const [error, setError] = useState(null);
   
   // Fetch user data and departments
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchUser = async () => {
       try {
-        setLoading(true);
-        
-        // Variables to store responses
-        let userResponse = null;
-        let departmentsResponse = null;
-        let userErrorMessages = [];
-        let departmentsErrorMessages = [];
-        
-        // Fetch user data with fallback endpoints
-        try {
-          // Try main users endpoint first
-          userResponse = await api.get(`users/${id}/`);
-          console.log('Main users API success:', userResponse);
-        } catch (error) {
-          userErrorMessages.push(`Main endpoint error: ${error.message}`);
-          console.log('Main users API failed, trying fallback');
-          
-          // Try auth endpoint
-          try {
-            userResponse = await api.get(`auth/users/${id}/`);
-            console.log('Auth users API success:', userResponse);
-          } catch (error2) {
-            userErrorMessages.push(`Auth endpoint error: ${error2.message}`);
-            console.log('Auth users API failed, trying admin endpoint');
-            
-            // Try admin endpoint as last resort
-            try {
-              userResponse = await api.get(`admin/users/${id}/`);
-              console.log('Admin users API success:', userResponse);
-            } catch (error3) {
-              userErrorMessages.push(`Admin endpoint error: ${error3.message}`);
-              console.error('All user API attempts failed');
-              throw new Error(`Failed to fetch user data: ${userErrorMessages.join(', ')}`);
-            }
-          }
-        }
-        
-        // Fetch departments with fallback endpoints
-        try {
-          // Try main departments endpoint first
-          departmentsResponse = await api.get('departments/');
-          console.log('Main departments API success:', departmentsResponse);
-        } catch (error) {
-          departmentsErrorMessages.push(`Main endpoint error: ${error.message}`);
-          console.log('Main departments API failed, trying fallback');
-          
-          // Try auth endpoint
-          try {
-            departmentsResponse = await api.get('auth/departments/');
-            console.log('Auth departments API success:', departmentsResponse);
-          } catch (error2) {
-            departmentsErrorMessages.push(`Auth endpoint error: ${error2.message}`);
-            console.log('Auth departments API failed, trying users endpoint');
-            
-            // Try users endpoint as last resort
-            try {
-              departmentsResponse = await api.get('users/departments/');
-              console.log('Users departments API success:', departmentsResponse);
-            } catch (error3) {
-              departmentsErrorMessages.push(`Users endpoint error: ${error3.message}`);
-              console.log('All departments API attempts failed. Continuing with empty departments list.');
-              // Don't throw error for departments, just use empty array
-              departmentsResponse = { data: [] };
-            }
-          }
-        }
-        
-        if (!userResponse) {
-          throw new Error('No valid response for user data');
-        }
-        
-        setUserData(userResponse.data);
-        setDepartments(departmentsResponse?.data || []);
-        
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setError('Failed to load user details. Please try again.');
-      } finally {
+        const response = await axios.get(`${api.defaults.baseURL}/users/${id}/`);
+        setInitialData(response.data);
+        form.setFieldsValue(response.data);
+        setLoading(false);
+      } catch (error) {
+        message.error('Failed to fetch user data');
         setLoading(false);
       }
     };
-    
-    if (id) {
-      fetchData();
-    }
-  }, [id]);
+    fetchUser();
+  }, [id, form]);
+
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const response = await axios.get(`${api.defaults.baseURL}/departments/`);
+        setDepartments(response.data);
+      } catch (error) {
+        console.error('Error fetching departments:', error);
+        setError('Failed to load departments. Please try again.');
+      }
+    };
+    fetchDepartments();
+  }, []);
   
-  // Handle successful form submission
-  const handleSuccess = () => {
-    message.success('User updated successfully!');
-    navigate('/dashboard/users');
+  const onFinish = async (values) => {
+    try {
+      await axios.put(`${api.defaults.baseURL}/users/${id}/`, values);
+      message.success('User updated successfully');
+      navigate('/users');
+    } catch (error) {
+      message.error('Failed to update user');
+    }
   };
   
   // Show loading state
@@ -159,21 +103,22 @@ const UserEdit = () => {
             title: <span onClick={() => navigate('/dashboard/users')} style={{ cursor: 'pointer' }}><UserOutlined /> Users</span>,
           },
           {
-            title: `Edit: ${userData?.email || 'User'}`,
+            title: `Edit: ${initialData?.email || 'User'}`,
           },
         ]}
       />
       
       <Typography.Title level={3} style={{ marginBottom: '24px' }}>
-        Edit User: {userData?.first_name} {userData?.last_name}
+        Edit User: {initialData?.first_name} {initialData?.last_name}
       </Typography.Title>
       
-      {userData && (
+      {initialData && (
         <UserForm 
-          initialData={userData}
+          initialData={initialData}
           departments={departments}
           isEditMode={true}
-          onSuccess={handleSuccess}
+          onFinish={onFinish}
+          form={form}
         />
       )}
     </div>

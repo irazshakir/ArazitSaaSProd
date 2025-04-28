@@ -26,7 +26,7 @@ import {
   PlusOutlined
 } from '@ant-design/icons';
 import { Box } from '@mui/material';
-import api from '../../../services/api';
+import api from '../../services/api';
 import dayjs from 'dayjs';
 
 const { TextArea } = Input;
@@ -47,11 +47,6 @@ const LeadActivities = ({ leadId, activities = [] }) => {
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const tenantId = user.tenant_id;
   const userId = user.id;
-
-  // Add debug logging for initial props and state
-  useEffect(() => {
-    // useEffect initialization
-  }, []);
 
   // Fetch activities if not provided
   useEffect(() => {
@@ -101,7 +96,7 @@ const LeadActivities = ({ leadId, activities = [] }) => {
     }
   };
   
-  // Updated handleAddActivity function with detailed debugging
+  // Handle adding activity
   const handleAddActivity = async (values) => {
     try {
       setSubmitting(true);
@@ -125,14 +120,14 @@ const LeadActivities = ({ leadId, activities = [] }) => {
       const activityData = {
         ...values,
         lead: leadId,
-        tenant: tenantId,        // Changed from tenant_id to tenant
-        user: userId,            // Changed from user_id to user
+        tenant: tenantId,
+        user: userId,
         created_at: now,
         updated_at: now,
         due_date: values.due_date ? values.due_date.toISOString() : null,
       };
 
-      // Make API call with explicit content type and prevent default
+      // Make API call
       const response = await api.post(`/leads/${leadId}/add-activity/`, activityData, {
         headers: {
           'Content-Type': 'application/json'
@@ -154,9 +149,8 @@ const LeadActivities = ({ leadId, activities = [] }) => {
       form.resetFields();
       
       message.success('Activity added successfully');
-      return false; // Explicitly return false to prevent form submission
+      return false;
     } catch (error) {
-      // More specific error messages
       if (error.response?.status === 401) {
         message.error('Authentication failed. Please log in again.');
       } else if (error.response?.status === 400) {
@@ -164,20 +158,18 @@ const LeadActivities = ({ leadId, activities = [] }) => {
       } else {
         message.error(`Failed to add activity: ${error.message || 'Unknown error'}`);
       }
-      return false; // Explicitly return false even in case of error
+      return false;
     } finally {
       setSubmitting(false);
     }
   };
   
-  // Updated form submission wrapper with event prevention
+  // Form submission handler
   const onFormSubmit = async (values, event) => {
-    // Prevent default form submission behavior
     if (event && event.preventDefault) {
       event.preventDefault();
     }
     
-    // Prevent form submission if we don't have required IDs
     if (!leadId || !tenantId || !userId) {
       message.error('Missing required information. Please try again.');
       return;
@@ -200,9 +192,8 @@ const LeadActivities = ({ leadId, activities = [] }) => {
     }
   };
   
-  // Updated activity icon logic
+  // Get activity icon based on type
   const getActivityIcon = (type) => {
-    // Simple icon mapping based on common activity types
     switch(type.toLowerCase()) {
       case 'call':
         return <PhoneOutlined />;
@@ -217,22 +208,21 @@ const LeadActivities = ({ leadId, activities = [] }) => {
     }
   };
   
-  // Add this useEffect for cleanup
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      // Cleanup function
       setLeadActivities([]);
       setLoading(false);
       setSubmitting(false);
     };
   }, []);
 
-  // Update the useEffect to depend on leadId
+  // Update activities when leadId changes
   useEffect(() => {
     if (leadId) {
       fetchActivities();
     } else {
-      setLeadActivities([]); // Clear activities if no leadId
+      setLeadActivities([]);
     }
   }, [leadId]);
 
@@ -291,7 +281,7 @@ const LeadActivities = ({ leadId, activities = [] }) => {
               loading={submitting}
               onClick={(e) => {
                 e.preventDefault();
-                form.submit(); // Use form.submit() instead of direct submission
+                form.submit();
               }}
             >
               Add Activity

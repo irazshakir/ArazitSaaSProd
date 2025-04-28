@@ -49,6 +49,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'corsheaders',
     'django_filters',
+    'channels',  # Add channels
+    'daphne',
     
     # Local apps
     'users',  # We'll create this app for user authentication
@@ -296,3 +298,37 @@ LOGGING = {
 # ONCLOUD_API_URL = os.environ.get('ONCLOUD_API_URL', 'https://apps.oncloudapi.com')
 # ONCLOUD_EMAIL = os.environ.get('ONCLOUD_EMAIL', 'info@easyvisapk.com')
 # ONCLOUD_PASSWORD = os.environ.get('ONCLOUD_PASSWORD', '7Axcrb888MvBzEQ')
+
+# Redis Configuration
+REDIS_HOST = '127.0.0.1'  # Keep this for backward compatibility
+REDIS_PORT = 6379
+REDIS_DB = 0
+
+# Celery Configuration
+CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}')
+CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}')
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_BROKER_CONNECTION_RETRY = True
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+CELERY_BROKER_CONNECTION_MAX_RETRIES = None  # Retry forever
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
+
+# Add 'django_celery_beat' to INSTALLED_APPS for periodic tasks
+INSTALLED_APPS += ['django_celery_beat']
+
+# Channels configuration
+ASGI_APPLICATION = 'backend.asgi.application'
+
+# Channel layers configuration
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 6379)],
+        },
+    },
+}

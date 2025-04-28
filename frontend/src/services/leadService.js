@@ -13,19 +13,12 @@ const leadService = {
    */
   assignLead: async (leadId, userId, leadData = {}) => {
     try {
-      console.log(`Assigning lead ${leadId} to user ${userId}`);
-      
-      // Assign the lead using the official API endpoint
-      // The backend will create the notification automatically
       const assignResponse = await api.post(`/leads/${leadId}/assign/`, {
         user_id: userId
       });
       
-      console.log('Lead assigned successfully:', assignResponse.data);
-      
       return assignResponse;
     } catch (error) {
-      console.error('Error assigning lead:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -40,19 +33,12 @@ const leadService = {
    */
   transferLead: async (leadId, userId, fromUserId, leadData = {}) => {
     try {
-      console.log(`Transferring lead ${leadId} from user ${fromUserId} to user ${userId}`);
-      
-      // Transfer the lead using the assign endpoint
-      // The backend will create the notification automatically
       const transferResponse = await api.post(`/leads/${leadId}/assign/`, {
         user_id: userId
       });
       
-      console.log('Lead transferred successfully:', transferResponse.data);
-      
       return transferResponse;
     } catch (error) {
-      console.error('Error transferring lead:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -64,18 +50,14 @@ const leadService = {
    */
   createNotification: async (notificationData) => {
     try {
-      console.log('Creating notification via service with payload:', notificationData);
-      
       const response = await api.post('/notifications/', {
         ...notificationData,
         status: 'unread',
         read_at: null
       });
       
-      console.log('Notification created successfully:', response.data);
       return response.data;
     } catch (error) {
-      console.error('Error creating notification:', error.response?.data || error.message);
       throw error;
     }
   }

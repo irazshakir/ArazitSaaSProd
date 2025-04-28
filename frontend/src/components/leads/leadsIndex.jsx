@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Box, Container, Typography, Stack, Grid, Paper, Chip } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../../services/api';
 import { message } from 'antd';
 import dataAccessService from '../../services/dataAccessService';
+import { BellOutlined } from '@ant-design/icons';
+// import useWebSocket from '../../hooks/useWebSocket';
 
 // Import universal components
 import SearchBar from '../universalComponents/searchBar';
@@ -30,7 +32,13 @@ const LeadsIndex = () => {
   const [tenantId, setTenantId] = useState(null);
   const [departmentId, setDepartmentId] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [visible, setVisible] = useState(false);
   
+  // WebSocket connection for real-time updates
+  // const { lastMessage, sendMessage } = useWebSocket('leads');
+
+  
+
   // Get current user and role from localStorage
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -65,6 +73,56 @@ const LeadsIndex = () => {
       refreshLeads();
     }
   }, [location.pathname]);
+
+  // Handle real-time lead updates
+  const handleLeadUpdate = useCallback((updatedLead) => {
+    setLeads(prevLeads => {
+      // Check if the lead already exists
+      const existingLeadIndex = prevLeads.findIndex(lead => lead.id === updatedLead.id);
+      
+      if (existingLeadIndex !== -1) {
+        // Update existing lead
+        const newLeads = [...prevLeads];
+        newLeads[existingLeadIndex] = {
+          ...newLeads[existingLeadIndex],
+          ...updatedLead
+        };
+        return newLeads;
+      } else {
+        // Add new lead at the beginning of the list
+        return [updatedLead, ...prevLeads];
+      }
+    });
+  }, []);
+
+  // Listen for WebSocket messages
+  // useEffect(() => {
+  //   if (lastMessage) {
+  //     console.log('WebSocket message received:', lastMessage);
+  //   }
+  //   if (lastMessage?.type === 'lead_update') {
+  //     console.log('lead_update received:', lastMessage.data);
+  //     handleLeadUpdate(lastMessage.data);
+  //   }
+  // }, [lastMessage, handleLeadUpdate]);
+
+  // Debug: log leads state whenever it changes
+  // useEffect(() => {
+  //   console.log('Leads state updated:', leads);
+  //   applyFiltersAndSearch(searchQuery, activeFilters);
+  // }, [leads]);
+
+  // Listen for WebSocket messages
+  // useEffect(() => {
+  //   if (lastMessage?.type === 'lead_update') {
+  //     handleLeadUpdate(lastMessage.data);
+  //   }
+  // }, [lastMessage, handleLeadUpdate]);
+
+  // Update filtered leads whenever leads change
+  useEffect(() => {
+    applyFiltersAndSearch(searchQuery, activeFilters);
+  }, [leads]);
 
   // Define table columns
   const columns = [

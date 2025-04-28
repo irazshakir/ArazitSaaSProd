@@ -123,6 +123,9 @@ const Chat = () => {
   const [totalConversations, setTotalConversations] = useState(0);
   const [roleFilterActive, setRoleFilterActive] = useState(false);
   const lastActiveChat = useRef(null);
+  const [socket, setSocket] = useState(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const socketRef = useRef(null);
 
   // Set the polling interval (in milliseconds) - 30 seconds is less intrusive
   const POLLING_INTERVAL = 30000; // 30 seconds
@@ -207,6 +210,87 @@ const Chat = () => {
         console.error('Error parsing user data:', error);
       }
     }
+  }, []);
+
+  // Connect to WebSocket
+  useEffect(() => {
+    const connectWebSocket = () => {
+      const token = localStorage.getItem('token');
+      const tenant_id = localStorage.getItem('tenant_id');
+      
+      if (!token || !tenant_id) return;
+      
+      // Debug environment variables
+      console.log('Environment Variables:');
+      console.log('VITE_API_WS_HOST:', import.meta.env.VITE_API_WS_HOST);
+      console.log('VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+      console.log('All env variables:', import.meta.env);
+      
+      // Use insecure WebSocket for debugging - REMOVE THIS IN PRODUCTION
+      // const wsProtocol = 'ws:';
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      
+      // Build the WebSocket URL
+      // IMPORTANT: Temporarily hardcoding to api.arazit.com until env variables are fixed
+      const wsHost = 'api.arazit.com'; // Hardcoded for now
+      const wsUrl = `${wsProtocol}//${wsHost}/ws/whatsapp/?token=${token}&tenant=${tenant_id}`;
+      
+      console.log('Connecting to WebSocket URL:', wsUrl);
+      
+      const newSocket = new WebSocket(wsUrl);
+      
+      newSocket.onopen = () => {
+        setIsConnected(true);
+        console.log('WebSocket connected successfully to:', wsUrl);
+      };
+      
+      newSocket.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        
+        if (data.type === 'new_message') {
+          handleNewMessage(data.data);
+        } else if (data.type === 'new_chat') {
+          handleNewChat(data.data);
+        } else if (data.type === 'chat_assigned') {
+          handleChatAssigned(data.data);
+        }
+      };
+      
+      newSocket.onclose = (event) => {
+        setIsConnected(false);
+        const reason = event.reason ? ` Reason: ${event.reason}` : '';
+        const code = event.code ? ` Code: ${event.code}` : '';
+        console.log(`WebSocket disconnected.${code}${reason}`);
+        
+        // Try to reconnect after 3 seconds
+        setTimeout(() => {
+          connectWebSocket();
+        }, 3000);
+      };
+      
+      newSocket.onerror = (error) => {
+        // Provide more detailed error information
+        console.error('WebSocket error:', error);
+        console.error('WebSocket connection failed to:', wsUrl);
+        console.error('Please check:');
+        console.error('1. The VITE_API_WS_HOST environment variable is correctly set to api.arazit.com');
+        console.error('2. The Daphne server is running on api.arazit.com');
+        console.error('3. Your nginx configuration properly forwards WebSocket connections');
+        
+        newSocket.close();
+      };
+      
+      socketRef.current = newSocket;
+      setSocket(newSocket);
+    };
+    
+    connectWebSocket();
+    
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.close();
+      }
+    };
   }, []);
 
   // Function to refresh the chat data with silent option
@@ -442,6 +526,44 @@ const Chat = () => {
     
     // Trigger a refresh after sending a message
     setTimeout(() => refreshData(), 2000);
+  };
+
+  const handleNewMessage = (messageData) => {
+    // Update state with new message
+    if (messageData.conversation_id === activeChat?.id) {
+      // If it's for the active chat, add to active chat messages
+      // ...update state with new message
+      
+      // Show visual cue but no sound if chat is already open
+    } else {
+      // If it's for another chat, update that chat's last message
+      // ...update state
+      
+      // Show notification with sound
+      showNotification(`New message from ${messageData.sender_name}`, messageData.text);
+    }
+    
+    setHasNewChats(true);
+  };
+  
+  const handleNewChat = (chatData) => {
+    // Add new chat to the list
+    setChats(prevChats => [chatData, ...prevChats]);
+    setHasNewChats(true);
+    
+    // Show notification
+    showNotification('New conversation', `New chat from ${chatData.name}`);
+  };
+  
+  const showNotification = (title, body) => {
+    // Play notification sound
+    const audio = new Audio('/notification-sound.mp3');
+    audio.play();
+    
+    // Show browser notification if permitted
+    if (Notification.permission === 'granted') {
+      new Notification(title, { body });
+    }
   };
 
   return (

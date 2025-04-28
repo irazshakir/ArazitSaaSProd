@@ -13,6 +13,7 @@ from datetime import timedelta
 from django.db import transaction
 from django.utils.dateparse import parse_datetime
 from django_filters.rest_framework import DjangoFilterBackend
+import logging
 
 from users.models import User, Department, Tenant
 from .models import (
@@ -26,6 +27,7 @@ from .serializers import (
 )
 from teams.models import TeamManager, TeamLead, TeamMember
 from location_routing.models import LocationRouting
+from .tasks import schedule_activity_notifications  # Import at top of file
 
 # Create your views here.
 
@@ -343,6 +345,20 @@ class LeadViewSet(viewsets.ModelViewSet):
                 message=f"You have been assigned a new lead: {lead.name}",
                 lead=lead
             )
+        
+        # --- BROADCAST HERE ---
+        # from asgiref.sync import async_to_sync
+        # from channels.layers import get_channel_layer
+        # channel_layer = get_channel_layer()
+        # group_name = f'leads_{lead.tenant.id}'
+        # lead_data = LeadSerializer(lead, context={'request': self.request}).data
+        # async_to_sync(channel_layer.group_send)(
+        #     group_name,
+        #     {
+        #         'type': 'lead_update',
+        #         'data': lead_data,
+        #     }
+        # )
     
     @action(detail=True, methods=['post'])
     def assign(self, request, pk=None):
@@ -557,35 +573,63 @@ class LeadViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def add_activity(self, request, pk=None):
         """Add an activity to a lead."""
-        lead = self.get_object()
+        logger = logging.getLogger('leads')
         
-        serializer = LeadActivitySerializer(
-            data=request.data,
-            context={'request': request}
-        )
-        
-        if serializer.is_valid():
-            activity = serializer.save(lead=lead, tenant=lead.tenant)
+        try:
+            lead = self.get_object()
             
-            # Update last_contacted
-            lead.last_contacted = timezone.now()
-            lead.save()
+            logger.debug(f"Adding activity for lead {lead.id}. Request data: {request.data}")
             
-            # Create notification for activity reminder if due_date is set
-            if activity.due_date and activity.user:
-                Notification.objects.create(
-                    tenant=lead.tenant,
-                    user=activity.user,
-                    notification_type=Notification.TYPE_ACTIVITY_REMINDER,
-                    title=f"Activity Reminder: {activity.activity_type}",
-                    message=f"Reminder for activity: {activity.description}",
-                    lead=lead,
-                    lead_activity=activity
-                )
+            # Create activity data with tenant and user explicitly set
+            activity_data = request.data.copy()
+            activity_data['tenant'] = lead.tenant.id  # Use the lead's tenant
+            activity_data['user'] = request.user.id   # Use the current user
             
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            serializer = LeadActivitySerializer(
+                data=activity_data,
+                context={'request': request}
+            )
+            
+            if serializer.is_valid():
+                try:
+                    # Save with explicit tenant and lead
+                    activity = serializer.save(
+                        lead=lead,
+                        tenant=lead.tenant,
+                        user=request.user
+                    )
+                    
+                    # Update last_contacted
+                    lead.last_contacted = timezone.now()
+                    lead.save()
+                    
+                    # Schedule notifications for the activity
+                    try:
+                        if activity.due_date:  # Only schedule if due_date exists
+                            schedule_activity_notifications(activity)
+                            logger.info(f"Successfully scheduled notifications for activity {activity.id}")
+                    except Exception as e:
+                        logger.error(f"Error scheduling notifications: {str(e)}")
+                        # Continue even if notification scheduling fails
+                        pass
+                    
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                except Exception as e:
+                    logger.error(f"Error saving activity: {str(e)}")
+                    return Response(
+                        {"error": "Error saving activity", "detail": str(e)},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    )
+            else:
+                logger.error(f"Serializer validation failed: {serializer.errors}")
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                
+        except Exception as e:
+            logger.error(f"Unexpected error in add_activity: {str(e)}")
+            return Response(
+                {"error": "Unexpected error", "detail": str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
     @action(detail=True, methods=['post'])
     def upload_document(self, request, pk=None):

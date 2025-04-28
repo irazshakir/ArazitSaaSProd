@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { FileOutlined, DeleteOutlined, PlusOutlined, PhoneOutlined, MailOutlined, TeamOutlined, CheckOutlined, UploadOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import axios from 'axios';
 
 // Import form components
 import FormSection from '../forms/common/formSection';
@@ -45,6 +46,8 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [submittingDocuments, setSubmittingDocuments] = useState(false);
   const [branchOptions, setBranchOptions] = useState([]);
+  const [developmentProjects, setDevelopmentProjects] = useState([]);
+  const [projectTypes, setProjectTypes] = useState([]);
   
   // Add this state to track form values directly
   const [formValues, setFormValues] = useState({
@@ -1001,27 +1004,8 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   
   // Handle lead type change
   const handleLeadTypeChange = (value) => {
-    console.log('Lead type changed to:', value); // Debug log
     setLeadType(value);
-    
-    // Reset product selection
-    form.setFieldValue('hajj_package', null);
-    form.setFieldValue('custom_umrah', null);
-    form.setFieldValue('readymade_umrah', null);
-    form.setFieldValue('flight', null);
-    form.setFieldValue('visa', null);
-    form.setFieldValue('transfer', null);
-    form.setFieldValue('ziyarat', null);
-    form.setFieldValue('visit_visa', null);
-    form.setFieldValue('skilled_immigration', null);
-    form.setFieldValue('job_visa', null);
-    form.setFieldValue('trc', null);
-    form.setFieldValue('business_immigration', null);
-    form.setFieldValue('travel_package', null);
-    form.setFieldValue('study_visa', null);
-    
-    // Clear selected package details
-    setSelectedPackageDetails(null);
+    form.setFieldsValue({ lead_type: value });
   };
   
   // Add a new function to fetch package details when a package is selected
@@ -1670,6 +1654,35 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       }
     }
   }, [form, initialData, isEditMode]);
+  
+  const fetchDevelopmentProjects = async () => {
+    try {
+        const endpoint = `${apiBaseUrl}/development-projects/`;
+        const response = await axios.get(endpoint);
+        const dataArray = response.data;
+        const options = dataArray.map(project => ({
+            value: project.id,
+            label: project.name
+        }));
+        setDevelopmentProjects(options);
+    } catch (error) {
+        message.error('Failed to fetch development projects');
+    }
+};
+
+const fetchProjectTypes = async () => {
+    try {
+        const response = await axios.get(`${apiBaseUrl}/project-types/`);
+        const dataArray = response.data;
+        const options = dataArray.map(type => ({
+            value: type.id,
+            label: type.name
+        }));
+        setProjectTypes(options);
+    } catch (error) {
+        message.error('Failed to fetch project types');
+    }
+};
   
   return (
     <Box>

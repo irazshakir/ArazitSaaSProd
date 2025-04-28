@@ -3,6 +3,9 @@ from django.db import models
 from django.utils import timezone
 from users.models import User, Tenant, Department, Branch
 from hajjPackages.models import HajjPackage
+# from channels.layers import get_channel_layer
+# from asgiref.sync import async_to_sync
+import json
 
 class Lead(models.Model):
     """Model for tracking leads in the CRM system."""
@@ -213,26 +216,67 @@ class Lead(models.Model):
             # Don't raise validation error here, as general_product might be set later
             pass
     
-    def save(self, *args, **kwargs):
+    # def broadcast_update(self, serialized_data=None):
+    #     print(f"DEBUG: broadcast_update called for lead {self.id}")
+    #     """
+    #     Broadcast lead update to WebSocket clients
+    #     """
+    #     try:
+    #         channel_layer = get_channel_layer()
+            
+    #         # If no serialized data provided, create minimal update data
+    #         if not serialized_data:
+    #             serialized_data = {
+    #                 'id': str(self.id),
+    #                 'name': self.name,
+    #                 'email': self.email,
+    #                 'phone': self.phone,
+    #                 'whatsapp': self.whatsapp,
+    #                 'status': self.status,
+    #                 'status_display': self.get_status_display(),
+    #                 'lead_type': self.lead_type,
+    #                 'lead_type_display': self.get_lead_type_display(),
+    #                 'lead_activity_status': self.lead_activity_status,
+    #                 'last_contacted': self.last_contacted.isoformat() if self.last_contacted else None,
+    #                 'next_follow_up': self.next_follow_up.isoformat() if self.next_follow_up else None,
+    #                 'assigned_to_details': {
+    #                     'id': str(self.assigned_to.id),
+    #                     'email': self.assigned_to.email,
+    #                     'first_name': self.assigned_to.first_name,
+    #                     'last_name': self.assigned_to.last_name
+    #                 } if self.assigned_to else None,
+    #             }
+            
+    #         # Send update to the tenant's lead group
+    #         async_to_sync(channel_layer.group_send)(
+    #             f'leads_{self.tenant.id}',
+    #             {
+    #                 'type': 'lead_update',
+    #                 'data': serialized_data
+    #             }
+    #         )
+    #     except Exception as e:
+    #         print(f"Error broadcasting lead update: {str(e)}")
+
+    def save(self, *args, broadcast=True, **kwargs):
         """
-        Override save method to handle both predefined and general product lead types
+        Override save method to broadcast updates
         """
-        # If this is a general product lead type but general_product isn't set,
-        # try to find and set it
-        if self.lead_type not in dict(self.TYPE_CHOICES) and not self.general_product:
-            from generalProduct.models import GeneralProduct
-            try:
-                # Try to find matching general product
-                product = GeneralProduct.objects.filter(
-                    tenant=self.tenant,
-                    productName__iexact=self.lead_type.replace('_', ' ')
-                ).first()
-                if product:
-                    self.general_product = product
-            except Exception as e:
-                print(f"Error finding general product: {e}")
-        
+        is_new = not self.pk
         super().save(*args, **kwargs)
+        
+        # Broadcast update if requested
+        if broadcast:
+            self.broadcast_update()
+            
+        # Continue with existing event creation logic
+        if is_new:
+            LeadEvent.objects.create(
+                lead=self,
+                tenant=self.tenant,
+                event_type=LeadEvent.EVENT_OPEN,
+                updated_by=self.assigned_to if self.assigned_to else self.created_by
+            )
     
     class Meta:
         ordering = ['-created_at']

@@ -22,7 +22,6 @@ const ChatList = ({
   const [selectedChatId, setSelectedChatId] = useState(null);
   const [noApiConfigured, setNoApiConfigured] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const lastProcessedRefreshTime = React.useRef(0);
   const prevChatsLength = React.useRef(0);
   const prevChatIds = React.useRef([]);
 
@@ -45,15 +44,6 @@ const ChatList = ({
       prevChatIds.current = chats.map(chat => chat.id);
     }
   }, [chats]);
-
-  // Effect for refresh trigger
-  useEffect(() => {
-    // Only refresh if the refresh time has changed and is newer than the last processed time
-    if (lastRefreshTime && lastRefreshTime > lastProcessedRefreshTime.current) {
-      lastProcessedRefreshTime.current = lastRefreshTime;
-      fetchConversations(true);
-    }
-  }, [lastRefreshTime]);
 
   // Update selectedChatId when activeChat changes from parent
   useEffect(() => {
@@ -196,13 +186,9 @@ const ChatList = ({
     return false;
   };
 
-  // Handle manual refresh - pass through to parent
+  // Handle manual refresh
   const handleManualRefresh = () => {
-    if (refreshData) {
-      refreshData();
-    } else {
-      fetchConversations();
-    }
+    fetchConversations();
   };
 
   // Handle chat selection

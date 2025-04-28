@@ -18,6 +18,8 @@ from rest_framework import permissions
 from rest_framework import serializers
 import json
 import os
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 class GroupView(APIView):
     permission_classes = [AllowAny]  # Allow unauthenticated access for testing
@@ -1424,3 +1426,83 @@ def assign_chat_to_user(request):
             'status': 'error',
             'errMsg': str(e)
         }, status=500)
+
+# Add a function to broadcast new messages
+def broadcast_new_message(tenant_id, message_data, user_id=None):
+    channel_layer = get_channel_layer()
+    
+    # Send to tenant group
+    async_to_sync(channel_layer.group_send)(
+        f'whatsapp_{tenant_id}',
+        {
+            'type': 'new_message',
+            'data': message_data
+        }
+    )
+    
+    # If message is assigned to specific user, also send to user-specific group
+    if user_id:
+        async_to_sync(channel_layer.group_send)(
+            f'whatsapp_user_{user_id}',
+            {
+                'type': 'new_message',
+                'data': message_data
+            }
+        )
+
+# Add a function to broadcast new chats
+def broadcast_new_chat(tenant_id, chat_data):
+    channel_layer = get_channel_layer()
+    
+    async_to_sync(channel_layer.group_send)(
+        f'whatsapp_{tenant_id}',
+        {
+            'type': 'new_chat',
+            'data': chat_data
+        }
+    )
+
+def handle_webhook(request):
+    # Process the webhook data...
+    
+    # After processing new message
+    if is_new_message:
+        message_data = {
+            'id': message_id,
+            'conversation_id': conv_id,
+            'sender_name': sender_name,
+            'text': message_text,
+            'timestamp': timestamp.isoformat(),
+            'is_from_me': is_from_me
+        }
+        
+        # Get assigned user ID if any
+        assigned_user_id = None
+        try:
+            chat_assignment = ChatAssignment.objects.get(
+                chat_id=conv_id, 
+                tenant_id=tenant_id
+            )
+            if chat_assignment.assigned_to:
+                assigned_user_id = str(chat_assignment.assigned_to.id)
+        except ChatAssignment.DoesNotExist:
+            pass
+        
+        # Broadcast the new message
+        broadcast_new_message(tenant_id, message_data, assigned_user_id)
+    
+    # After processing new conversation
+    if is_new_conversation:
+        chat_data = {
+            'id': conv_id,
+            'name': contact_name or phone,
+            'phone': phone,
+            'lastMessage': message_text,
+            'lastMessageTime': formatted_time,
+            'unread': True
+        }
+        
+        # Broadcast the new chat
+        broadcast_new_chat(tenant_id, chat_data)
+    
+    return response
