@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { SearchOutlined, UserOutlined, TeamOutlined, SyncOutlined } from '@ant-design/icons';
+import { SearchOutlined, UserOutlined, TeamOutlined } from '@ant-design/icons';
 import { Typography, Box } from '@mui/material';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import './chatList.css';
@@ -21,7 +21,6 @@ const ChatList = ({
   const [error, setError] = useState(null);
   const [selectedChatId, setSelectedChatId] = useState(null);
   const [noApiConfigured, setNoApiConfigured] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const prevChatsLength = React.useRef(0);
   const prevChatIds = React.useRef([]);
 
@@ -57,7 +56,6 @@ const ChatList = ({
     if (parentNoApiConfigured) {
       setNoApiConfigured(true);
       setLoading(false);
-      setRefreshing(false);
       return;
     }
     
@@ -66,7 +64,6 @@ const ChatList = ({
         setLoading(true);
       }
       
-      setRefreshing(true);
       setNoApiConfigured(false);
       
       const tenantId = localStorage.getItem('tenant_id');
@@ -91,7 +88,6 @@ const ChatList = ({
         setNoApiConfigured(true);
         setError(null);
         setLoading(false);
-        setRefreshing(false);
         return;
       }
       
@@ -122,23 +118,18 @@ const ChatList = ({
         messages: []
       }));
 
-      // Check if the list of chats has changed
-      const hasChanges = hasChatsChanged(transformedChats);
+      setChats(transformedChats);
       
-      if (hasChanges || !silentCheck) {
-        setChats(transformedChats);
-        
-        // Set the first chat as active if none is selected
-        if (transformedChats.length > 0 && !selectedChatId) {
-          const firstChat = transformedChats[0];
-          setSelectedChatId(firstChat.id);
-          setActiveChat(firstChat);
-        } else if (selectedChatId) {
-          // If there's a selected chat, make sure it's updated
-          const updatedSelectedChat = transformedChats.find(chat => chat.id === selectedChatId);
-          if (updatedSelectedChat) {
-            setActiveChat(updatedSelectedChat);
-          }
+      // Set the first chat as active if none is selected
+      if (transformedChats.length > 0 && !selectedChatId) {
+        const firstChat = transformedChats[0];
+        setSelectedChatId(firstChat.id);
+        setActiveChat(firstChat);
+      } else if (selectedChatId) {
+        // If there's a selected chat, make sure it's updated
+        const updatedSelectedChat = transformedChats.find(chat => chat.id === selectedChatId);
+        if (updatedSelectedChat) {
+          setActiveChat(updatedSelectedChat);
         }
       }
       
@@ -155,40 +146,7 @@ const ChatList = ({
       }
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
-  };
-
-  // Compare chats to detect changes
-  const hasChatsChanged = (newChats) => {
-    // First check if number of chats changed
-    if (newChats.length !== prevChatsLength.current) {
-      return true;
-    }
-    
-    // Then check if the list of IDs has changed
-    const newChatIds = newChats.map(chat => chat.id);
-    if (JSON.stringify(newChatIds) !== JSON.stringify(prevChatIds.current)) {
-      return true;
-    }
-    
-    // Finally check for changes in unread status or last message
-    for (const newChat of newChats) {
-      const prevChat = chats.find(c => c.id === newChat.id);
-      if (prevChat) {
-        if (prevChat.unread !== newChat.unread || 
-            prevChat.lastMessage !== newChat.lastMessage) {
-          return true;
-        }
-      }
-    }
-    
-    return false;
-  };
-
-  // Handle manual refresh
-  const handleManualRefresh = () => {
-    fetchConversations();
   };
 
   // Handle chat selection
@@ -208,7 +166,7 @@ const ChatList = ({
     ).join(' ');
   };
 
-  if (loading && !refreshing) {
+  if (loading) {
     return <div className="chat-list-container">Loading conversations...</div>;
   }
 
@@ -234,7 +192,7 @@ const ChatList = ({
     );
   }
 
-  if (error && !refreshing && !noApiConfigured) {
+  if (error && !noApiConfigured) {
     return <div className="chat-list-container">Error: {error}</div>;
   }
 
@@ -243,13 +201,6 @@ const ChatList = ({
       <div className="chat-list-header">
         <h2>Chat</h2>
         <div className="chat-list-actions">
-          <button 
-            className={`refresh-button ${refreshing ? 'refreshing' : ''} ${hasNewChats ? 'has-new' : ''}`}
-            onClick={handleManualRefresh}
-            disabled={refreshing}
-          >
-            <SyncOutlined spin={refreshing} />
-          </button>
           <button className="search-button">
             <SearchOutlined className="search-icon" />
           </button>

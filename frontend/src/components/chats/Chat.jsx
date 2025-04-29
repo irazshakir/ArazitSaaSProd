@@ -127,8 +127,7 @@ const Chat = () => {
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef(null);
 
-  // Set the polling interval (in milliseconds) - 30 seconds is less intrusive
-  const POLLING_INTERVAL = 30000; // 30 seconds
+ 
 
   useEffect(() => {
     // Set first chat as active on initial load
@@ -145,48 +144,6 @@ const Chat = () => {
       lastActiveChat.current = activeChat.id;
     }
   }, [activeChat?.id]);
-
-  // Document visibility API to check if tab is active
-  useEffect(() => {
-    let visibilityInterval;
-    
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        // When tab becomes visible, do an immediate refresh
-        if (activeTab === 0 && !isRefreshing) {
-          refreshData(true);
-        }
-        
-        // Then set up the interval
-        visibilityInterval = setInterval(() => {
-          if (!isRefreshing && activeTab === 0) {
-            refreshData(false);
-          }
-        }, POLLING_INTERVAL);
-      } else {
-        // Clear interval when tab becomes hidden
-        clearInterval(visibilityInterval);
-      }
-    };
-    
-    // Set initial interval if document is visible
-    if (document.visibilityState === 'visible') {
-      visibilityInterval = setInterval(() => {
-        if (!isRefreshing && activeTab === 0) {
-          refreshData(false);
-        }
-      }, POLLING_INTERVAL);
-    }
-    
-    // Add event listener for visibility changes
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    // Clean up
-    return () => {
-      clearInterval(visibilityInterval);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [isRefreshing, activeTab]);
 
   // Get user role on component mount
   useEffect(() => {
@@ -235,24 +192,53 @@ const Chat = () => {
       const wsHost = 'api.arazit.com'; // Hardcoded for now
       const wsUrl = `${wsProtocol}//${wsHost}/ws/whatsapp/?token=${token}&tenant=${tenant_id}`;
       
-      console.log('Connecting to WebSocket URL:', wsUrl);
+      console.log('%c[WebSocket] Connecting to:', 'color: #6495ED; font-weight: bold', wsUrl);
+      console.log('%c[WebSocket] Connection params:', 'color: #6495ED', {
+        token: token ? token.substring(0, 10) + '...' : null, 
+        tenant_id,
+        protocol: wsProtocol,
+        host: wsHost
+      });
       
       const newSocket = new WebSocket(wsUrl);
       
       newSocket.onopen = () => {
         setIsConnected(true);
-        console.log('WebSocket connected successfully to:', wsUrl);
+        console.log('%c[WebSocket] Connected successfully!', 'color: #4CAF50; font-weight: bold');
+        // Send a ping immediately after connecting to test the connection
+        try {
+          newSocket.send(JSON.stringify({
+            type: 'ping',
+            timestamp: new Date().toISOString()
+          }));
+          console.log('%c[WebSocket] Ping sent', 'color: #6495ED');
+        } catch (error) {
+          console.error('[WebSocket] Error sending ping:', error);
+        }
       };
       
       newSocket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
+        console.log('%c[WebSocket] Message received:', 'color: #9C27B0; font-weight: bold', event.data);
         
-        if (data.type === 'new_message') {
-          handleNewMessage(data.data);
-        } else if (data.type === 'new_chat') {
-          handleNewChat(data.data);
-        } else if (data.type === 'chat_assigned') {
-          handleChatAssigned(data.data);
+        try {
+            const data = JSON.parse(event.data);
+            console.log('%c[WebSocket] Parsed data:', 'color: #9C27B0', data);
+            
+            if (data.type === 'new_message') {
+                console.log('%c[WebSocket] New message received:', 'color: #FF9800; font-weight: bold', data.data);
+                handleNewMessage(data.data);
+            } else if (data.type === 'new_chat') {
+                console.log('%c[WebSocket] New chat received:', 'color: #FF9800; font-weight: bold', data.data);
+                handleNewChat(data.data);
+            } else if (data.type === 'chat_assigned') {
+                console.log('%c[WebSocket] Chat assigned:', 'color: #FF9800; font-weight: bold', data.data);
+                handleChatAssigned(data.data);
+            } else {
+                console.log('%c[WebSocket] Unknown message type:', 'color: #F44336', data.type);
+            }
+        } catch (error) {
+            console.error('%c[WebSocket] Error parsing message:', 'color: #F44336', error);
+            console.error('Raw message:', event.data);
         }
       };
       
@@ -260,22 +246,26 @@ const Chat = () => {
         setIsConnected(false);
         const reason = event.reason ? ` Reason: ${event.reason}` : '';
         const code = event.code ? ` Code: ${event.code}` : '';
-        console.log(`WebSocket disconnected.${code}${reason}`);
+        console.log(`%c[WebSocket] Disconnected${code}${reason}`, 'color: #F44336; font-weight: bold');
         
         // Try to reconnect after 3 seconds
         setTimeout(() => {
+          console.log('%c[WebSocket] Attempting to reconnect...', 'color: #FF9800');
           connectWebSocket();
         }, 3000);
       };
       
       newSocket.onerror = (error) => {
         // Provide more detailed error information
-        console.error('WebSocket error:', error);
-        console.error('WebSocket connection failed to:', wsUrl);
-        console.error('Please check:');
-        console.error('1. The VITE_API_WS_HOST environment variable is correctly set to api.arazit.com');
-        console.error('2. The Daphne server is running on api.arazit.com');
-        console.error('3. Your nginx configuration properly forwards WebSocket connections');
+        console.error('%c[WebSocket] Connection error:', 'color: #F44336; font-weight: bold', error);
+        console.error('%c[WebSocket] Check configuration:', 'color: #F44336');
+        console.table({
+          'WebSocket URL': wsUrl,
+          'Protocol': wsProtocol,
+          'Host': wsHost,
+          'Has Token': !!token,
+          'Has Tenant ID': !!tenant_id
+        });
         
         newSocket.close();
       };
@@ -286,15 +276,32 @@ const Chat = () => {
     
     connectWebSocket();
     
+    // Set up a heartbeat every 30 seconds to keep the connection alive
+    const heartbeatInterval = setInterval(() => {
+      if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
+        try {
+          socketRef.current.send(JSON.stringify({
+            type: 'heartbeat',
+            timestamp: new Date().toISOString()
+          }));
+          console.log('%c[WebSocket] Heartbeat sent', 'color: #6495ED');
+        } catch (error) {
+          console.error('[WebSocket] Error sending heartbeat:', error);
+        }
+      }
+    }, 30000);
+    
     return () => {
+      clearInterval(heartbeatInterval);
       if (socketRef.current) {
+        console.log('%c[WebSocket] Closing connection (component unmount)', 'color: #FF9800');
         socketRef.current.close();
       }
     };
   }, []);
 
-  // Function to refresh the chat data with silent option
-  const refreshData = async (forceFull = false) => {
+  // Function to refresh the chat data - MODIFIED to only be used for manual refreshes
+  const refreshData = async (forceFull = true) => {
     setIsRefreshing(true);
     setNoApiConfigured(false); // Reset API configuration status
     
@@ -353,29 +360,18 @@ const Chat = () => {
           );
         }
         
-        // Check if there are new chats or updates to existing chats
-        const { hasChanges } = checkForChatChanges(chats, transformedChats);
+        setChats(transformedChats);
         
-        if (hasChanges || forceFull) {
-          setChats(transformedChats);
-          
-          // If active chat exists, find and update it
-          if (activeChat) {
-            const updatedActiveChat = transformedChats.find(chat => chat.id === activeChat.id);
-            if (updatedActiveChat) {
-              // Only update if there are actual changes to avoid re-renders
-              if (JSON.stringify(updatedActiveChat) !== JSON.stringify(activeChat) || forceFull) {
-                setActiveChat(updatedActiveChat);
-              }
-            }
+        // If active chat exists, find and update it
+        if (activeChat) {
+          const updatedActiveChat = transformedChats.find(chat => chat.id === activeChat.id);
+          if (updatedActiveChat) {
+            setActiveChat(updatedActiveChat);
           }
-          
-          // Notify about new chats
-          setHasNewChats(hasChanges);
         }
         
         // If there's an active chat, refresh its messages too
-        if (activeChat && forceFull) {
+        if (activeChat) {
           await fetchMessages(activeChat.id);
         }
       } else if (data.error && data.error.includes('No WhatsApp API settings configured')) {
@@ -386,7 +382,6 @@ const Chat = () => {
       
       setLastRefreshTime(Date.now());
     } catch (error) {
-      
       // Handle the case where a JSON parsing error occurs (likely HTML response)
       if (error instanceof SyntaxError && error.message.includes('JSON')) {
         setChats([]);
@@ -395,39 +390,6 @@ const Chat = () => {
     } finally {
       setIsRefreshing(false);
     }
-  };
-
-  // Helper function to check if there are new chats or updates
-  const checkForChatChanges = (oldChats, newChats) => {
-    let hasChanges = false;
-    
-    // If different number of chats, something has changed
-    if (oldChats.length !== newChats.length) {
-      hasChanges = true;
-    }
-    
-    // Check for changes in existing chats
-    for (let i = 0; i < newChats.length; i++) {
-      const oldChat = oldChats.find(chat => chat.id === newChats[i].id);
-      
-      // If this chat is new
-      if (!oldChat) {
-        hasChanges = true;
-        continue;
-      }
-      
-      // If last message changed
-      if (oldChat.lastMessage !== newChats[i].lastMessage) {
-        hasChanges = true;
-      }
-      
-      // If unread status changed
-      if (oldChat.unread !== newChats[i].unread) {
-        hasChanges = true;
-      }
-    }
-    
-    return { hasChanges };
   };
 
   // Function to fetch messages for a specific chat ID
@@ -529,18 +491,60 @@ const Chat = () => {
   };
 
   const handleNewMessage = (messageData) => {
+    // Create a new message object in the format expected by your components
+    const newMessage = {
+      id: messageData.id,
+      text: messageData.text,
+      sent: !messageData.is_from_me, // Adjust based on your message direction convention
+      timestamp: new Date(messageData.timestamp),
+      isImage: messageData.isImage || false,
+      image_url: messageData.image_url || null
+    };
+    
     // Update state with new message
-    if (messageData.conversation_id === activeChat?.id) {
-      // If it's for the active chat, add to active chat messages
-      // ...update state with new message
+    setChats(prevChats => {
+      return prevChats.map(chat => {
+        if (chat.id === messageData.conversation_id) {
+          // Update this chat's last message and add to messages array
+          return {
+            ...chat,
+            lastMessage: messageData.text,
+            lastMessageTime: new Date(messageData.timestamp).toLocaleTimeString([], { 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            }),
+            unread: chat.id !== activeChat?.id || messageData.is_from_me, // Mark as unread if not the active chat
+            messages: [...(chat.messages || []), newMessage]
+          };
+        }
+        return chat;
+      });
+    });
+    
+    // If this message is for the active chat, update the active chat state as well
+    if (activeChat && messageData.conversation_id === activeChat.id) {
+      setActiveChat(prevActiveChat => {
+        return {
+          ...prevActiveChat,
+          lastMessage: messageData.text,
+          lastMessageTime: new Date(messageData.timestamp).toLocaleTimeString([], { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          }),
+          messages: [...(prevActiveChat.messages || []), newMessage]
+        };
+      });
       
-      // Show visual cue but no sound if chat is already open
+      // Scroll to bottom after a short delay to ensure the message is rendered
+      setTimeout(() => {
+        const chatbox = document.querySelector('.chatbox-messages');
+        if (chatbox) {
+          chatbox.scrollTop = chatbox.scrollHeight;
+        }
+      }, 100);
     } else {
-      // If it's for another chat, update that chat's last message
-      // ...update state
-      
-      // Show notification with sound
-      showNotification(`New message from ${messageData.sender_name}`, messageData.text);
+      // Show notification with sound if it's not the active chat
+      showNotification(`New message from ${messageData.sender_name || 'Unknown'}`, messageData.text);
     }
     
     setHasNewChats(true);
@@ -556,9 +560,17 @@ const Chat = () => {
   };
   
   const showNotification = (title, body) => {
-    // Play notification sound
-    const audio = new Audio('/notification-sound.mp3');
-    audio.play();
+    // Try to play notification sound, but catch errors if file not found
+    try {
+      const audio = new Audio('/notification-sound.mp3');
+      audio.addEventListener('error', (e) => {
+        console.warn('Audio file not found. Using fallback sound.');
+        // Use a fallback sound if available or just continue silently
+      });
+      audio.play().catch(err => console.warn('Could not play notification sound:', err));
+    } catch (error) {
+      console.warn('Error playing notification sound:', error);
+    }
     
     // Show browser notification if permitted
     if (Notification.permission === 'granted') {

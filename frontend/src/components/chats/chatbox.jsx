@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { SendOutlined, MoreOutlined, InfoCircleOutlined, PictureOutlined, SyncOutlined, UserSwitchOutlined } from '@ant-design/icons';
+import { SendOutlined, MoreOutlined, InfoCircleOutlined, PictureOutlined, UserSwitchOutlined } from '@ant-design/icons';
 import './chatbox.css';
 
 // Force-applied styles to fix message bubbles
@@ -47,7 +47,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [noApiConfigured, setNoApiConfigured] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const [noPermission, setNoPermission] = useState(false);
   const [users, setUsers] = useState([]);
   const [loadingUsers, setLoadingUsers] = useState(false);
@@ -139,7 +138,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
     });
   };
 
-  // Remove auto-refresh effect and replace with a simpler effect to fetch messages when chat changes
+  // Fetch messages when chat changes
   useEffect(() => {
     if (activeChat?.id && activeChat.id !== currentChatId) {
       setCurrentChatId(activeChat.id);
@@ -321,16 +320,13 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
     }
   };
 
-  const fetchMessages = async (silentCheck = false) => {
+  const fetchMessages = async () => {
     if (!activeChat?.id) return;
     
     try {
       const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.arazit.com';
-      if (!silentCheck) {
-        setLoading(true);
-      }
+      setLoading(true);
       
-      setRefreshing(true);
       setNoPermission(false);
       
       const tenantId = localStorage.getItem('tenant_id');
@@ -354,7 +350,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
         setError(null);
         setMessages([]);
         setLoading(false);
-        setRefreshing(false);
         return;
       }
       
@@ -365,7 +360,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
         setNoApiConfigured(true);
         setError(null);
         setLoading(false);
-        setRefreshing(false);
         return;
       }
       
@@ -410,14 +404,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
         })
         .sort((a, b) => a.timestamp - b.timestamp);
 
-      // Check if the message list has changed
-      const messagesChanged = messages.length !== transformedMessages.length || 
-        JSON.stringify(messages.map(m => m.id)) !== JSON.stringify(transformedMessages.map(m => m.id));
-      
-      if (messagesChanged) {
-        setMessages(transformedMessages);
-      }
-      
+      setMessages(transformedMessages);
       setError(null);
     } catch (err) {
       // Check if it's a JSON parsing error (likely HTML response)
@@ -429,13 +416,7 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
       }
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
-  };
-
-  // Add manual refresh function
-  const handleManualRefresh = () => {
-    fetchMessages();
   };
 
   const handleImageSelect = (e) => {
@@ -601,6 +582,13 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
       })
     : [];
 
+  useEffect(() => {
+    if (activeChat && activeChat.messages && activeChat.messages.length > 0) {
+      // When messages are updated, scroll to bottom
+      scrollToBottom();
+    }
+  }, [activeChat?.messages]);
+
   if (!activeChat) {
     return <div className="no-chat-selected">Select a chat to start messaging</div>;
   }
@@ -626,16 +614,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
               <h3>{activeChat.name}</h3>
               <p className="last-seen">Chat details restricted</p>
             </div>
-          </div>
-          <div className="chat-header-actions">
-            <button 
-              className="refresh-button"
-              onClick={handleManualRefresh}
-              disabled={refreshing}
-              title="Refresh messages"
-            >
-              <SyncOutlined spin={refreshing} />
-            </button>
           </div>
         </div>
 
@@ -675,14 +653,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
             </div>
           </div>
           <div className="chat-header-actions">
-            <button 
-              className="refresh-button"
-              onClick={handleManualRefresh}
-              disabled={refreshing}
-              title="Refresh messages"
-            >
-              <SyncOutlined spin={refreshing} />
-            </button>
             <button 
               className="info-button" 
               onClick={toggleDetailsDrawer}
@@ -781,14 +751,6 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
               </div>
             )}
           </div>
-          <button 
-            className="refresh-button"
-            onClick={handleManualRefresh}
-            disabled={refreshing}
-            title="Refresh messages"
-          >
-            <SyncOutlined spin={refreshing} />
-          </button>
           <button className="more-options">
             <MoreOutlined />
           </button>

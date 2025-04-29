@@ -4,6 +4,10 @@ from django.core.cache import cache
 import json
 from ..models import WABASettings
 import urllib.parse
+import logging
+
+# Set up logger
+logger = logging.getLogger('waba_api')
 
 class OnCloudAPIClient:
     def __init__(self, tenant_id=None):
@@ -11,6 +15,8 @@ class OnCloudAPIClient:
         self.base_url = None
         self.email = None
         self.password = None
+        
+        logger.info(f"Initializing OnCloudAPIClient for tenant_id: {tenant_id}")
         
         # If tenant_id is provided, try to get tenant-specific settings
         if tenant_id:
@@ -20,12 +26,18 @@ class OnCloudAPIClient:
                 self.base_url = waba_settings.api_url.rstrip('/')
                 self.email = waba_settings.email
                 self.password = waba_settings.password
+                
+                logger.info(f"Found settings for tenant_id {tenant_id}: API URL: {self.base_url}")
             except WABASettings.DoesNotExist:
                 # No tenant-specific settings found
-                raise Exception("No WhatsApp API settings configured for this tenant")
+                error_msg = f"No WhatsApp API settings configured for tenant_id: {tenant_id}"
+                logger.error(error_msg)
+                raise Exception(error_msg)
         else:
             # No tenant_id provided
-            raise Exception("Tenant ID is required to access WhatsApp API")
+            error_msg = "Tenant ID is required to access WhatsApp API"
+            logger.error(error_msg)
+            raise Exception(error_msg)
         
     def _get_access_token(self):
         """
@@ -37,10 +49,12 @@ class OnCloudAPIClient:
         # Check if token exists in cache
         cached_token = cache.get(cache_key)
         if cached_token:
+            logger.info(f"Using cached token for tenant_id: {self.tenant_id}")
             return cached_token
 
         # If no cached token, authenticate and get new token
         login_url = f"{self.base_url}/api/login"
+        logger.info(f"Getting new token from: {login_url}")
         
         # Try different authentication formats
         auth_attempts = [
@@ -79,7 +93,10 @@ class OnCloudAPIClient:
         last_error = None
         for i, attempt in enumerate(auth_attempts, 1):
             try:
+                logger.info(f"Token attempt {i} for tenant_id: {self.tenant_id}")
                 response = requests.post(login_url, **attempt)
+                
+                logger.info(f"Response status: {response.status_code}")
                 
                 response_data = response.json()
                 
@@ -87,21 +104,29 @@ class OnCloudAPIClient:
                     token = response_data.get('token')
                     if token:
                         # Cache the token for 23 hours
+                        logger.info(f"Successfully got token for tenant_id: {self.tenant_id}")
                         cache.set(cache_key, token, 23 * 60 * 60)
                         return token
+                else:
+                    logger.warning(f"Auth failed attempt {i}: {response_data}")
                 
                 last_error = response_data
             except Exception as e:
+                logger.error(f"Auth exception attempt {i}: {str(e)}")
                 last_error = str(e)
         
-        raise Exception(f"Authentication failed: {last_error}")
+        error_msg = f"Authentication failed for tenant_id {self.tenant_id}: {last_error}"
+        logger.error(error_msg)
+        raise Exception(error_msg)
     
     def test_connection(self):
         """
         Test the connection to OnCloud API
         """
         try:
+            logger.info(f"Testing connection for tenant_id: {self.tenant_id}")
             token = self._get_access_token()
+            logger.info(f"Connection test successful for tenant_id: {self.tenant_id}")
             return {
                 "success": True,
                 "message": "Successfully connected to OnCloud API",
@@ -109,6 +134,7 @@ class OnCloudAPIClient:
                 "status": "Connected"
             }
         except Exception as e:
+            logger.error(f"Connection test failed for tenant_id {self.tenant_id}: {str(e)}")
             return {
                 "success": False,
                 "message": str(e),
@@ -120,8 +146,12 @@ class OnCloudAPIClient:
         endpoint = f"{self.base_url}/chats"
         params = filters or {}
         
+        logger.info(f"Fetching chats from {endpoint} with params: {params}")
+        
         response = requests.get(endpoint, headers=self.headers, params=params)
         response.raise_for_status()
+        
+        logger.info(f"Got {len(response.json() if isinstance(response.json(), list) else 0)} chats")
         return response.json()
     
     def get_messages(self, contact_id):
@@ -138,6 +168,8 @@ class OnCloudAPIClient:
             token = self._get_access_token()
             messages_url = f"{self.base_url}/api/wpbox/getMessages"
             
+            logger.info(f"Fetching messages from {messages_url} for contact_id: {contact_id}")
+            
             # Prepare request data
             data = {
                 'token': token,
@@ -148,16 +180,24 @@ class OnCloudAPIClient:
             response = requests.post(messages_url, json=data)
             
             if response.status_code != 200:
-                raise Exception(f"Failed to fetch messages: {response.text}")
+                error_msg = f"Failed to fetch messages: {response.text}"
+                logger.error(error_msg)
+                raise Exception(error_msg)
             
             messages_data = response.json()
             
             if messages_data.get('status') == 'error':
-                raise Exception(f"API Error: {messages_data.get('message')}")
+                error_msg = f"API Error: {messages_data.get('message')}"
+                logger.error(error_msg)
+                raise Exception(error_msg)
                 
+            # Count and log messages
+            msg_count = len(messages_data.get('messages', []))
+            logger.info(f"Successfully fetched {msg_count} messages for contact_id: {contact_id}")
             return messages_data
             
         except Exception as e:
+            logger.error(f"Error fetching messages for contact_id {contact_id}: {str(e)}")
             raise
 
     def get_templates(self):
@@ -361,6 +401,8 @@ class OnCloudAPIClient:
             token = self._get_access_token()
             send_url = f"{self.base_url}/api/wpbox/sendmessage"
             
+            logger.info(f"Sending message to {data.get('phone')} via {send_url}")
+            
             # Prepare message data
             message_data = {
                 "token": token,
@@ -381,7 +423,9 @@ class OnCloudAPIClient:
             missing_fields = [field for field in required_fields if not message_data.get(field)]
             
             if missing_fields:
-                raise ValueError(f"Missing required fields: {', '.join(missing_fields)}")
+                error_msg = f"Missing required fields: {', '.join(missing_fields)}"
+                logger.error(error_msg)
+                raise ValueError(error_msg)
             
             # Send POST request
             response = requests.post(
@@ -390,11 +434,16 @@ class OnCloudAPIClient:
             )
             
             if response.status_code != 200:
-                raise Exception(f"Failed to send message: {response.text}")
+                error_msg = f"Failed to send message: {response.text}"
+                logger.error(error_msg)
+                raise Exception(error_msg)
                 
-            return response.json()
+            response_data = response.json()
+            logger.info(f"Message sent successfully to {data.get('phone')}: {response_data}")
+            return response_data
             
         except Exception as e:
+            logger.error(f"Error sending message: {str(e)}")
             raise
 
     def send_image_message(self, data):
@@ -454,6 +503,8 @@ class OnCloudAPIClient:
             token = self._get_access_token()
             conversations_url = f"{self.base_url}/api/wpbox/getConversations/none"
             
+            logger.info(f"Fetching conversations from {conversations_url}")
+            
             # Prepare request body with token
             data = {
                 'token': token
@@ -467,16 +518,24 @@ class OnCloudAPIClient:
             )
             
             if response.status_code != 200:
-                raise Exception(f"Failed to fetch conversations: {response.text}")
+                error_msg = f"Failed to fetch conversations: {response.text}"
+                logger.error(error_msg)
+                raise Exception(error_msg)
             
             conversations_data = response.json()
             
             if conversations_data.get('status') == 'error':
-                raise Exception(f"API Error: {conversations_data.get('message')}")
+                error_msg = f"API Error: {conversations_data.get('message')}"
+                logger.error(error_msg)
+                raise Exception(error_msg)
                 
+            # Count and log conversations
+            conv_count = len(conversations_data.get('conversations', []))
+            logger.info(f"Successfully fetched {conv_count} conversations")
             return conversations_data
             
         except Exception as e:
+            logger.error(f"Error fetching conversations: {str(e)}")
             raise
 
     def send_message_via_contact(self, data):

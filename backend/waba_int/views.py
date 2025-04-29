@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from .services.waba_int import OnCloudAPIClient
 from .models import Chat, Message, WABASettings, ChatAssignment
@@ -20,6 +21,9 @@ import json
 import os
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+from celery import shared_task
+import time
+import uuid
 
 class GroupView(APIView):
     permission_classes = [AllowAny]  # Allow unauthenticated access for testing
@@ -1429,80 +1433,342 @@ def assign_chat_to_user(request):
 
 # Add a function to broadcast new messages
 def broadcast_new_message(tenant_id, message_data, user_id=None):
-    channel_layer = get_channel_layer()
-    
-    # Send to tenant group
-    async_to_sync(channel_layer.group_send)(
-        f'whatsapp_{tenant_id}',
-        {
-            'type': 'new_message',
-            'data': message_data
-        }
-    )
-    
-    # If message is assigned to specific user, also send to user-specific group
-    if user_id:
+    """
+    Broadcast a new message to all connected clients for a specific tenant
+    and (optionally) to a specific user.
+    """
+    try:
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+        
+        print(f"[BROADCAST] Starting broadcast of new message to tenant: {tenant_id}")
+        print(f"[BROADCAST] Message data: {json.dumps(message_data, indent=2)}")
+        
+        channel_layer = get_channel_layer()
+        
+        # Broadcast to tenant group
+        tenant_group_name = f'whatsapp_{tenant_id}'
+        print(f"[BROADCAST] Broadcasting to tenant group: {tenant_group_name}")
+        
         async_to_sync(channel_layer.group_send)(
-            f'whatsapp_user_{user_id}',
+            tenant_group_name,
             {
                 'type': 'new_message',
                 'data': message_data
             }
         )
+        
+        # If a specific user is provided, broadcast to their group as well
+        if user_id:
+            user_group_name = f'whatsapp_user_{user_id}'
+            print(f"[BROADCAST] Broadcasting to user group: {user_group_name}")
+            
+            async_to_sync(channel_layer.group_send)(
+                user_group_name,
+                {
+                    'type': 'new_message',
+                    'data': message_data
+                }
+            )
+        
+        print(f"[BROADCAST] Message broadcast complete")
+        return True
+    except Exception as e:
+        print(f"[BROADCAST] ERROR broadcasting message: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return False
 
 # Add a function to broadcast new chats
 def broadcast_new_chat(tenant_id, chat_data):
-    channel_layer = get_channel_layer()
-    
-    async_to_sync(channel_layer.group_send)(
-        f'whatsapp_{tenant_id}',
-        {
-            'type': 'new_chat',
-            'data': chat_data
-        }
-    )
+    """
+    Broadcast a new chat to all connected clients for a specific tenant.
+    """
+    try:
+        from channels.layers import get_channel_layer
+        from asgiref.sync import async_to_sync
+        
+        print(f"[BROADCAST] Starting broadcast of new chat to tenant: {tenant_id}")
+        print(f"[BROADCAST] Chat data: {json.dumps(chat_data, indent=2)}")
+        
+        channel_layer = get_channel_layer()
+        
+        # Broadcast to tenant group
+        tenant_group_name = f'whatsapp_{tenant_id}'
+        print(f"[BROADCAST] Broadcasting to tenant group: {tenant_group_name}")
+        
+        async_to_sync(channel_layer.group_send)(
+            tenant_group_name,
+            {
+                'type': 'new_chat',
+                'data': chat_data
+            }
+        )
+        
+        print(f"[BROADCAST] Chat broadcast complete")
+        return True
+    except Exception as e:
+        print(f"[BROADCAST] ERROR broadcasting chat: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return False
 
-def handle_webhook(request):
-    # Process the webhook data...
-    
-    # After processing new message
-    if is_new_message:
-        message_data = {
-            'id': message_id,
-            'conversation_id': conv_id,
-            'sender_name': sender_name,
-            'text': message_text,
-            'timestamp': timestamp.isoformat(),
-            'is_from_me': is_from_me
-        }
+@api_view(['GET', 'POST'])  # Add the HTTP methods this view should accept
+@permission_classes([AllowAny])
+def webhook_handler(request):
+    """
+    Handler for webhooks from OnCloud API
+    """
+    try:
+        # Enhanced debugging for webhook payload
+        print("=" * 50)
+        print(f"WEBHOOK RECEIVED AT: {timezone.now().isoformat()}")
+        print(f"METHOD: {request.method}")
+        print(f"HEADERS: {dict(request.headers)}")
+        print(f"CONTENT TYPE: {request.content_type}")
+        print(f"DATA: {json.dumps(request.data, indent=2) if request.data else 'No data'}")
+        print(f"QUERY PARAMS: {request.query_params}")
+        print("=" * 50)
         
-        # Get assigned user ID if any
-        assigned_user_id = None
-        try:
-            chat_assignment = ChatAssignment.objects.get(
-                chat_id=conv_id, 
-                tenant_id=tenant_id
+        # Extract tenant information from the payload or query params
+        tenant_id = request.data.get('tenant_id') or request.query_params.get('tenant_id')
+        
+        if not tenant_id:
+            # Try to get tenant from a custom header
+            tenant_id = request.headers.get('X-Tenant-ID')
+            print(f"[WEBHOOK] Getting tenant_id from header: {tenant_id}")
+        
+        if not tenant_id:
+            print("[WEBHOOK] ERROR: No tenant_id provided")
+            return Response({"status": "error", "message": "Tenant ID not provided"}, status=400)
+        
+        print(f"[WEBHOOK] Processing for tenant_id: {tenant_id}")
+
+        # Handle different message structures from OnCloud API
+        # First, try to extract message data from known formats
+        message_data = None
+        
+        # Possible keys where OnCloud might send message data
+        message_keys = ['message', 'messages', 'data', 'body', 'event_data']
+        
+        for key in message_keys:
+            if key in request.data:
+                value = request.data.get(key)
+                if isinstance(value, list) and len(value) > 0:
+                    # If it's an array, take the first item
+                    message_data = value[0]
+                    break
+                elif isinstance(value, dict):
+                    # If it's an object, use it directly
+                    message_data = value
+                    break
+        
+        # If still no message_data, check for message in nested structures
+        if not message_data:
+            for key, value in request.data.items():
+                if isinstance(value, dict) and ('text' in value or 'body' in value or 'content' in value):
+                    message_data = value
+                    break
+        
+        # If we found message data, process it
+        if message_data:
+            print(f"[WEBHOOK] Extracted message_data: {json.dumps(message_data, indent=2)}")
+            
+            # Try to extract conversation_id from different possible locations
+            conversation_id = (
+                message_data.get('conversation_id') or 
+                message_data.get('contact_id') or 
+                message_data.get('chat_id') or
+                request.data.get('conversation_id') or
+                request.data.get('contact_id') or
+                request.data.get('chat_id')
             )
-            if chat_assignment.assigned_to:
-                assigned_user_id = str(chat_assignment.assigned_to.id)
-        except ChatAssignment.DoesNotExist:
-            pass
+            
+            # Try to extract message text from different possible locations
+            message_text = (
+                message_data.get('text') or 
+                message_data.get('body', {}).get('text') if isinstance(message_data.get('body'), dict) else message_data.get('body') or
+                message_data.get('content') or
+                'No message content'
+            )
+            
+            # Try to extract is_from_me from different possible locations
+            is_from_me = (
+                message_data.get('from_me') or 
+                message_data.get('is_from_me') or
+                message_data.get('fromMe') or
+                message_data.get('direction') == 'outbound' or
+                False
+            )
+            
+            # Generate a unique message ID if not provided
+            message_id = message_data.get('id') or message_data.get('message_id') or str(uuid.uuid4())
+            
+            print(f"[WEBHOOK] Extracted details: id={message_id}, conversation_id={conversation_id}, text='{message_text}', is_from_me={is_from_me}")
+            
+            # Try to extract contact info from different possible locations
+            contact_info = (
+                request.data.get('contact') or 
+                request.data.get('sender') or
+                request.data.get('from') or
+                request.data.get('customer') or
+                {}
+            )
+            
+            if not contact_info and conversation_id:
+                # If we have conversation_id but no contact info, create minimal contact info
+                contact_info = {'id': conversation_id}
+            
+            # Extract name and phone with fallbacks
+            sender_name = (
+                contact_info.get('name') or 
+                contact_info.get('display_name') or
+                contact_info.get('profile', {}).get('name') if isinstance(contact_info.get('profile'), dict) else None or
+                'Unknown'
+            )
+            
+            phone = (
+                contact_info.get('phone') or 
+                contact_info.get('phone_number') or
+                contact_info.get('number') or
+                contact_info.get('wa_id') or
+                conversation_id if isinstance(conversation_id, str) and conversation_id.isdigit() else None
+            )
+            
+            print(f"[WEBHOOK] Contact info: name={sender_name}, phone={phone}")
+            
+            if not conversation_id or not phone:
+                print("[WEBHOOK] ERROR: Missing required conversation_id or phone")
+                return Response({"status": "error", "message": "Missing required conversation_id or phone"}, status=400)
+            
+            # Save message to database
+            try:
+                print(f"[WEBHOOK] Looking for chat with contact_id={conversation_id}, tenant_id={tenant_id}")
+                chat = Chat.objects.get(contact_id=conversation_id, tenant_id=tenant_id)
+                print(f"[WEBHOOK] Existing chat found: {chat.id}")
+                
+                # Process timestamp
+                timestamp_str = message_data.get('timestamp')
+                if timestamp_str:
+                    try:
+                        if isinstance(timestamp_str, str) and timestamp_str.isdigit():
+                            timestamp = datetime.fromtimestamp(int(timestamp_str))
+                        elif isinstance(timestamp_str, int):
+                            timestamp = datetime.fromtimestamp(timestamp_str)
+                        else:
+                            # Try to parse as ISO format
+                            timestamp = datetime.fromisoformat(timestamp_str.replace('Z', '+00:00'))
+                        print(f"[WEBHOOK] Parsed timestamp: {timestamp}")
+                    except Exception as e:
+                        print(f"[WEBHOOK] Error parsing timestamp: {e}")
+                        timestamp = timezone.now()
+                else:
+                    timestamp = timezone.now()
+                    print(f"[WEBHOOK] Using current timestamp: {timestamp}")
+                
+                # Create message in database
+                print("[WEBHOOK] Creating message in database")
+                message = Message.objects.create(
+                    chat=chat,
+                    tenant_id=tenant_id,
+                    message_id=message_id,
+                    text=message_text,
+                    sent_by_contact=not is_from_me,
+                    timestamp=timestamp
+                )
+                print(f"[WEBHOOK] Message created in database with ID: {message.id}")
+                
+                # Update chat with last message
+                chat.last_message = message_text
+                chat.last_message_time = timestamp
+                chat.save()
+                print(f"[WEBHOOK] Chat updated with last message")
+                
+                # Get assigned user if any
+                assigned_user_id = None
+                try:
+                    print(f"[WEBHOOK] Checking for chat assignment")
+                    chat_assignment = ChatAssignment.objects.get(
+                        chat_id=conversation_id, 
+                        tenant_id=tenant_id
+                    )
+                    if chat_assignment.assigned_to:
+                        assigned_user_id = str(chat_assignment.assigned_to.id)
+                        print(f"[WEBHOOK] Chat is assigned to user_id: {assigned_user_id}")
+                except ChatAssignment.DoesNotExist:
+                    print(f"[WEBHOOK] No chat assignment found")
+                    pass
+                
+                # Prepare data for WebSocket broadcast
+                formatted_message = {
+                    'id': str(message.id),
+                    'conversation_id': conversation_id,
+                    'sender_name': sender_name,
+                    'text': message_text,
+                    'timestamp': timestamp.isoformat(),
+                    'is_from_me': is_from_me
+                }
+                
+                print(f"[WEBHOOK] Broadcasting message via WebSocket: {json.dumps(formatted_message, indent=2)}")
+                
+                # Broadcast the message via WebSocket
+                broadcast_result = broadcast_new_message(tenant_id, formatted_message, assigned_user_id)
+                print(f"[WEBHOOK] Broadcast complete, result: {broadcast_result}")
+                
+                return Response({"status": "success", "message": "Message processed"})
+                
+            except Chat.DoesNotExist:
+                # Create new chat if it doesn't exist
+                print(f"[WEBHOOK] Chat not found, creating new chat")
+                new_chat = Chat.objects.create(
+                    contact_id=conversation_id,
+                    phone=phone,
+                    name=sender_name or phone,
+                    tenant_id=tenant_id,
+                    last_message=message_text,
+                    last_message_time=timezone.now()
+                )
+                print(f"[WEBHOOK] New chat created with ID: {new_chat.id}")
+                
+                # Format data for WebSocket broadcast
+                chat_data = {
+                    'id': conversation_id,
+                    'name': sender_name or phone,
+                    'phone': phone,
+                    'lastMessage': message_text,
+                    'lastMessageTime': timezone.now().strftime('%I:%M %p'),
+                    'unread': True
+                }
+                
+                print(f"[WEBHOOK] Broadcasting new chat via WebSocket: {json.dumps(chat_data, indent=2)}")
+                
+                # Broadcast the new chat via WebSocket
+                broadcast_result = broadcast_new_chat(tenant_id, chat_data)
+                print(f"[WEBHOOK] New chat broadcast complete, result: {broadcast_result}")
+                
+                # Optionally create a lead from the new contact
+                try:
+                    print(f"[WEBHOOK] Attempting to create lead from contact")
+                    LeadService.create_lead_from_contact(
+                        {
+                            'id': conversation_id,
+                            'name': sender_name,
+                            'phone': phone
+                        },
+                        tenant_id
+                    )
+                    print(f"[WEBHOOK] Lead created successfully")
+                except Exception as e:
+                    print(f"[WEBHOOK] Error creating lead: {str(e)}")
+                
+                return Response({"status": "success", "message": "New chat created"})
+        else:
+            print("[WEBHOOK] Could not find message data in payload")
+            return Response({"status": "error", "message": "No message data found in payload"}, status=400)
         
-        # Broadcast the new message
-        broadcast_new_message(tenant_id, message_data, assigned_user_id)
-    
-    # After processing new conversation
-    if is_new_conversation:
-        chat_data = {
-            'id': conv_id,
-            'name': contact_name or phone,
-            'phone': phone,
-            'lastMessage': message_text,
-            'lastMessageTime': formatted_time,
-            'unread': True
-        }
-        
-        # Broadcast the new chat
-        broadcast_new_chat(tenant_id, chat_data)
-    
-    return response
+    except Exception as e:
+        print("[WEBHOOK] ERROR processing webhook:")
+        import traceback
+        traceback.print_exc()
+        return Response({"status": "error", "message": str(e)}, status=500)
+
