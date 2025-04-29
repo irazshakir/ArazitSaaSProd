@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { SendOutlined, MoreOutlined, InfoCircleOutlined, PictureOutlined, UserSwitchOutlined } from '@ant-design/icons';
+import { SendOutlined, MoreOutlined, InfoCircleOutlined, PictureOutlined, UserSwitchOutlined, PaperClipOutlined, SmileOutlined } from '@ant-design/icons';
+import data from '@emoji-mart/data';
+import Picker from '@emoji-mart/react';
 import './chatbox.css';
 
 // Force-applied styles to fix message bubbles
@@ -38,7 +40,17 @@ const forceStyles = `
 }
 `;
 
-const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, lastRefreshTime, noApiConfigured: parentNoApiConfigured, userRole }) => {
+const Chatbox = ({ 
+  activeChat, 
+  sendMessage, 
+  toggleDetailsDrawer, 
+  refreshData, 
+  lastRefreshTime, 
+  noApiConfigured: parentNoApiConfigured, 
+  userRole,
+  typing = false,
+  lastTypingUpdate = null
+}) => {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
@@ -63,6 +75,13 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
   const cannedMessagesRef = useRef(null);
   const inputRef = useRef(null);
   const [currentChatId, setCurrentChatId] = useState(null);
+  const lastRefreshTimeRef = useRef(null);
+  const chatContainerRef = useRef(null);
+  const emojiPickerRef = useRef(null);
+  const messageRef = useRef(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
+  const [lastTypingTime, setLastTypingTime] = useState(null);
 
   // Update noApiConfigured state when parent prop changes
   useEffect(() => {
@@ -70,6 +89,92 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
       setNoApiConfigured(true);
     }
   }, [parentNoApiConfigured]);
+
+  // Add polling for messages when lastRefreshTime changes
+  useEffect(() => {
+    // Only fetch if lastRefreshTime changed and we have an active chat
+    if (
+      lastRefreshTime && 
+      lastRefreshTimeRef.current !== lastRefreshTime && 
+      activeChat?.id && 
+      !parentNoApiConfigured
+    ) {
+      lastRefreshTimeRef.current = lastRefreshTime;
+      // Only fetch if we're not already loading
+      if (!loading) {
+        // Instead of calling fetchMessages which resets the UI,
+        // use a more subtle approach with backgroundFetchMessages
+        backgroundFetchMessages();
+      }
+    }
+  }, [lastRefreshTime, activeChat?.id, parentNoApiConfigured]);
+
+  // New function for background fetching without UI disruption
+  const backgroundFetchMessages = async () => {
+    if (!activeChat?.id) return;
+    
+    try {
+      const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.arazit.com';
+      
+      const tenantId = localStorage.getItem('tenant_id');
+      const token = localStorage.getItem('token');
+      
+      console.log('Background fetching messages for chat ID:', activeChat.id);
+      
+      const response = await fetch(`${apiBaseUrl}/api/messages/${activeChat.id}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Tenant-ID': tenantId,
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          tenant_id: tenantId
+        })
+      });
+      
+      // Basic validation without UI state changes
+      if (!response.ok) return;
+      
+      const data = await response.json();
+      if (!data.status || data.status === 'error' || !data.data) return;
+      
+      // Use the helper function to transform messages
+      const transformedMessages = transformApiMessages(data.data);
+      
+      // Compare with current messages to see if we need to update
+      if (messages.length !== transformedMessages.length) {
+        // Find only the new messages that aren't already in our current list
+        const existingMessageIds = new Set(messages.map(m => m.id));
+        const newMessages = transformedMessages.filter(m => !existingMessageIds.has(m.id));
+        
+        if (newMessages.length > 0) {
+          // Only update if there are actually new messages
+          // Keep existing messages and add new ones at the end
+          const updatedMessages = [...messages, ...newMessages];
+          
+          // Sort by timestamp to ensure correct order
+          updatedMessages.sort((a, b) => a.timestamp - b.timestamp);
+          
+          // Update messages without affecting UI state
+          setMessages(updatedMessages);
+          
+          // Scroll to bottom smoothly after a short delay
+          setTimeout(() => {
+            scrollToBottom();
+          }, 100);
+          
+          // Update the active chat's messages too, so Chat.jsx has them
+          if (activeChat && typeof sendMessage === 'function') {
+            activeChat.messages = updatedMessages;
+          }
+        }
+      }
+    } catch (err) {
+      // Silent error handling for background updates
+      console.error('Background message fetch error:', err.message);
+    }
+  };
 
   // Add event listener to handle clicks outside the dropdowns
   useEffect(() => {
@@ -138,28 +243,33 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
     });
   };
 
-  // Fetch messages when chat changes
+  // Update the messages array when activeChat changes
   useEffect(() => {
-    if (activeChat?.id && activeChat.id !== currentChatId) {
-      setCurrentChatId(activeChat.id);
-      setMessages([]);
-      setError(null);
-      setMessage('');
-      setSelectedImage(null);
-      setImagePreview(null);
-      
-      // Only fetch messages if API is configured
-      if (!parentNoApiConfigured) {
-        setNoApiConfigured(false);
-        fetchMessages();
+    if (activeChat) {
+      // Reset basic state when chat changes completely
+      if (currentChatId !== activeChat.id) {
+        setCurrentChatId(activeChat.id);
+        setError(null);
+        setMessage('');
+        setSelectedImage(null);
+        setImagePreview(null);
+        setMessages([]); // Clear messages when chat changes
+        
+        // Only fetch new messages from API if we need to and API is configured
+        if (!parentNoApiConfigured) {
+          setNoApiConfigured(false);
+          fetchMessages();
+        }
       }
     }
   }, [activeChat?.id, parentNoApiConfigured]);
 
-  // Auto-scroll to newest messages
+  // Add a new useEffect to ensure we scroll to bottom when messages update
   useEffect(() => {
-    scrollToBottom();
-  }, [messages.length]);
+    if (messages.length > 0) {
+      scrollToBottom();
+    }
+  }, [messages]);
 
   // Store record of viewed messages
   useEffect(() => {
@@ -332,6 +442,8 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
       const tenantId = localStorage.getItem('tenant_id');
       const token = localStorage.getItem('token');
       
+      console.log('Fetching messages for chat ID:', activeChat.id);
+      
       const response = await fetch(`${apiBaseUrl}/api/messages/${activeChat.id}/`, {
         method: 'POST',
         headers: {
@@ -383,27 +495,16 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
         throw new Error(data.errMsg || 'Failed to fetch messages');
       }
 
-      const transformedMessages = data.data
-        .map(msg => {
-          // Determine if message is from contact
-          const isFromContact = msg.is_message_by_contact === 1 || msg.is_message_by_contact === true;
-          
-          // Create the message object with the corrected classification
-          const messageObj = {
-            id: msg.id,
-            text: msg.value || '',
-            // For display, sent=true means OUR message (displayed on right)
-            // sent=false means THEIR message (displayed on left)
-            sent: !isFromContact,
-            timestamp: new Date(msg.created_at),
-            isImage: msg.message_type === 2,
-            image: msg.message_type === 2 ? msg.header_image : null
-          };
-          
-          return messageObj;
-        })
-        .sort((a, b) => a.timestamp - b.timestamp);
-
+      // Use the helper function to transform messages
+      const transformedMessages = transformApiMessages(data.data);
+      
+      // Update the active chat's messages too, so Chat.jsx has them
+      if (activeChat && typeof sendMessage === 'function') {
+        // Use the sendMessage prop to inform parent of new messages
+        // This is a hack, but it works to pass data upward
+        activeChat.messages = transformedMessages;
+      }
+      
       setMessages(transformedMessages);
       setError(null);
     } catch (err) {
@@ -582,12 +683,115 @@ const Chatbox = ({ activeChat, sendMessage, toggleDetailsDrawer, refreshData, la
       })
     : [];
 
+  // Function to transform API message format to our local format
+  const transformApiMessages = (apiMessages) => {
+    if (!Array.isArray(apiMessages)) return [];
+    
+    return apiMessages
+      .map(msg => {
+        // Determine if message is from contact
+        const isFromContact = msg.is_message_by_contact === 1 || msg.is_message_by_contact === true;
+        
+        // Create the message object with the corrected classification
+        return {
+          id: msg.id,
+          text: msg.value || '',
+          // For display, sent=true means OUR message (displayed on right)
+          // sent=false means THEIR message (displayed on left)
+          sent: !isFromContact,
+          timestamp: new Date(msg.created_at),
+          isImage: msg.message_type === 2,
+          image: msg.message_type === 2 ? msg.header_image : null
+        };
+      })
+      .sort((a, b) => a.timestamp - b.timestamp);
+  };
+
+  // Scroll to bottom when messages change
   useEffect(() => {
-    if (activeChat && activeChat.messages && activeChat.messages.length > 0) {
-      // When messages are updated, scroll to bottom
-      scrollToBottom();
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
-  }, [activeChat?.messages]);
+  }, [messages]);
+
+  // Focus on input field when active chat changes
+  useEffect(() => {
+    if (messageRef.current && activeChat) {
+      messageRef.current.focus();
+    }
+  }, [activeChat]);
+
+  // Update typing state based on parent prop
+  useEffect(() => {
+    // Check if typing props exist before using them
+    if (typeof typing !== 'undefined' && typing && lastTypingUpdate && lastTypingUpdate !== lastTypingTime) {
+      setIsTyping(true);
+      setLastTypingTime(lastTypingUpdate);
+      
+      // Hide typing indicator after 3 seconds if no new updates
+      const timer = setTimeout(() => {
+        setIsTyping(false);
+      }, 3000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [typing, lastTypingUpdate, lastTypingTime]);
+
+  const handleMessageChange = (e) => {
+    setMessage(e.target.value);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  const handleSelectEmoji = (emoji) => {
+    setMessage(prevMessage => prevMessage + emoji.native);
+    if (messageRef.current) {
+      messageRef.current.focus();
+    }
+  };
+
+  const toggleEmojiPicker = () => {
+    setShowEmojiPicker(!showEmojiPicker);
+  };
+
+  // Format timestamp
+  const formatMessageTime = (timestamp) => {
+    if (!timestamp) return '';
+    
+    // Check if timestamp is already a Date object, if not, create one
+    const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
+    
+    // Check if the date is valid
+    if (isNaN(date.getTime())) return '';
+    
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  // For demo only
+  const formatPhoneNumber = (phone) => {
+    if (!phone) return '';
+    
+    // Remove any non-digit characters
+    const cleaned = phone.replace(/\D/g, '');
+    
+    // Format: +X (XXX) XXX-XXXX
+    if (cleaned.length >= 10) {
+      // For US/Canada numbers
+      const countryCode = cleaned.length > 10 ? cleaned.slice(0, cleaned.length - 10) : '1';
+      const areaCode = cleaned.slice(-10, -7);
+      const firstPart = cleaned.slice(-7, -4);
+      const lastPart = cleaned.slice(-4);
+      
+      return `+${countryCode} (${areaCode}) ${firstPart}-${lastPart}`;
+    }
+    
+    return phone; // Return original if can't format
+  };
 
   if (!activeChat) {
     return <div className="no-chat-selected">Select a chat to start messaging</div>;

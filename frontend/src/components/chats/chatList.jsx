@@ -13,7 +13,8 @@ const ChatList = ({
   noApiConfigured: parentNoApiConfigured,
   totalConversations,
   roleFilterActive,
-  userRole
+  userRole,
+  chats: parentChats
 }) => {
   const [activeTab, setActiveTab] = useState('personal');
   const [chats, setChats] = useState([]);
@@ -24,6 +25,14 @@ const ChatList = ({
   const prevChatsLength = React.useRef(0);
   const prevChatIds = React.useRef([]);
 
+  // Update local chats when parent chats change
+  useEffect(() => {
+    if (parentChats && parentChats.length > 0) {
+      setChats(parentChats);
+      setLoading(false);
+    }
+  }, [parentChats]);
+
   // Update noApiConfigured state when parent prop changes
   useEffect(() => {
     if (parentNoApiConfigured) {
@@ -33,8 +42,17 @@ const ChatList = ({
 
   // Initial load of conversations
   useEffect(() => {
-    fetchConversations();
+    if (!parentChats || parentChats.length === 0) {
+      fetchConversations();
+    }
   }, []);
+
+  // Refresh when lastRefreshTime changes
+  useEffect(() => {
+    if (lastRefreshTime && !parentChats) {
+      fetchConversations(true);
+    }
+  }, [lastRefreshTime]);
 
   // Track changes in chat list
   useEffect(() => {
@@ -68,7 +86,7 @@ const ChatList = ({
       
       const tenantId = localStorage.getItem('tenant_id');
       const token = localStorage.getItem('token');
-
+      
       const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/conversations/`, {
         method: 'POST',
         headers: {

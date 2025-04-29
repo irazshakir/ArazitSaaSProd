@@ -11,106 +11,7 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import './Chat.css';
 
-// Dummy data - replace with your API calls later
-const dummyChats = [
-  {
-    id: 1,
-    name: 'Shannon Baker',
-    avatar: '/avatars/shannon.jpg',
-    lastMessage: 'Will do. Appreciate it!',
-    lastMessageTime: '09:39 AM',
-    unread: false,
-    messages: [
-      { id: 1, text: "be too much to handle.", sent: true },
-      { id: 2, text: "I think you should go for it. You're more than capable and it sounds like a great opportunity for growth.", sent: false },
-      { id: 3, text: "Thanks, Mark. I needed that encouragement. I'll start working on my application tonight.", sent: true },
-      { id: 4, text: "Anytime! Let me know if you need any help with your resume or cover letter.", sent: false },
-      { id: 5, text: "Will do. Appreciate it!", sent: true }
-    ],
-    leadDetails: {
-      name: 'Shannon Baker',
-      phone: '+1 555-123-4567',
-      email: 'shannon.baker@example.com'
-    },
-    productDetails: {
-      name: 'Premium CRM Package',
-      price: '$299/month'
-    },
-    assignedTo: {
-      name: 'Mark Johnson',
-      id: 101
-    },
-    status: 'Interested'
-  },
-  {
-    id: 2,
-    name: 'Jessica Wells',
-    avatar: '/avatars/jessica.jpg',
-    lastMessage: "Perfect. I'll pack everything up.",
-    lastMessageTime: '07:39 PM',
-    unread: true,
-    messages: [
-      // Sample messages
-      { id: 1, text: "Hi Jessica, how's your order coming along?", sent: false },
-      { id: 2, text: "Perfect. I'll pack everything up.", sent: true }
-    ]
-  },
-  {
-    id: 3,
-    name: 'Arlene Pierce',
-    avatar: '/avatars/arlene.jpg',
-    lastMessage: 'Okay, Thanks 🍓',
-    lastMessageTime: '05:49 PM',
-    unread: false,
-    messages: [
-      // Sample messages
-      { id: 1, text: "Your appointment is confirmed for Thursday at 2 PM.", sent: false },
-      { id: 2, text: "Okay, Thanks 🍓", sent: true }
-    ]
-  },
-  {
-    id: 4,
-    name: 'Max Alexander',
-    avatar: '/avatars/max.jpg',
-    lastMessage: "I'd love that! Let's discuss...",
-    lastMessageTime: '03:59 PM',
-    unread: false,
-    messages: [
-      // Sample messages
-      { id: 1, text: "Would you be interested in our premium package?", sent: false },
-      { id: 2, text: "I'd love that! Let's discuss...", sent: true }
-    ]
-  },
-  {
-    id: 5,
-    name: 'Jeremiah Minsk',
-    avatar: '/avatars/jeremiah.jpg',
-    lastMessage: 'No problem. Got it!',
-    lastMessageTime: '04:59 AM',
-    unread: false,
-    messages: [
-      // Sample messages
-      { id: 1, text: "Please submit your documents by Friday.", sent: false },
-      { id: 2, text: "No problem. Got it!", sent: true }
-    ]
-  },
-  {
-    id: 6,
-    name: 'Camila Simmmons',
-    avatar: '/avatars/camila.jpg',
-    lastMessage: "True! I'll be more careful...",
-    lastMessageTime: '12:19 AM',
-    unread: false,
-    messages: [
-      // Sample messages
-      { id: 1, text: "Remember to verify all client information.", sent: false },
-      { id: 2, text: "True! I'll be more careful...", sent: true }
-    ]
-  },
-];
-
 const Chat = () => {
-  const [chats, setChats] = useState(dummyChats);
   const [activeChat, setActiveChat] = useState(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
@@ -119,15 +20,16 @@ const Chat = () => {
   const [lastRefreshTime, setLastRefreshTime] = useState(Date.now());
   const [hasNewChats, setHasNewChats] = useState(false);
   const [noApiConfigured, setNoApiConfigured] = useState(false);
-  const [userRole, setUserRole] = useState('');
+  const [userRole, setUserRole] = useState('user');
   const [totalConversations, setTotalConversations] = useState(0);
   const [roleFilterActive, setRoleFilterActive] = useState(false);
   const lastActiveChat = useRef(null);
-  const [socket, setSocket] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const socketRef = useRef(null);
-
- 
+  const [chatsLoading, setChatsLoading] = useState(true);
+  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [chats, setChats] = useState([]);
+  const pollIntervalRef = useRef(null);
+  const [seenMessageIds, setSeenMessageIds] = useState(new Set());
+  const [lastProcessedChats, setLastProcessedChats] = useState([]);
 
   useEffect(() => {
     // Set first chat as active on initial load
@@ -164,144 +66,234 @@ const Chat = () => {
           }
         }
       } catch (error) {
-        console.error('Error parsing user data:', error);
+        // Silent error handling for user role retrieval
       }
     }
   }, []);
 
-  // Connect to WebSocket
+  // Start polling when component mounts
   useEffect(() => {
-    const connectWebSocket = () => {
-      const token = localStorage.getItem('token');
-      const tenant_id = localStorage.getItem('tenant_id');
-      
-      if (!token || !tenant_id) return;
-      
-      // Debug environment variables
-      console.log('Environment Variables:');
-      console.log('VITE_API_WS_HOST:', import.meta.env.VITE_API_WS_HOST);
-      console.log('VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
-      console.log('All env variables:', import.meta.env);
-      
-      // Use insecure WebSocket for debugging - REMOVE THIS IN PRODUCTION
-      // const wsProtocol = 'ws:';
-      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      
-      // Build the WebSocket URL
-      // IMPORTANT: Temporarily hardcoding to api.arazit.com until env variables are fixed
-      const wsHost = 'api.arazit.com'; // Hardcoded for now
-      const wsUrl = `${wsProtocol}//${wsHost}/ws/whatsapp/?token=${token}&tenant=${tenant_id}`;
-      
-      console.log('%c[WebSocket] Connecting to:', 'color: #6495ED; font-weight: bold', wsUrl);
-      console.log('%c[WebSocket] Connection params:', 'color: #6495ED', {
-        token: token ? token.substring(0, 10) + '...' : null, 
-        tenant_id,
-        protocol: wsProtocol,
-        host: wsHost
-      });
-      
-      const newSocket = new WebSocket(wsUrl);
-      
-      newSocket.onopen = () => {
-        setIsConnected(true);
-        console.log('%c[WebSocket] Connected successfully!', 'color: #4CAF50; font-weight: bold');
-        // Send a ping immediately after connecting to test the connection
-        try {
-          newSocket.send(JSON.stringify({
-            type: 'ping',
-            timestamp: new Date().toISOString()
-          }));
-          console.log('%c[WebSocket] Ping sent', 'color: #6495ED');
-        } catch (error) {
-          console.error('[WebSocket] Error sending ping:', error);
-        }
-      };
-      
-      newSocket.onmessage = (event) => {
-        console.log('%c[WebSocket] Message received:', 'color: #9C27B0; font-weight: bold', event.data);
-        
-        try {
-            const data = JSON.parse(event.data);
-            console.log('%c[WebSocket] Parsed data:', 'color: #9C27B0', data);
-            
-            if (data.type === 'new_message') {
-                console.log('%c[WebSocket] New message received:', 'color: #FF9800; font-weight: bold', data.data);
-                handleNewMessage(data.data);
-            } else if (data.type === 'new_chat') {
-                console.log('%c[WebSocket] New chat received:', 'color: #FF9800; font-weight: bold', data.data);
-                handleNewChat(data.data);
-            } else if (data.type === 'chat_assigned') {
-                console.log('%c[WebSocket] Chat assigned:', 'color: #FF9800; font-weight: bold', data.data);
-                handleChatAssigned(data.data);
-            } else {
-                console.log('%c[WebSocket] Unknown message type:', 'color: #F44336', data.type);
-            }
-        } catch (error) {
-            console.error('%c[WebSocket] Error parsing message:', 'color: #F44336', error);
-            console.error('Raw message:', event.data);
-        }
-      };
-      
-      newSocket.onclose = (event) => {
-        setIsConnected(false);
-        const reason = event.reason ? ` Reason: ${event.reason}` : '';
-        const code = event.code ? ` Code: ${event.code}` : '';
-        console.log(`%c[WebSocket] Disconnected${code}${reason}`, 'color: #F44336; font-weight: bold');
-        
-        // Try to reconnect after 3 seconds
-        setTimeout(() => {
-          console.log('%c[WebSocket] Attempting to reconnect...', 'color: #FF9800');
-          connectWebSocket();
-        }, 3000);
-      };
-      
-      newSocket.onerror = (error) => {
-        // Provide more detailed error information
-        console.error('%c[WebSocket] Connection error:', 'color: #F44336; font-weight: bold', error);
-        console.error('%c[WebSocket] Check configuration:', 'color: #F44336');
-        console.table({
-          'WebSocket URL': wsUrl,
-          'Protocol': wsProtocol,
-          'Host': wsHost,
-          'Has Token': !!token,
-          'Has Tenant ID': !!tenant_id
-        });
-        
-        newSocket.close();
-      };
-      
-      socketRef.current = newSocket;
-      setSocket(newSocket);
-    };
+    // Initial fetch
+    refreshData(true);
     
-    connectWebSocket();
+    // Set up polling every 3 seconds
+    pollIntervalRef.current = setInterval(() => {
+      // Use the quieter background refresh for polling updates
+      backgroundRefreshData();
+    }, 3000);
     
-    // Set up a heartbeat every 30 seconds to keep the connection alive
-    const heartbeatInterval = setInterval(() => {
-      if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
-        try {
-          socketRef.current.send(JSON.stringify({
-            type: 'heartbeat',
-            timestamp: new Date().toISOString()
-          }));
-          console.log('%c[WebSocket] Heartbeat sent', 'color: #6495ED');
-        } catch (error) {
-          console.error('[WebSocket] Error sending heartbeat:', error);
-        }
-      }
-    }, 30000);
-    
+    // Clean up interval on component unmount
     return () => {
-      clearInterval(heartbeatInterval);
-      if (socketRef.current) {
-        console.log('%c[WebSocket] Closing connection (component unmount)', 'color: #FF9800');
-        socketRef.current.close();
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
       }
     };
   }, []);
 
-  // Function to refresh the chat data - MODIFIED to only be used for manual refreshes
+  // A quieter background refresh that doesn't trigger loading indicators
+  const backgroundRefreshData = async () => {
+    // Don't refresh if already refreshing
+    if (isRefreshing) return;
+    
+    try {
+      // Get tenant ID and token from localStorage
+      const tenantId = localStorage.getItem('tenant_id');
+      const token = localStorage.getItem('token');
+      
+      // Fetch conversations
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/conversations/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Tenant-ID': tenantId,
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          tenant_id: tenantId
+        })
+      });
+      
+      if (!response.ok) return;
+      
+      const contentType = response.headers.get('content-type');
+      if (contentType && !contentType.includes('application/json')) return;
+      
+      const data = await response.json();
+      
+      if (data.status !== 'success') return;
+      
+      // Transform the conversations data
+      const transformedChats = data.data.map(conv => ({
+        id: conv.id,
+        name: conv.name || conv.phone,
+        phone: conv.phone,
+        avatar: conv.avatar,
+        lastMessage: conv.last_message || 'No messages yet',
+        lastMessageTime: conv.last_reply_at ? new Date(conv.last_reply_at).toLocaleTimeString([], { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        }) : '',
+        unread: !conv.resolved_chat && conv.is_last_message_by_contact === 1,
+        messages: []
+      }));
+      
+      // Set total conversations from summary if available
+      if (data.summary && data.summary.total_conversations) {
+        setTotalConversations(data.summary.total_conversations);
+        setRoleFilterActive(
+          data.summary.total_conversations !== data.summary.filtered_conversations
+        );
+      }
+      
+      // Find new chats and chats with updated messages
+      const existingChatIds = new Set(chats.map(chat => chat.id));
+      const newChats = transformedChats.filter(chat => !existingChatIds.has(chat.id));
+      
+      // Find chats with new messages by comparing lastMessage
+      const chatMap = chats.reduce((acc, chat) => {
+        acc[chat.id] = chat.lastMessage;
+        return acc;
+      }, {});
+      
+      // Create a combined array of both new chats and existing chats with new messages
+      const newContentChats = [...newChats];
+      transformedChats.forEach(chat => {
+        if (chatMap[chat.id] && chat.lastMessage !== chatMap[chat.id]) {
+          // Only add if it's not already there
+          if (!newChats.some(newChat => newChat.id === chat.id)) {
+            newContentChats.push(chat);
+          }
+        }
+      });
+      
+      // Only play notification if we have new content
+      if (newContentChats.length > 0 && chats.length > 0) {
+        // Check if we've already processed these chats
+        const chatSignatures = newContentChats.map(c => `${c.id}:${c.lastMessage}`);
+        const lastProcessedSignatures = lastProcessedChats.map(c => `${c.id}:${c.lastMessage}`);
+        
+        // Only notify if new content
+        if (!chatSignatures.every(sig => lastProcessedSignatures.includes(sig))) {
+          setHasNewChats(true);
+          
+          // Only play notification for incoming messages (not sent by the current user)
+          const incomingMessages = newContentChats.filter(chat => chat.unread);
+          if (incomingMessages.length > 0) {
+            playNotificationSound();
+          }
+          
+          // Update the last processed chats
+          setLastProcessedChats(newContentChats);
+        }
+      }
+      
+      // If active chat exists, preserve its messages but update other properties
+      if (activeChat) {
+        const updatedActiveChat = transformedChats.find(chat => chat.id === activeChat.id);
+        if (updatedActiveChat) {
+          // Create a merged version with updated props but preserved messages
+          const mergedActiveChat = {
+            ...updatedActiveChat,
+            messages: activeChat.messages || [] // Keep existing messages
+          };
+          
+          // Only update active chat if there are differences
+          if (activeChat.lastMessage !== mergedActiveChat.lastMessage) {
+            setActiveChat(mergedActiveChat);
+            // Fetch new messages for active chat in background
+            backgroundFetchMessages(activeChat.id);
+          }
+        }
+      }
+      
+      // Merge existing chats with new data to avoid UI disruption
+      const mergedChats = [...transformedChats];
+      
+      // Set the merged chat list
+      setChats(mergedChats);
+      setLastRefreshTime(Date.now());
+    } catch (error) {
+      // Silent error handling for background updates
+    }
+  };
+
+  // Function to fetch messages for a specific chat ID in the background
+  const backgroundFetchMessages = async (chatId) => {
+    if (!chatId) return;
+    
+    try {
+      const tenantId = localStorage.getItem('tenant_id');
+      const token = localStorage.getItem('token');
+      
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/messages/${chatId}/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Tenant-ID': tenantId,
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          tenant_id: tenantId
+        })
+      });
+      
+      if (!response.ok) return;
+      
+      const data = await response.json();
+      if (data.status !== 'success' || !data.data) return;
+      
+      // Only proceed if this is for the active chat
+      if (activeChat && activeChat.id === chatId) {
+        // Transform the messages to the expected format
+        const transformedMessages = data.data.map(msg => ({
+          id: msg.id,
+          text: msg.text || '',
+          sent: !msg.sent_by_contact,
+          timestamp: new Date(msg.timestamp),
+          isImage: msg.is_image || false,
+          image_url: msg.image_url || null
+        }));
+        
+        // Check if we have new messages to add
+        if (!activeChat.messages || 
+            activeChat.messages.length !== transformedMessages.length) {
+          
+          // If we have existing messages, merge the new ones
+          if (activeChat.messages && activeChat.messages.length > 0) {
+            // Find only new messages
+            const existingIds = new Set(activeChat.messages.map(m => m.id));
+            const newMessages = transformedMessages.filter(m => !existingIds.has(m.id));
+            
+            // If we found new messages, add them
+            if (newMessages.length > 0) {
+              const updatedMessages = [...activeChat.messages, ...newMessages];
+              updatedMessages.sort((a, b) => a.timestamp - b.timestamp);
+              
+              // Update the active chat with the new messages only if needed
+              setActiveChat(prevChat => ({
+                ...prevChat,
+                messages: updatedMessages
+              }));
+            }
+          } else {
+            // No existing messages, simply set the new ones
+            setActiveChat(prevChat => ({
+              ...prevChat,
+              messages: transformedMessages
+            }));
+          }
+        }
+      }
+    } catch (error) {
+      // Silent error handling for background updates
+    }
+  };
+
+  // Function to refresh the chat data
   const refreshData = async (forceFull = true) => {
+    // Don't refresh if already refreshing (prevent multiple concurrent requests)
+    if (isRefreshing) return;
+    
     setIsRefreshing(true);
     setNoApiConfigured(false); // Reset API configuration status
     
@@ -360,12 +352,58 @@ const Chat = () => {
           );
         }
         
+        // Find new chats that weren't in the previous list
+        const existingChatIds = new Set(chats.map(chat => chat.id));
+        const newChats = transformedChats.filter(chat => !existingChatIds.has(chat.id));
+        
+        // Find chats with new messages by comparing lastMessage with previous last message
+        const chatMap = chats.reduce((acc, chat) => {
+          acc[chat.id] = chat.lastMessage;
+          return acc;
+        }, {});
+        
+        // Create a combined array of both new chats and existing chats with new messages
+        const newContentChats = [...newChats];
+        transformedChats.forEach(chat => {
+          if (chatMap[chat.id] && chat.lastMessage !== chatMap[chat.id]) {
+            // Only add to newContentChats if it's not already there
+            if (!newChats.some(newChat => newChat.id === chat.id)) {
+              newContentChats.push(chat);
+            }
+          }
+        });
+        
+        // Only play notification if we have new content AND we're not on the first load
+        if (newContentChats.length > 0 && chats.length > 0) {
+          // Check if we've already processed these exact chats by comparing IDs and lastMessages
+          const chatSignatures = newContentChats.map(c => `${c.id}:${c.lastMessage}`);
+          const lastProcessedSignatures = lastProcessedChats.map(c => `${c.id}:${c.lastMessage}`);
+          
+          // Only play notification and set new chats flag if these are different chats/messages
+          if (!chatSignatures.every(sig => lastProcessedSignatures.includes(sig))) {
+            setHasNewChats(true);
+            
+            // Only play notification for incoming messages (not sent by the current user)
+            const incomingMessages = newContentChats.filter(chat => chat.unread);
+            if (incomingMessages.length > 0) {
+              playNotificationSound();
+            }
+            
+            // Update the last processed chats
+            setLastProcessedChats(newContentChats);
+          }
+        }
+        
         setChats(transformedChats);
         
         // If active chat exists, find and update it
         if (activeChat) {
           const updatedActiveChat = transformedChats.find(chat => chat.id === activeChat.id);
           if (updatedActiveChat) {
+            // Need to preserve messages that may already be loaded in the active chat
+            if (activeChat.messages && activeChat.messages.length > 0) {
+              updatedActiveChat.messages = activeChat.messages;
+            }
             setActiveChat(updatedActiveChat);
           }
         }
@@ -382,11 +420,7 @@ const Chat = () => {
       
       setLastRefreshTime(Date.now());
     } catch (error) {
-      // Handle the case where a JSON parsing error occurs (likely HTML response)
-      if (error instanceof SyntaxError && error.message.includes('JSON')) {
-        setChats([]);
-        setNoApiConfigured(true); // Set API not configured
-      }
+      // Silent error handling for background updates
     } finally {
       setIsRefreshing(false);
     }
@@ -400,7 +434,7 @@ const Chat = () => {
       const tenantId = localStorage.getItem('tenant_id');
       const token = localStorage.getItem('token');
       
-      await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/messages/${chatId}/`, {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/messages/${chatId}/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -412,14 +446,38 @@ const Chat = () => {
         })
       });
       
-      // We don't need to do anything with the response here
-      // The Chatbox component will handle showing the messages
+      // Check if the response is OK
+      if (response.ok) {
+        const data = await response.json();
+        if (data.status === 'success' && data.data) {
+          // Store the messages in the activeChat object
+          if (activeChat && activeChat.id === chatId) {
+            // Transform the messages to the expected format
+            const transformedMessages = data.data.map(msg => ({
+              id: msg.id,
+              text: msg.text || '',
+              sent: !msg.sent_by_contact,
+              timestamp: new Date(msg.timestamp),
+              isImage: msg.is_image || false,
+              image_url: msg.image_url || null
+            }));
+            
+            // Update the activeChat with the new messages
+            setActiveChat(prevChat => ({
+              ...prevChat,
+              messages: transformedMessages
+            }));
+          }
+        }
+      }
     } catch (error) {
+      // Silent error handling for background updates
     }
   };
 
   // Manual refresh handler - always do a full refresh
   const handleManualRefresh = () => {
+    setHasNewChats(false);
     refreshData(true);
   };
 
@@ -441,7 +499,6 @@ const Chat = () => {
 
   // Function to handle chat selection from ChatList
   const handleChatSelect = (chat) => {
-    
     // Only update if it's a different chat
     if (chat.id !== activeChat?.id) {
       setActiveChat(chat);
@@ -487,94 +544,62 @@ const Chat = () => {
     });
     
     // Trigger a refresh after sending a message
-    setTimeout(() => refreshData(), 2000);
+    setTimeout(() => refreshData(true), 2000);
   };
 
-  const handleNewMessage = (messageData) => {
-    // Create a new message object in the format expected by your components
-    const newMessage = {
-      id: messageData.id,
-      text: messageData.text,
-      sent: !messageData.is_from_me, // Adjust based on your message direction convention
-      timestamp: new Date(messageData.timestamp),
-      isImage: messageData.isImage || false,
-      image_url: messageData.image_url || null
-    };
-    
-    // Update state with new message
-    setChats(prevChats => {
-      return prevChats.map(chat => {
-        if (chat.id === messageData.conversation_id) {
-          // Update this chat's last message and add to messages array
-          return {
-            ...chat,
-            lastMessage: messageData.text,
-            lastMessageTime: new Date(messageData.timestamp).toLocaleTimeString([], { 
-              hour: '2-digit', 
-              minute: '2-digit' 
-            }),
-            unread: chat.id !== activeChat?.id || messageData.is_from_me, // Mark as unread if not the active chat
-            messages: [...(chat.messages || []), newMessage]
-          };
-        }
-        return chat;
-      });
-    });
-    
-    // If this message is for the active chat, update the active chat state as well
-    if (activeChat && messageData.conversation_id === activeChat.id) {
-      setActiveChat(prevActiveChat => {
-        return {
-          ...prevActiveChat,
-          lastMessage: messageData.text,
-          lastMessageTime: new Date(messageData.timestamp).toLocaleTimeString([], { 
-            hour: '2-digit', 
-            minute: '2-digit' 
-          }),
-          messages: [...(prevActiveChat.messages || []), newMessage]
-        };
-      });
+  // Function to play notification sound
+  const playNotificationSound = () => {
+    try {
+      // Create a soft notification sound using Web Audio API
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
       
-      // Scroll to bottom after a short delay to ensure the message is rendered
+      // Create oscillator and gain nodes
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      // Set up soft notification sound parameters
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(880, audioContext.currentTime); // Higher pitch (A5)
+      
+      // Create a short fade in/out effect for a softer sound
+      gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+      gainNode.gain.linearRampToValueAtTime(0.2, audioContext.currentTime + 0.05);
+      gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + 0.4);
+      
+      // Connect audio nodes
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      // Play the sound
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.4);
+      
+      // Optional: Add a second tone for a more pleasant notification
       setTimeout(() => {
-        const chatbox = document.querySelector('.chatbox-messages');
-        if (chatbox) {
-          chatbox.scrollTop = chatbox.scrollHeight;
+        try {
+          const secondContext = new (window.AudioContext || window.webkitAudioContext)();
+          const osc2 = secondContext.createOscillator();
+          const gain2 = secondContext.createGain();
+          
+          osc2.type = 'sine';
+          osc2.frequency.setValueAtTime(1046.5, secondContext.currentTime); // C6
+          
+          gain2.gain.setValueAtTime(0, secondContext.currentTime);
+          gain2.gain.linearRampToValueAtTime(0.15, secondContext.currentTime + 0.05);
+          gain2.gain.linearRampToValueAtTime(0, secondContext.currentTime + 0.3);
+          
+          osc2.connect(gain2);
+          gain2.connect(secondContext.destination);
+          
+          osc2.start();
+          osc2.stop(secondContext.currentTime + 0.3);
+        } catch (err) {
+          // Ignore error if second tone fails
         }
       }, 100);
-    } else {
-      // Show notification with sound if it's not the active chat
-      showNotification(`New message from ${messageData.sender_name || 'Unknown'}`, messageData.text);
-    }
-    
-    setHasNewChats(true);
-  };
-  
-  const handleNewChat = (chatData) => {
-    // Add new chat to the list
-    setChats(prevChats => [chatData, ...prevChats]);
-    setHasNewChats(true);
-    
-    // Show notification
-    showNotification('New conversation', `New chat from ${chatData.name}`);
-  };
-  
-  const showNotification = (title, body) => {
-    // Try to play notification sound, but catch errors if file not found
-    try {
-      const audio = new Audio('/notification-sound.mp3');
-      audio.addEventListener('error', (e) => {
-        console.warn('Audio file not found. Using fallback sound.');
-        // Use a fallback sound if available or just continue silently
-      });
-      audio.play().catch(err => console.warn('Could not play notification sound:', err));
+      
     } catch (error) {
-      console.warn('Error playing notification sound:', error);
-    }
-    
-    // Show browser notification if permitted
-    if (Notification.permission === 'granted') {
-      new Notification(title, { body });
+      // Silent error handling for background updates
     }
   };
 
@@ -674,6 +699,8 @@ const Chat = () => {
                 lastRefreshTime={lastRefreshTime}
                 noApiConfigured={noApiConfigured}
                 userRole={userRole}
+                typing={false}
+                lastTypingUpdate={null}
               />
             </Box>
           </Box>
@@ -741,6 +768,26 @@ const Chat = () => {
         isOpen={detailsOpen} 
         onClose={closeDetailsDrawer} 
       />
+
+      {/* Status indicator in production */}
+      <Box sx={{ 
+        padding: '2px 8px',
+        fontSize: '10px',
+        backgroundColor: '#e8f5e9',
+        color: '#2e7d32',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderBottomLeftRadius: '8px',
+        borderBottomRightRadius: '8px'
+      }}>
+        <span>
+          🟢 Auto-refresh active (every 3 seconds)
+        </span>
+        <span>
+          Last updated: {new Date(lastRefreshTime).toLocaleTimeString()}
+        </span>
+      </Box>
     </Box>
   );
 };
