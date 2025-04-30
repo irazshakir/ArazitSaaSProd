@@ -25,36 +25,49 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     Custom token serializer to include user industry information
     """
     def validate(self, attrs):
-        data = super().validate(attrs)
-        
-        # Get the user
-        user = self.user
-        
-        # Get the tenant user information
+        print("Starting token validation")
         try:
-            tenant_user = TenantUser.objects.get(user=user)
-            # Add industry information to the response
-            data['user'] = {
+            data = super().validate(attrs)
+            print("Parent validation successful")
+            
+            # Get the user
+            user = self.user
+            print(f"Got user: {user.email}")
+            
+            # Basic user data without tenant-specific info
+            user_data = {
                 'email': user.email,
                 'first_name': user.first_name,
                 'last_name': user.last_name,
                 'role': user.role,
-                'industry': tenant_user.industry,
-                'industry_display': tenant_user.get_industry_display(),
-                'department_id': str(user.department.id) if user.department else None,
-                'department_name': user.department.name if user.department else None
+                'department_id': str(user.department.id) if user.department and hasattr(user.department, 'id') else None,
+                'department_name': user.department.name if user.department and hasattr(user.department, 'name') else None
             }
-        except TenantUser.DoesNotExist:
-            data['user'] = {
-                'email': user.email,
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-                'role': user.role,
-                'department_id': str(user.department.id) if user.department else None,
-                'department_name': user.department.name if user.department else None
-            }
-        
-        return data
+            
+            # Get the tenant user information - prefer the first one if multiple exist
+            try:
+                # Get the first tenant_user record for this user
+                tenant_user = TenantUser.objects.filter(user=user).first()
+                
+                if tenant_user:
+                    # Add industry information if tenant_user exists
+                    user_data.update({
+                        'industry': tenant_user.industry,
+                        'industry_display': tenant_user.get_industry_display() if tenant_user.industry else None,
+                        'tenant_id': str(tenant_user.tenant.id) if tenant_user.tenant else None,
+                        'tenant_name': tenant_user.tenant.name if tenant_user.tenant else None
+                    })
+            except Exception as e:
+                # Log the error but continue without tenant-specific data
+                print(f"Error retrieving tenant info: {str(e)}")
+            
+            # Add the user data to the response
+            data['user'] = user_data
+            
+            return data
+        except Exception as e:
+            print(f"Error in validate: {str(e)}")
+            raise e
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):

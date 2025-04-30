@@ -73,9 +73,10 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    # 'corsheaders.middleware.CorsMiddleware',  # CORS middleware - temporarily commented for testing
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',  # CORS middleware
+    
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -206,7 +207,7 @@ SIMPLE_JWT = {
 }
 
 # CORS settings
-CORS_ALLOW_ALL_ORIGINS = True  # For development only, set to False in production
+CORS_ALLOW_ALL_ORIGINS = False  # For development only, set to False in production
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://localhost:5174",
@@ -235,7 +236,7 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
     'x-tenant-id',
 ]
-
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 # CSRF settings
 CSRF_TRUSTED_ORIGINS = [
     "https://app.arazit.com",

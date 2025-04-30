@@ -6,7 +6,8 @@ from .views import (
     SendImageMessageView, ConversationListView, ChatLeadView,
     CreateLeadFromChatView, TenantDebugView, get_conversations,
     check_lead_departments, WABASettingsViewSet, get_users_for_assignment,
-    assign_chat_to_user, webhook_handler
+    assign_chat_to_user
+    # webhook_handler  # Commented out as it doesn't exist
 )
 
 app_name = 'waba_int'
@@ -30,7 +31,7 @@ urlpatterns = [
     path('check-lead-departments/', check_lead_departments, name='check_lead_departments'),
     path('users-for-assignment/', get_users_for_assignment, name='users_for_assignment'),
     path('assign-chat/', assign_chat_to_user, name='assign_chat'),
-    path('webhook/', webhook_handler, name='whatsapp_webhook'),
+    # path('webhook/', webhook_handler, name='whatsapp_webhook'),  # Commented out as the function doesn't exist
 ]
 
 # Add the router URLs to the urlpatterns
