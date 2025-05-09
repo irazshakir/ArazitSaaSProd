@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Box, Container, Typography, Stack, Grid, Paper, Chip } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { Box, Container, Typography, Stack, Grid, Paper, Chip } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import api from '../../services/api';
 import { message } from 'antd';
 import dataAccessService from '../../services/dataAccessService';
 import { BellOutlined } from '@ant-design/icons';
 // import useWebSocket from '../../hooks/useWebSocket';
+import { usePullToRefresh, useIsMobile } from '../../utils/responsiveUtils';
 
 // Import universal components
 import SearchBar from '../universalComponents/searchBar';
@@ -20,6 +22,7 @@ import BulkUploadButton from '../universalComponents/bulkUploadButton';
 import { getUser, getUserRole } from '../../utils/auth';
 
 const LeadsIndex = () => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [leads, setLeads] = useState([]);
@@ -33,10 +36,34 @@ const LeadsIndex = () => {
   const [departmentId, setDepartmentId] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [visible, setVisible] = useState(false);
+  const [columns, setColumns] = useState([]);
+  const [isMobileView, setIsMobileView] = useState(false);
+  const [isThemeReady, setIsThemeReady] = useState(false);
   
   // WebSocket connection for real-time updates
   // const { lastMessage, sendMessage } = useWebSocket('leads');
 
+  // Initialize theme and mobile detection
+  useEffect(() => {
+    if (theme) {
+      setIsThemeReady(true);
+    }
+  }, [theme]);
+
+  // Initialize mobile detection after theme is ready
+  useEffect(() => {
+    if (isThemeReady) {
+      const mediaQuery = window.matchMedia(theme.breakpoints.down('sm'));
+      setIsMobileView(mediaQuery.matches);
+
+      const handleResize = (e) => setIsMobileView(e.matches);
+      mediaQuery.addListener(handleResize);
+      return () => mediaQuery.removeListener(handleResize);
+    }
+  }, [isThemeReady, theme]);
+
+  // Initialize pull-to-refresh after mobile detection
+  const { refreshing } = usePullToRefresh(isMobileView ? refreshLeads : null);
   
 
   // Get current user and role from localStorage
@@ -124,150 +151,155 @@ const LeadsIndex = () => {
     applyFiltersAndSearch(searchQuery, activeFilters);
   }, [leads]);
 
-  // Define table columns
-  const columns = [
-    { 
-      field: 'name', 
-      headerName: 'NAME', 
-      width: '20%',
-      minWidth: 150,
-      sortable: true,
-      render: (value, row) => {
-        // Check if follow-up is past due
-        let isPastDue = false;
-        if (row.next_follow_up) {
-          const followUpDate = new Date(row.next_follow_up);
+  // Initialize columns after theme is available
+  useEffect(() => {
+    setColumns([
+      { 
+        field: 'name', 
+        headerName: 'NAME', 
+        width: { xs: '40%', sm: '20%' },
+        minWidth: 150,
+        sortable: true,
+        render: (value, row) => {
+          let isPastDue = false;
+          if (row.next_follow_up) {
+            const followUpDate = new Date(row.next_follow_up);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            followUpDate.setHours(0, 0, 0, 0);
+            isPastDue = followUpDate < today && !['won', 'lost'].includes(row.status);
+          }
+          
+          return (
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Typography variant="body2" sx={{ mr: 1 }}>{value}</Typography>
+              {isPastDue && (
+                <Chip 
+                  label="Past Due" 
+                  size="small"
+                  sx={{ 
+                    borderRadius: '4px',
+                    backgroundColor: 'rgba(231, 76, 60, 0.2)',
+                    color: 'rgb(231, 76, 60)',
+                    fontSize: '0.625rem',
+                    height: '20px',
+                    fontWeight: 500
+                  }}
+                />
+              )}
+            </Box>
+          );
+        }
+      },
+      { 
+        field: 'phone', 
+        headerName: 'PHONE', 
+        width: { xs: '60%', sm: '15%' }, 
+        minWidth: 120,
+        sortable: true,
+        render: (value) => (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <a href={`tel:${value}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+              {value}
+            </a>
+          </Box>
+        )
+      },
+      { 
+        field: 'assigned_to_name', 
+        headerName: 'ASSIGNED TO', 
+        width: { xs: '60%', sm: '15%' },
+        minWidth: 120,
+        sortable: true,
+        render: (value) => value || 'Unassigned'
+      },
+      { 
+        field: 'lead_type_display', 
+        headerName: 'TYPE', 
+        width: { xs: '40%', sm: '15%' },
+        minWidth: 120,
+        sortable: true
+      },
+      { 
+        field: 'status_display', 
+        headerName: 'STATUS', 
+        width: { xs: '40%', sm: '15%' },
+        minWidth: 100,
+        sortable: true,
+        type: 'status',
+        render: (value, row) => (
+          <Chip 
+            label={value}
+            size="small"
+            sx={{ 
+              borderRadius: '4px',
+              backgroundColor: getStatusColor(row.status).bg,
+              color: getStatusColor(row.status).text,
+              fontWeight: 500
+            }} 
+          />
+        )
+      },
+      { 
+        field: 'next_follow_up', 
+        headerName: 'FOLLOW UP', 
+        width: { xs: '60%', sm: '15%' },
+        minWidth: 120,
+        sortable: false,
+        render: (value) => {
+          if (!value) return 'Not scheduled';
+          
+          const followUpDate = new Date(value);
           const today = new Date();
           
-          // Remove time component for comparison
+          // Remove time component from dates for accurate comparison
           today.setHours(0, 0, 0, 0);
           followUpDate.setHours(0, 0, 0, 0);
           
-          isPastDue = followUpDate < today && !['won', 'lost'].includes(row.status);
+          const isPastDue = followUpDate < today;
+          
+          return (
+            <Typography 
+              variant="body2" 
+              sx={{ 
+                color: isPastDue ? 'rgb(231, 76, 60)' : 'inherit',
+                fontWeight: isPastDue ? 500 : 400 
+              }}
+            >
+              {followUpDate.toLocaleDateString()}
+            </Typography>
+          );
         }
-        
-        return (
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography variant="body2" sx={{ mr: 1 }}>{value}</Typography>
-            {isPastDue && (
-              <Chip 
-                label="Past Due" 
-                size="small"
-                sx={{ 
-                  borderRadius: '4px',
-                  backgroundColor: 'rgba(231, 76, 60, 0.2)',
-                  color: 'rgb(231, 76, 60)',
-                  fontSize: '0.625rem',
-                  height: '20px',
-                  fontWeight: 500
-                }}
-              />
-            )}
-          </Box>
-        );
-      }
-    },
-    { 
-      field: 'phone', 
-      headerName: 'PHONE', 
-      width: '15%',
-      minWidth: 120,
-      sortable: true
-    },
-    { 
-      field: 'assigned_to_name', 
-      headerName: 'ASSIGNED TO', 
-      width: '15%',
-      minWidth: 120,
-      sortable: true,
-      render: (value) => value || 'Unassigned'
-    },
-    { 
-      field: 'lead_type_display', 
-      headerName: 'TYPE', 
-      width: '15%',
-      minWidth: 120,
-      sortable: true
-    },
-    { 
-      field: 'status_display', 
-      headerName: 'STATUS', 
-      width: '15%',
-      minWidth: 100,
-      sortable: true,
-      type: 'status',
-      render: (value, row) => (
-        <Chip 
-          label={value}
-          size="small"
-          sx={{ 
-            borderRadius: '4px',
-            backgroundColor: getStatusColor(row.status).bg,
-            color: getStatusColor(row.status).text,
-            fontWeight: 500
-          }} 
-        />
-      )
-    },
-    { 
-      field: 'next_follow_up', 
-      headerName: 'FOLLOW UP', 
-      width: '15%',
-      minWidth: 120,
-      sortable: false,
-      render: (value) => {
-        if (!value) return 'Not scheduled';
-        
-        const followUpDate = new Date(value);
-        const today = new Date();
-        
-        // Remove time component from dates for accurate comparison
-        today.setHours(0, 0, 0, 0);
-        followUpDate.setHours(0, 0, 0, 0);
-        
-        const isPastDue = followUpDate < today;
-        
-        return (
-          <Typography 
-            variant="body2" 
+      },
+      { 
+        field: 'lead_activity_status', 
+        headerName: 'ACTIVITY', 
+        width: { xs: '40%', sm: '15%' },
+        minWidth: 100,
+        sortable: false,
+        render: (value) => (
+          <Chip 
+            label={value === 'active' ? 'Active' : 'Inactive'}
+            size="small"
             sx={{ 
-              color: isPastDue ? 'rgb(231, 76, 60)' : 'inherit',
-              fontWeight: isPastDue ? 500 : 400 
-            }}
-          >
-            {followUpDate.toLocaleDateString()}
-          </Typography>
-        );
+              borderRadius: '4px',
+              backgroundColor: value === 'active' ? 'rgba(46, 204, 113, 0.2)' : 'rgba(231, 76, 60, 0.2)',
+              color: value === 'active' ? 'rgb(46, 204, 113)' : 'rgb(231, 76, 60)',
+              fontWeight: 500
+            }} 
+          />
+        )
+      },
+      { 
+        field: 'department_name', 
+        headerName: 'DEPARTMENT', 
+        width: { xs: '60%', sm: '15%' },
+        minWidth: 120,
+        sortable: true,
+        render: (value) => value || 'Unassigned'
       }
-    },
-    { 
-      field: 'lead_activity_status', 
-      headerName: 'ACTIVITY', 
-      width: '15%',
-      minWidth: 100,
-      sortable: false,
-      render: (value) => (
-        <Chip 
-          label={value === 'active' ? 'Active' : 'Inactive'}
-          size="small"
-          sx={{ 
-            borderRadius: '4px',
-            backgroundColor: value === 'active' ? 'rgba(46, 204, 113, 0.2)' : 'rgba(231, 76, 60, 0.2)',
-            color: value === 'active' ? 'rgb(46, 204, 113)' : 'rgb(231, 76, 60)',
-            fontWeight: 500
-          }} 
-        />
-      )
-    },
-    { 
-      field: 'department_name', 
-      headerName: 'DEPARTMENT', 
-      width: '15%',
-      minWidth: 120,
-      sortable: true,
-      render: (value) => value || 'Unassigned'
-    }
-  ];
+    ]);
+  }, [theme]);
 
   // Get color based on status
   const getStatusColor = (status) => {
@@ -950,16 +982,47 @@ const LeadsIndex = () => {
             sx={{
               p: 3,
               borderRadius: 2,
-              backgroundColor: 'white'
+              backgroundColor: 'white',
+              position: 'relative'
             }}
           >
+            {/* Pull-to-refresh indicator for mobile */}
+            {refreshing && isMobileView && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  padding: '8px',
+                  backgroundColor: 'rgba(157, 39, 124, 0.1)',
+                  zIndex: 1
+                }}
+              >
+                <Typography variant="caption" color="primary">Refreshing...</Typography>
+              </Box>
+            )}
+            
             {/* Header Section with Title and Buttons */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: { xs: 'column', sm: 'row' }, 
+              justifyContent: 'space-between', 
+              alignItems: { xs: 'stretch', sm: 'center' }, 
+              mb: 3,
+              gap: 2
+            }}>
               <Typography variant="h6" component="h1" sx={{ fontWeight: 600 }}>
                 {getPageTitle()}
               </Typography>
               
-              <Stack direction="row" spacing={2}>
+              <Stack 
+                direction={{ xs: 'column', sm: 'row' }} 
+                spacing={2}
+                sx={{ width: { xs: '100%', sm: 'auto' } }}
+              >
                 <DownloadButton 
                   data={filteredLeads}
                   filename="leads"
@@ -973,22 +1036,30 @@ const LeadsIndex = () => {
                   onClick={handleCreateLead}
                   buttonText="Add new lead"
                   icon="person"
+                  sx={{ width: { xs: '100%', sm: 'auto' } }}
                 />
               </Stack>
             </Box>
             
             {/* Search and Filter Row */}
-            <Box sx={{ display: 'flex', mb: 3, gap: 2 }}>
-              <Box sx={{ flexGrow: 1 }}>
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: { xs: 'column', sm: 'row' }, 
+              mb: 3, 
+              gap: 2 
+            }}>
+              <Box sx={{ width: '100%', flexGrow: 1 }}>
                 <SearchBar 
                   placeholder="Search by name, email or phone..." 
                   onSearch={handleSearch}
                 />
               </Box>
-              <FilterButton 
-                filters={filterOptions}
-                onFilterChange={handleFilterChange}
-              />
+              <Box sx={{ width: { xs: '100%', sm: 'auto' } }}>
+                <FilterButton 
+                  filters={filterOptions}
+                  onFilterChange={handleFilterChange}
+                />
+              </Box>
             </Box>
             
             {/* Show TableSkeleton during loading, TableList when data is ready */}

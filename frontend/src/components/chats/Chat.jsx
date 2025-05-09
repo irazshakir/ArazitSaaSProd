@@ -9,6 +9,9 @@ import { Box, Paper, Tabs, Tab, IconButton, Tooltip, Typography, Button, Chip } 
 import RefreshIcon from '@mui/icons-material/Refresh';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 import './Chat.css';
 
 const Chat = () => {
@@ -30,6 +33,8 @@ const Chat = () => {
   const pollIntervalRef = useRef(null);
   const [seenMessageIds, setSeenMessageIds] = useState(new Set());
   const [lastProcessedChats, setLastProcessedChats] = useState([]);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   useEffect(() => {
     // Set first chat as active on initial load
@@ -608,7 +613,7 @@ const Chat = () => {
       <Paper sx={{ 
         display: 'flex', 
         flexDirection: 'column',
-        height: 'calc(100vh - 136px)', 
+        height: { xs: 'calc(100vh - 110px)', md: 'calc(100vh - 136px)' }, 
         overflow: 'hidden',
         borderRadius: '8px',
         boxShadow: '0 4px 20px rgba(0,0,0,0.05)'
@@ -676,7 +681,12 @@ const Chat = () => {
         {activeTab === 0 ? (
           // Chat Interface
           <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-            <Box sx={{ width: '280px', borderRight: '1px solid #e0e0e0' }}>
+            {/* Chat List - hide on mobile when chat is active */}
+            <Box sx={{ 
+              width: { xs: '100%', md: '280px' }, 
+              borderRight: '1px solid #e0e0e0',
+              display: { xs: activeChat && isMobile ? 'none' : 'block', md: 'block' }
+            }}>
               <ChatList 
                 chats={chats} 
                 activeChat={activeChat} 
@@ -690,7 +700,33 @@ const Chat = () => {
                 userRole={userRole}
               />
             </Box>
-            <Box sx={{ flex: 1 }}>
+            
+            {/* Chat Box - show on mobile only when chat is active */}
+            <Box sx={{ 
+              flex: 1,
+              display: { xs: activeChat && isMobile ? 'block' : 'none', md: 'block' }
+            }}>
+              {/* Back button for mobile */}
+              {isMobile && activeChat && (
+                <Box sx={{ 
+                  p: 1, 
+                  borderBottom: '1px solid #e0e0e0',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}>
+                  <IconButton 
+                    size="small" 
+                    onClick={() => setActiveChat(null)}
+                    sx={{ mr: 1 }}
+                  >
+                    <ArrowBackIcon />
+                  </IconButton>
+                  <Typography variant="subtitle2" noWrap>
+                    {activeChat.name || activeChat.phone}
+                  </Typography>
+                </Box>
+              )}
+              
               <Chatbox 
                 activeChat={activeChat} 
                 sendMessage={sendMessage}

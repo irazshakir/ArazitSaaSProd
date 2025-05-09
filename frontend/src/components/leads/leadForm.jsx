@@ -10,7 +10,7 @@ import {
 } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
-import { FileOutlined, DeleteOutlined, PlusOutlined, PhoneOutlined, MailOutlined, TeamOutlined, CheckOutlined, UploadOutlined, MinusCircleOutlined } from '@ant-design/icons';
+import { FileOutlined, DeleteOutlined, PlusOutlined, PhoneOutlined, MailOutlined, TeamOutlined, CheckOutlined, UploadOutlined, MinusCircleOutlined, WhatsAppOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import axios from 'axios';
 
@@ -1910,6 +1910,20 @@ const fetchProjectTypes = async () => {
                         form.setFieldsValue({ phone: value });
                         setFormValues(prev => ({ ...prev, phone: value }));
                       }}
+                      suffix={
+                        formValues.phone ? (
+                          <a 
+                            href={`tel:${formValues.phone}`}
+                            style={{ 
+                              color: '#9d277c',
+                              display: 'flex',
+                              alignItems: 'center'
+                            }}
+                          >
+                            <PhoneOutlined />
+                          </a>
+                        ) : null
+                      }
                     />
                   </Form.Item>
                 </Grid>
@@ -1937,6 +1951,22 @@ const fetchProjectTypes = async () => {
                         form.setFieldsValue({ whatsapp: value });
                         setFormValues(prev => ({ ...prev, whatsapp: value }));
                       }}
+                      suffix={
+                        formValues.whatsapp ? (
+                          <a 
+                            href={`https://wa.me/${formValues.whatsapp?.replace(/[^0-9]/g, '')}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ 
+                              color: '#25D366',
+                              display: 'flex',
+                              alignItems: 'center'
+                            }}
+                          >
+                            <WhatsAppOutlined />
+                          </a>
+                        ) : null
+                      }
                     />
                   </Form.Item>
                 </Grid>

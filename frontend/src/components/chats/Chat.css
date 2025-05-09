@@ -151,4 +151,97 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Add these responsive styles to enhance mobile experience */
+@media (max-width: 600px) {
+  .MuiContainer-root {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+  
+  .MuiTabs-root {
+    min-height: 42px;
+  }
+  
+  .MuiTab-root {
+    min-width: 70px !important;
+    padding: 6px 10px !important;
+    min-height: 42px !important;
+    font-size: 13px !important;
+  }
+  
+  .chat-message-bubble {
+    max-width: 85% !important;
+  }
+  
+  .chat-input-container {
+    padding: 8px !important;
+  }
+  
+  .chat-header {
+    padding: 8px 12px !important;
+  }
+}
+
+/* Add smooth transitions for better mobile experience */
+.chat-list-item {
+  transition: background-color 0.2s ease;
+}
+
+.chat-message-bubble {
+  transition: transform 0.2s ease;
+}
+
+/* Improve tap feedback on mobile */
+@media (hover: none) {
+  .chat-list-item:active {
+    background-color: rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Ensure the chat details overlay works well on mobile */
+.chat-details-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1200;
+  display: none;
+}
+
+.chat-details-overlay.open {
+  display: block;
+}
+
+/* Animation for the refresh icon */
+.rotating {
+  animation: rotate 1s linear infinite;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Pulse animation for the WhatsApp icon */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 } 

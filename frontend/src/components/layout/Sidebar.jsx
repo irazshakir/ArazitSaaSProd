@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useTheme } from '@mui/material/styles';
 import {
   Box,
   Divider,
@@ -11,7 +12,6 @@ import {
   ListItemText,
   Toolbar,
   Typography,
-  useTheme,
   useMediaQuery,
   Collapse
 } from '@mui/material';
@@ -53,9 +53,9 @@ import {
 const drawerWidth = 240;
 
 const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
+  const theme = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
-  const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
   // Get user from localStorage if not passed as prop
