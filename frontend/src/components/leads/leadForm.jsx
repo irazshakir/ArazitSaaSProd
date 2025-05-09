@@ -48,6 +48,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   const [branchOptions, setBranchOptions] = useState([]);
   const [developmentProjects, setDevelopmentProjects] = useState([]);
   const [projectTypes, setProjectTypes] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
   
   // Add this state to track form values directly
   const [formValues, setFormValues] = useState({
@@ -1188,6 +1189,14 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         }
       };
 
+      // In edit mode, ensure non-admin users don't modify protected fields
+      if (isEditMode && !isAdmin) {
+        // If not admin, replace protected fields with original values from initialData
+        leadData.email = initialData.email;
+        leadData.phone = initialData.phone;
+        leadData.whatsapp = initialData.whatsapp;
+      }
+
       // If this is a general industry lead, we need to include the general_product reference
       if (isGeneralIndustry()) {
         try {
@@ -1363,18 +1372,74 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     }));
   };
   
+  // Fetch current user and check if admin
   useEffect(() => {
+    // Create a robust function to check admin status
+    const checkUserRoleFromLocalStorage = () => {
+      try {
+        // Try multiple methods to get the user role
+        const directRole = localStorage.getItem('user_role');
+        if (directRole === 'admin') {
+          setIsAdmin(true);
+          return true;
+        }
+        
+        // Try to get from user object
+        const userStr = localStorage.getItem('user');
+        if (userStr) {
+          try {
+            const userData = JSON.parse(userStr);
+            if (userData.role === 'admin') {
+              setIsAdmin(true);
+              return true;
+            }
+            
+            // Check in userData.userData as well (nested structure seen in the codebase)
+            if (userData.userData && userData.userData.role === 'admin') {
+              setIsAdmin(true);
+              return true;
+            }
+          } catch (e) {
+            console.error('Error parsing user data:', e);
+          }
+        }
+        
+        setIsAdmin(false);
+        return false;
+      } catch (error) {
+        console.error('Error checking user role:', error);
+        setIsAdmin(false);
+        return false;
+      }
+    };
+    
     const fetchCurrentUser = async () => {
       try {
         const response = await api.get('/auth/users/me/');
         setCurrentUser(response.data);
         localStorage.setItem('user_id', response.data.id);
+        
+        // Check if user is admin
+        const userRole = response.data.role;
+        if (userRole === 'admin') {
+          setIsAdmin(true);
+        } else {
+          // Double-check with localStorage as fallback
+          checkUserRoleFromLocalStorage();
+        }
       } catch (error) {
         // Silently handle error
+        console.error('Error fetching current user:', error);
+        // Fallback to checking user from localStorage
+        checkUserRoleFromLocalStorage();
       }
     };
     
-    if (!localStorage.getItem('user_id')) {
+    // Check admin status immediately from localStorage first
+    const isAdminFromStorage = checkUserRoleFromLocalStorage();
+    
+    // If we couldn't determine or user isn't admin, try fetching current user for more accurate info
+    if (!isAdminFromStorage && !localStorage.getItem('user_id')) {
       fetchCurrentUser();
     }
   }, []);
@@ -1684,6 +1749,33 @@ const fetchProjectTypes = async () => {
     }
 };
   
+  // Immediate check for admin status
+  useEffect(() => {
+    // Try multiple methods to get the user role
+    const directRole = localStorage.getItem('user_role');
+    if (directRole === 'admin') {
+      setIsAdmin(true);
+      return;
+    }
+    
+    try {
+      // Try to get from user object
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const userData = JSON.parse(userStr);
+        if (userData.role === 'admin') {
+          setIsAdmin(true);
+          return;
+        }
+      }
+    } catch (e) {
+      console.error('Error checking admin status:', e);
+    }
+    
+    // Default to non-admin if can't determine
+    setIsAdmin(false);
+  }, []);
+  
   return (
     <Box>
       <Paper sx={{ p: 3, mb: 3 }}>
@@ -1716,6 +1808,27 @@ const fetchProjectTypes = async () => {
             }
           }}
         >
+          {isEditMode && !isAdmin && (
+            <div style={{ 
+              background: 'rgba(157, 39, 124, 0.05)', 
+              padding: '12px 16px', 
+              borderRadius: '4px', 
+              marginBottom: '24px',
+              border: '1px solid rgba(157, 39, 124, 0.2)',
+              display: 'flex',
+              alignItems: 'center'
+            }}>
+              <span style={{ 
+                marginRight: '8px', 
+                color: '#9d277c',
+                fontSize: '18px'
+              }}>ℹ️</span>
+              <span>
+                <strong>Note:</strong> Contact information fields (Phone, Email, WhatsApp) can only be modified by administrators. Please contact your admin if you need to update these details.
+              </span>
+            </div>
+          )}
+          
           <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 3 }}>
             <Tab label="Basic" value="basic" />
             <Tab label="Product" value="product" />
@@ -1748,12 +1861,22 @@ const fetchProjectTypes = async () => {
                 
                 <Grid item xs={12} md={6}>
                   <Form.Item
-                    label="Email"
+                    label={
+                      <span>
+                        Email
+                        {isEditMode && !isAdmin && (
+                          <span style={{ fontSize: '12px', color: '#9d277c', marginLeft: '8px' }}>
+                            (Admin only)
+                          </span>
+                        )}
+                      </span>
+                    }
                     name="email"
                   >
                     <Input 
                       placeholder="Enter email address"
                       value={formValues.email}
+                      disabled={isEditMode && !isAdmin}
                       onChange={(e) => {
                         const value = e.target.value;
                         form.setFieldsValue({ email: value });
@@ -1765,13 +1888,23 @@ const fetchProjectTypes = async () => {
                 
                 <Grid item xs={12} md={6}>
                   <Form.Item
-                    label="Phone"
+                    label={
+                      <span>
+                        Phone
+                        {isEditMode && !isAdmin && (
+                          <span style={{ fontSize: '12px', color: '#9d277c', marginLeft: '8px' }}>
+                            (Admin only)
+                          </span>
+                        )}
+                      </span>
+                    }
                     name="phone"
                     rules={[{ required: true, message: 'Please enter phone number' }]}
                   >
                     <Input 
                       placeholder="Enter phone number"
                       value={formValues.phone}
+                      disabled={isEditMode && !isAdmin}
                       onChange={(e) => {
                         const value = e.target.value;
                         form.setFieldsValue({ phone: value });
@@ -1783,12 +1916,22 @@ const fetchProjectTypes = async () => {
                 
                 <Grid item xs={12} md={6}>
                   <Form.Item
-                    label="WhatsApp"
+                    label={
+                      <span>
+                        WhatsApp
+                        {isEditMode && !isAdmin && (
+                          <span style={{ fontSize: '12px', color: '#9d277c', marginLeft: '8px' }}>
+                            (Admin only)
+                          </span>
+                        )}
+                      </span>
+                    }
                     name="whatsapp"
                   >
                     <Input 
                       placeholder="Enter WhatsApp number (if different)"
                       value={formValues.whatsapp}
+                      disabled={isEditMode && !isAdmin}
                       onChange={(e) => {
                         const value = e.target.value;
                         form.setFieldsValue({ whatsapp: value });

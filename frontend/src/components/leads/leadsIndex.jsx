@@ -1005,7 +1005,7 @@ const LeadsIndex = () => {
                 loading={false}
                 onRowClick={handleViewLead}
                 onEditClick={handleEditLead}
-                onDeleteClick={handleDeleteLead}
+                onDeleteClick={userRole === 'admin' ? handleDeleteLead : null}
                 pagination={true}
                 rowsPerPage={10}
                 rowsPerPageOptions={[5, 10, 25, 50, 100]}
