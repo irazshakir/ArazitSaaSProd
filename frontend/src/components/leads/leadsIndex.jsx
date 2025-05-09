@@ -153,13 +153,14 @@ const LeadsIndex = () => {
 
   // Initialize columns after theme is available
   useEffect(() => {
-    setColumns([
+    const baseColumns = [
       { 
         field: 'name', 
         headerName: 'NAME', 
-        width: { xs: '40%', sm: '20%' },
+        width: { xs: '85%', sm: '20%' },
         minWidth: 150,
         sortable: true,
+        showInMobile: true,
         render: (value, row) => {
           let isPastDue = false;
           if (row.next_follow_up) {
@@ -197,6 +198,7 @@ const LeadsIndex = () => {
         width: { xs: '60%', sm: '15%' }, 
         minWidth: 120,
         sortable: true,
+        showInMobile: false,
         render: (value) => (
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <a href={`tel:${value}`} style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -211,6 +213,7 @@ const LeadsIndex = () => {
         width: { xs: '60%', sm: '15%' },
         minWidth: 120,
         sortable: true,
+        showInMobile: false,
         render: (value) => value || 'Unassigned'
       },
       { 
@@ -218,7 +221,8 @@ const LeadsIndex = () => {
         headerName: 'TYPE', 
         width: { xs: '40%', sm: '15%' },
         minWidth: 120,
-        sortable: true
+        sortable: true,
+        showInMobile: false
       },
       { 
         field: 'status_display', 
@@ -226,6 +230,7 @@ const LeadsIndex = () => {
         width: { xs: '40%', sm: '15%' },
         minWidth: 100,
         sortable: true,
+        showInMobile: false,
         type: 'status',
         render: (value, row) => (
           <Chip 
@@ -246,6 +251,7 @@ const LeadsIndex = () => {
         width: { xs: '60%', sm: '15%' },
         minWidth: 120,
         sortable: false,
+        showInMobile: false,
         render: (value) => {
           if (!value) return 'Not scheduled';
           
@@ -277,6 +283,7 @@ const LeadsIndex = () => {
         width: { xs: '40%', sm: '15%' },
         minWidth: 100,
         sortable: false,
+        showInMobile: false,
         render: (value) => (
           <Chip 
             label={value === 'active' ? 'Active' : 'Inactive'}
@@ -296,9 +303,12 @@ const LeadsIndex = () => {
         width: { xs: '60%', sm: '15%' },
         minWidth: 120,
         sortable: true,
+        showInMobile: false,
         render: (value) => value || 'Unassigned'
       }
-    ]);
+    ];
+
+    setColumns(baseColumns);
   }, [theme]);
 
   // Get color based on status

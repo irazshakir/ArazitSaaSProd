@@ -19,7 +19,9 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  Button
+  Button,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
@@ -42,6 +44,8 @@ const TableList = ({
   defaultSortDirection = 'asc',
   getRowHighlight = null
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [selected, setSelected] = useState([]);
   const [page, setPage] = useState(1);
   const [sortField, setSortField] = useState(defaultSortField);
@@ -139,6 +143,11 @@ const TableList = ({
     const endIndex = startIndex + localRowsPerPage;
     return sortedData.slice(startIndex, endIndex);
   }, [sortedData, page, localRowsPerPage, pagination]);
+
+  // Filter columns based on mobile view
+  const visibleColumns = React.useMemo(() => {
+    return columns.filter(column => !isMobile || column.showInMobile);
+  }, [columns, isMobile]);
 
   // Render cell content based on type
   const renderCellContent = (column, value, row) => {
@@ -238,11 +247,17 @@ const TableList = ({
           <Table 
             stickyHeader 
             aria-label="data table"
-            sx={{ tableLayout: 'fixed', width: '100%' }}
+            sx={{ 
+              tableLayout: 'fixed', 
+              width: '100%',
+              '& .MuiTableCell-root': {
+                px: isMobile ? 1 : 2 // Reduce padding on mobile
+              }
+            }}
           >
             <TableHead>
               <TableRow>
-                {selectable && (
+                {selectable && !isMobile && (
                   <TableCell padding="checkbox">
                     <Checkbox
                       indeterminate={selected.length > 0 && selected.length < data.length}
@@ -252,15 +267,15 @@ const TableList = ({
                   </TableCell>
                 )}
                 
-                {columns.map((column) => (
+                {visibleColumns.map((column) => (
                   <TableCell
                     key={column.field}
                     align={column.align || 'left'}
                     sortDirection={sortField === column.field ? sortDirection : false}
                     style={{ 
-                      minWidth: column.minWidth,
+                      minWidth: isMobile ? undefined : column.minWidth,
                       maxWidth: column.maxWidth,
-                      width: column.width,
+                      width: typeof column.width === 'object' ? column.width[isMobile ? 'xs' : 'sm'] : column.width,
                       fontWeight: 600,
                       fontSize: '0.85rem',
                       color: 'rgba(0, 0, 0, 0.6)'
@@ -280,15 +295,16 @@ const TableList = ({
                   </TableCell>
                 ))}
                 
-                {(onViewClick || onEditClick || onDeleteClick || extraActions) && (
+                {(onEditClick || onDeleteClick) && (
                   <TableCell 
                     align="right" 
                     style={{ 
-                      width: '15%', 
-                      minWidth: 100 
+                      width: isMobile ? '15%' : '15%', 
+                      minWidth: isMobile ? 50 : 100,
+                      padding: isMobile ? '8px' : undefined
                     }}
                   >
-                    Actions
+                    {!isMobile && 'Actions'}
                   </TableCell>
                 )}
               </TableRow>
@@ -315,7 +331,7 @@ const TableList = ({
                       ...getRowHighlight?.(row),
                     }}
                   >
-                    {selectable && (
+                    {selectable && !isMobile && (
                       <TableCell padding="checkbox">
                         <Checkbox
                           checked={isItemSelected}
@@ -324,33 +340,47 @@ const TableList = ({
                       </TableCell>
                     )}
                     
-                    {columns.map((column) => (
+                    {visibleColumns.map((column) => (
                       <TableCell 
                         key={`${row.id}-${column.field}`}
                         align={column.align || 'left'}
+                        sx={{
+                          padding: isMobile ? '8px' : undefined
+                        }}
                       >
                         {renderCellContent(column, row[column.field], row)}
                       </TableCell>
                     ))}
                     
-                    {(onViewClick || onEditClick || onDeleteClick || extraActions) && (
-                      <TableCell align="right">
-                        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                          {extraActions && extraActions(row)}
+                    {(onEditClick || onDeleteClick) && (
+                      <TableCell 
+                        align="right"
+                        sx={{
+                          padding: isMobile ? '8px' : undefined
+                        }}
+                      >
+                        <Box sx={{ 
+                          display: 'flex', 
+                          justifyContent: 'flex-end',
+                          '& .MuiIconButton-root': {
+                            padding: isMobile ? '4px' : '8px'
+                          }
+                        }}>
+                          {!isMobile && extraActions && extraActions(row)}
                           
                           {onEditClick && (
                             <IconButton 
-                              size="small" 
+                              size={isMobile ? "small" : "medium"}
                               onClick={(e) => {
                                 e.stopPropagation();
                                 onEditClick(row);
                               }}
                             >
-                              <EditIcon fontSize="small" />
+                              <EditIcon fontSize={isMobile ? "small" : "medium"} />
                             </IconButton>
                           )}
                           
-                          {onDeleteClick && (
+                          {!isMobile && onDeleteClick && (
                             <IconButton 
                               size="small" 
                               onClick={(e) => handleDeleteClick(e, row)}
@@ -369,7 +399,7 @@ const TableList = ({
               {data.length === 0 && (
                 <TableRow>
                   <TableCell 
-                    colSpan={columns.length + (selectable ? 1 : 0) + ((onViewClick || onEditClick || onDeleteClick || extraActions) ? 1 : 0)} 
+                    colSpan={visibleColumns.length + (selectable && !isMobile ? 1 : 0) + ((onEditClick || onDeleteClick) ? 1 : 0)} 
                     align="center"
                     sx={{ py: 3 }}
                   >

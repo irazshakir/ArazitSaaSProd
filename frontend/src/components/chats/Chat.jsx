@@ -5,7 +5,7 @@ import ChatDetails from './chatDetails';
 import TemplateList from './TemplateList';
 import GroupList from './GroupList';
 import ContactList from './ContactList';
-import { Box, Paper, Tabs, Tab, IconButton, Tooltip, Typography, Button, Chip } from '@mui/material';
+import { Box, Paper, Tabs, Tab, IconButton, Tooltip, Typography, Button, Chip, Slide } from '@mui/material';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -13,6 +13,64 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import './Chat.css';
+
+// Add this CSS at the top of the file
+const mobileStyles = `
+  .mobile-chat-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .mobile-chat-list {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    transition: transform 0.3s ease-in-out;
+    z-index: 2;
+  }
+
+  .mobile-chat-box {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #fff;
+    transition: transform 0.3s ease-in-out;
+    z-index: 1;
+  }
+
+  .mobile-chat-list.slide-left {
+    transform: translateX(-100%);
+  }
+
+  .mobile-chat-box.slide-right {
+    transform: translateX(100%);
+  }
+
+  .mobile-header {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: #075E54;
+    color: white;
+  }
+
+  .mobile-header h1 {
+    margin: 0;
+    font-size: 20px;
+    margin-left: 16px;
+  }
+
+  .mobile-back-button {
+    color: white !important;
+  }
+`;
 
 const Chat = () => {
   const [activeChat, setActiveChat] = useState(null);
@@ -36,12 +94,29 @@ const Chat = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
+  // Modified useEffect to handle mobile differently
   useEffect(() => {
-    // Set first chat as active on initial load
-    if (chats.length > 0 && !activeChat) {
-      setActiveChat(chats[0]);
+    if (chats.length > 0) {
+      if (!isMobile) {
+        // On desktop, set first chat as active
+        if (!activeChat) {
+          setActiveChat(chats[0]);
+        }
+      } else {
+        // On mobile, only set active chat if user has explicitly selected one
+        if (activeChat && !chats.find(chat => chat.id === activeChat.id)) {
+          setActiveChat(null); // Reset active chat if it no longer exists
+        }
+      }
     }
-  }, [chats]);
+  }, [chats, isMobile]);
+
+  // Reset active chat when switching to mobile view
+  useEffect(() => {
+    if (isMobile) {
+      setActiveChat(null);
+    }
+  }, [isMobile]);
 
   // When active chat changes, increment details key to force re-render
   useEffect(() => {
@@ -502,9 +577,8 @@ const Chat = () => {
     setDetailsOpen(false);
   };
 
-  // Function to handle chat selection from ChatList
+  // Modified chat selection handler
   const handleChatSelect = (chat) => {
-    // Only update if it's a different chat
     if (chat.id !== activeChat?.id) {
       setActiveChat(chat);
       
@@ -610,6 +684,7 @@ const Chat = () => {
 
   return (
     <Box>
+      <style>{mobileStyles}</style>
       <Paper sx={{ 
         display: 'flex', 
         flexDirection: 'column',
@@ -622,10 +697,10 @@ const Chat = () => {
         <Box sx={{ 
           borderBottom: 1, 
           borderColor: 'divider',
-          display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          paddingRight: 1
+          paddingRight: 1,
+          display: { xs: 'none', md: 'flex' } // Hide on mobile, show as flex on desktop
         }}>
           <Tabs value={activeTab} onChange={handleTabChange}>
             <Tab label={hasNewChats ? "Chats •" : "Chats"} />
@@ -681,64 +756,91 @@ const Chat = () => {
         {activeTab === 0 ? (
           // Chat Interface
           <Box sx={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-            {/* Chat List - hide on mobile when chat is active */}
-            <Box sx={{ 
-              width: { xs: '100%', md: '280px' }, 
-              borderRight: '1px solid #e0e0e0',
-              display: { xs: activeChat && isMobile ? 'none' : 'block', md: 'block' }
-            }}>
-              <ChatList 
-                chats={chats} 
-                activeChat={activeChat} 
-                setActiveChat={handleChatSelect} 
-                refreshData={() => refreshData(true)}
-                lastRefreshTime={lastRefreshTime}
-                hasNewChats={hasNewChats}
-                noApiConfigured={noApiConfigured}
-                totalConversations={totalConversations}
-                roleFilterActive={roleFilterActive}
-                userRole={userRole}
-              />
-            </Box>
-            
-            {/* Chat Box - show on mobile only when chat is active */}
-            <Box sx={{ 
-              flex: 1,
-              display: { xs: activeChat && isMobile ? 'block' : 'none', md: 'block' }
-            }}>
-              {/* Back button for mobile */}
-              {isMobile && activeChat && (
+            {isMobile ? (
+              // Mobile WhatsApp-like UI
+              <div className="mobile-chat-container">
+                {/* Chat List View - Always render and control visibility with transform */}
+                <div className={`mobile-chat-list ${activeChat ? 'slide-left' : ''}`}>
+                  <div className="mobile-header">
+                    <h1>Chats</h1>
+                  </div>
+                  <ChatList 
+                    chats={chats} 
+                    activeChat={activeChat} 
+                    setActiveChat={handleChatSelect} 
+                    refreshData={() => refreshData(true)}
+                    lastRefreshTime={lastRefreshTime}
+                    hasNewChats={hasNewChats}
+                    noApiConfigured={noApiConfigured}
+                    totalConversations={totalConversations}
+                    roleFilterActive={roleFilterActive}
+                    userRole={userRole}
+                  />
+                </div>
+
+                {/* Chat Box View - Only mount when there's an active chat */}
+                {activeChat && (
+                  <div className={`mobile-chat-box ${!activeChat ? 'slide-right' : ''}`}>
+                    <div className="mobile-header">
+                      <IconButton 
+                        className="mobile-back-button"
+                        onClick={() => setActiveChat(null)}
+                      >
+                        <ArrowBackIcon />
+                      </IconButton>
+                      <h1>{activeChat.name || activeChat.phone}</h1>
+                    </div>
+                    <Chatbox 
+                      activeChat={activeChat} 
+                      sendMessage={sendMessage}
+                      toggleDetailsDrawer={toggleDetailsDrawer}
+                      refreshData={() => refreshData(true)}
+                      lastRefreshTime={lastRefreshTime}
+                      noApiConfigured={noApiConfigured}
+                      userRole={userRole}
+                      typing={false}
+                      lastTypingUpdate={null}
+                    />
+                  </div>
+                )}
+              </div>
+            ) : (
+              // Desktop UI remains unchanged
+              <>
                 <Box sx={{ 
-                  p: 1, 
-                  borderBottom: '1px solid #e0e0e0',
-                  display: 'flex',
-                  alignItems: 'center'
+                  width: '280px', 
+                  borderRight: '1px solid #e0e0e0',
+                  display: 'block'
                 }}>
-                  <IconButton 
-                    size="small" 
-                    onClick={() => setActiveChat(null)}
-                    sx={{ mr: 1 }}
-                  >
-                    <ArrowBackIcon />
-                  </IconButton>
-                  <Typography variant="subtitle2" noWrap>
-                    {activeChat.name || activeChat.phone}
-                  </Typography>
+                  <ChatList 
+                    chats={chats} 
+                    activeChat={activeChat} 
+                    setActiveChat={handleChatSelect} 
+                    refreshData={() => refreshData(true)}
+                    lastRefreshTime={lastRefreshTime}
+                    hasNewChats={hasNewChats}
+                    noApiConfigured={noApiConfigured}
+                    totalConversations={totalConversations}
+                    roleFilterActive={roleFilterActive}
+                    userRole={userRole}
+                  />
                 </Box>
-              )}
-              
-              <Chatbox 
-                activeChat={activeChat} 
-                sendMessage={sendMessage}
-                toggleDetailsDrawer={toggleDetailsDrawer}
-                refreshData={() => refreshData(true)}
-                lastRefreshTime={lastRefreshTime}
-                noApiConfigured={noApiConfigured}
-                userRole={userRole}
-                typing={false}
-                lastTypingUpdate={null}
-              />
-            </Box>
+                
+                <Box sx={{ flex: 1 }}>
+                  <Chatbox 
+                    activeChat={activeChat} 
+                    sendMessage={sendMessage}
+                    toggleDetailsDrawer={toggleDetailsDrawer}
+                    refreshData={() => refreshData(true)}
+                    lastRefreshTime={lastRefreshTime}
+                    noApiConfigured={noApiConfigured}
+                    userRole={userRole}
+                    typing={false}
+                    lastTypingUpdate={null}
+                  />
+                </Box>
+              </>
+            )}
           </Box>
         ) : noApiConfigured ? (
           // Show API Not Configured message for all tabs when API is not configured
