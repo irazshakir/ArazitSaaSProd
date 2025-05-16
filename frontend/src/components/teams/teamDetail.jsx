@@ -13,9 +13,6 @@ import PersonIcon from '@mui/icons-material/Person';
 import { message, Modal } from 'antd';
 import api from '../../services/api';
 
-// Import TeamMembers component
-import TeamMembers from './teamMembers';
-
 const TeamDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -31,8 +28,100 @@ const TeamDetail = () => {
   const fetchTeam = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`teams/${id}/`);
-      setTeam(response.data);
+      
+      // First try to get the team details
+      const teamResponse = await api.get(`teams/${id}/`);
+      
+      // Then try to get the team hierarchy which includes managers, team leads, and members
+      try {
+        const hierarchyResponse = await api.get(`teams/${id}/hierarchy/`);
+        
+        // Combine the data
+        const combinedData = {
+          ...teamResponse.data,
+          managers: hierarchyResponse.data.managers || []
+        };
+        
+        console.log('Team data with hierarchy:', combinedData);
+        setTeam(combinedData);
+      } catch (hierarchyError) {
+        console.error('Error fetching team hierarchy:', hierarchyError);
+        
+        // Try alternative endpoint
+        try {
+          const altHierarchyResponse = await api.get(`auth/teams/${id}/hierarchy/`);
+          
+          // Combine the data
+          const combinedData = {
+            ...teamResponse.data,
+            managers: altHierarchyResponse.data.managers || []
+          };
+          
+          console.log('Team data with hierarchy (alt endpoint):', combinedData);
+          setTeam(combinedData);
+        } catch (altError) {
+          console.error('Error fetching team hierarchy from alt endpoint:', altError);
+          
+          // If both hierarchy fetches fail, try to get managers, team leads, and members separately
+          try {
+            // Get managers
+            const managersResponse = await api.get(`teams/${id}/managers/`);
+            const managers = managersResponse.data;
+            
+            // For each manager, get team leads
+            const managersWithTeamLeads = await Promise.all(
+              managers.map(async (manager) => {
+                try {
+                  const teamLeadsResponse = await api.get(`team-managers/${manager.id}/team_leads/`);
+                  const teamLeads = teamLeadsResponse.data;
+                  
+                  // For each team lead, get members
+                  const teamLeadsWithMembers = await Promise.all(
+                    teamLeads.map(async (teamLead) => {
+                      try {
+                        const membersResponse = await api.get(`team-leads/${teamLead.id}/members/`);
+                        return {
+                          ...teamLead,
+                          members: membersResponse.data
+                        };
+                      } catch (error) {
+                        return {
+                          ...teamLead,
+                          members: []
+                        };
+                      }
+                    })
+                  );
+                  
+                  return {
+                    ...manager,
+                    team_leads: teamLeadsWithMembers
+                  };
+                } catch (error) {
+                  return {
+                    ...manager,
+                    team_leads: []
+                  };
+                }
+              })
+            );
+            
+            // Combine the data
+            const combinedData = {
+              ...teamResponse.data,
+              managers: managersWithTeamLeads
+            };
+            
+            console.log('Team data with manually constructed hierarchy:', combinedData);
+            setTeam(combinedData);
+          } catch (manualError) {
+            console.error('Error constructing team hierarchy manually:', manualError);
+            // If all hierarchy fetches fail, still use the basic team data
+            setTeam(teamResponse.data);
+          }
+        }
+      }
+      
       setLoading(false);
     } catch (error) {
       console.error('Error fetching team:', error);
@@ -213,53 +302,135 @@ const TeamDetail = () => {
                   Leadership
                 </Typography>
                 
-                {/* Team Lead */}
+                {/* Department Head */}
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <Avatar 
-                    src={team?.team_lead_details?.profile_picture}
+                    src={team?.department_head_details?.profile_picture}
                     sx={{ mr: 2, bgcolor: 'primary.main' }}
                   >
-                    {team?.team_lead_details ? getAvatarLetter(team.team_lead_details) : 'TL'}
+                    {team?.department_head_details ? getAvatarLetter(team.department_head_details) : 'DH'}
                   </Avatar>
                   <Box>
                     <Typography variant="body2" color="text.secondary">
-                      Team Lead
+                      Department Head
                     </Typography>
                     <Typography variant="body1" fontWeight={500}>
-                      {formatUserName(team?.team_lead_details)}
+                      {formatUserName(team?.department_head_details) || 'Not Assigned'}
                     </Typography>
                   </Box>
                 </Box>
                 
-                {/* Manager */}
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Avatar 
-                    src={team?.manager_details?.profile_picture}
-                    sx={{ mr: 2, bgcolor: 'secondary.main' }}
-                  >
-                    {team?.manager_details ? getAvatarLetter(team.manager_details) : 'M'}
-                  </Avatar>
-                  <Box>
-                    <Typography variant="body2" color="text.secondary">
-                      Manager
-                    </Typography>
-                    <Typography variant="body1" fontWeight={500}>
-                      {formatUserName(team?.manager_details)}
-                    </Typography>
+                {/* Manager (first manager from hierarchy) */}
+                {team?.managers && team.managers.length > 0 && team.managers[0].manager_details && (
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Avatar 
+                      src={team.managers[0].manager_details.profile_picture}
+                      sx={{ mr: 2, bgcolor: 'secondary.main' }}
+                    >
+                      {getAvatarLetter(team.managers[0].manager_details)}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Manager
+                      </Typography>
+                      <Typography variant="body1" fontWeight={500}>
+                        {formatUserName(team.managers[0].manager_details)}
+                      </Typography>
+                    </Box>
                   </Box>
-                </Box>
+                )}
+                
+                {/* Team Lead (first team lead from first manager) */}
+                {team?.managers && 
+                 team.managers.length > 0 && 
+                 team.managers[0].team_leads && 
+                 team.managers[0].team_leads.length > 0 && 
+                 team.managers[0].team_leads[0].team_lead_details && (
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Avatar 
+                      src={team.managers[0].team_leads[0].team_lead_details.profile_picture}
+                      sx={{ mr: 2, bgcolor: 'info.main' }}
+                    >
+                      {getAvatarLetter(team.managers[0].team_leads[0].team_lead_details)}
+                    </Avatar>
+                    <Box>
+                      <Typography variant="body2" color="text.secondary">
+                        Team Lead
+                      </Typography>
+                      <Typography variant="body1" fontWeight={500}>
+                        {formatUserName(team.managers[0].team_leads[0].team_lead_details)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+          </Grid>
+          
+          {/* Team Members Section */}
+          <Grid item xs={12}>
+            <Card variant="outlined">
+              <CardContent>
+                <Typography variant="h6" component="h2" sx={{ mb: 2, fontWeight: 600 }}>
+                  Team Members
+                </Typography>
+                
+                {team?.managers && team.managers.length > 0 ? (
+                  <Box>
+                    {team.managers.map((manager, managerIndex) => (
+                      <Box key={manager.id || managerIndex} sx={{ mb: 3 }}>
+                        <Typography variant="subtitle1" sx={{ fontWeight: 500, mb: 1 }}>
+                          Manager: {formatUserName(manager.manager_details)}
+                        </Typography>
+                        
+                        {manager.team_leads && manager.team_leads.length > 0 ? (
+                          manager.team_leads.map((teamLead, teamLeadIndex) => (
+                            <Box key={teamLead.id || teamLeadIndex} sx={{ ml: 3, mb: 2 }}>
+                              <Typography variant="subtitle2" sx={{ fontWeight: 500, mb: 1 }}>
+                                Team Lead: {formatUserName(teamLead.team_lead_details)}
+                              </Typography>
+                              
+                              {teamLead.members && teamLead.members.length > 0 ? (
+                                <Grid container spacing={1} sx={{ ml: 1 }}>
+                                  {teamLead.members.map((member, memberIndex) => (
+                                    <Grid item key={member.id || memberIndex}>
+                                      <Chip
+                                        avatar={
+                                          <Avatar>
+                                            {getAvatarLetter(member.member_details)}
+                                          </Avatar>
+                                        }
+                                        label={formatUserName(member.member_details)}
+                                        variant="outlined"
+                                      />
+                                    </Grid>
+                                  ))}
+                                </Grid>
+                              ) : (
+                                <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
+                                  No members assigned to this team lead.
+                                </Typography>
+                              )}
+                            </Box>
+                          ))
+                        ) : (
+                          <Typography variant="body2" color="text.secondary" sx={{ ml: 3 }}>
+                            No team leads assigned to this manager.
+                          </Typography>
+                        )}
+                      </Box>
+                    ))}
+                  </Box>
+                ) : (
+                  <Typography variant="body2" color="text.secondary">
+                    No team structure defined yet. Please edit the team to add managers, team leads, and members.
+                  </Typography>
+                )}
               </CardContent>
             </Card>
           </Grid>
         </Grid>
       </Paper>
-      
-      {/* Team Members Section */}
-      <TeamMembers 
-        teamId={id} 
-        teamData={team} 
-        onTeamUpdate={fetchTeam} 
-      />
       
       {/* Team Statistics Card - can be expanded later */}
       <Paper

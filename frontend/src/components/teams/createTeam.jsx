@@ -107,72 +107,93 @@ const CreateTeam = () => {
     }
   };
   
-  // Simplified function to fetch all active users for the tenant
+  // Improved function to fetch all users with pagination handling
   const fetchAllUsers = async () => {
     try {
-      // Simple params - just tenant and active status
+      // Get the tenant_id from localStorage
+      const tenantId = localStorage.getItem('tenant_id');
+      
+      if (!tenantId) {
+        message.error('Tenant information not found. Please log in again.');
+        navigate('/login');
+        return [];
+      }
+      
+      let allUsers = [];
+      let nextPageUrl = null;
+      let currentPage = 1;
+      
+      // Fetch first page
       const params = { 
         tenant: tenantId,
-        is_active: true
+        page: 1,
+        page_size: 100  // Request a large page size, but the API may override this
       };
       
-      // Try both endpoints
-      const endpoints = ['/auth/users/', '/users/'];
-      let userData = [];
+      // Make the first request
+      const firstResponse = await api.get('auth/users/', { params });
       
-      for (const endpoint of endpoints) {
+      // Process response data
+      if (firstResponse.data?.results && Array.isArray(firstResponse.data.results)) {
+        allUsers = [...firstResponse.data.results];
+        
+        // Check if there are more pages
+        if (firstResponse.data.next) {
+          nextPageUrl = firstResponse.data.next;
+        }
+      } else if (Array.isArray(firstResponse.data)) {
+        allUsers = [...firstResponse.data];
+      } else {
+        return [];
+      }
+      
+      // Fetch additional pages if needed
+      while (nextPageUrl && currentPage < 10) { // Limit to 10 pages for safety
+        currentPage++;
+        
         try {
-          const response = await api.get(endpoint, { params });
+          // Extract the relative URL path from the full URL
+          const urlParts = nextPageUrl.split('/api/');
+          const relativeUrl = urlParts.length > 1 ? urlParts[1] : nextPageUrl;
           
-          if (Array.isArray(response.data)) {
-            userData = response.data;
-            break;
-          } else if (response.data && Array.isArray(response.data.results)) {
-            userData = response.data.results;
-            break;
-          } else if (response.data && typeof response.data === 'object') {
-            userData = Object.values(response.data);
-            break;
+          const pageResponse = await api.get(relativeUrl);
+          
+          if (pageResponse.data?.results && Array.isArray(pageResponse.data.results)) {
+            const pageUsers = pageResponse.data.results;
+            
+            // Add these users to our collection
+            allUsers = [...allUsers, ...pageUsers];
+            
+            // Update next page URL
+            nextPageUrl = pageResponse.data.next;
+          } else {
+            nextPageUrl = null;
           }
-        } catch (error) {
-          // Continue to next endpoint
+        } catch (pageError) {
+          nextPageUrl = null;
         }
       }
       
-      return userData;
+      return allUsers;
     } catch (error) {
       message.error('Failed to load users');
       return [];
     }
   };
   
-  // Simplified load member options
-  useEffect(() => {
-    if (formData.branch && formData.department && tenantId) {
-      // Just load all users once for all roles
-      fetchAllUsers().then(allUsers => {
-        setMemberOptions(allUsers);
-        setTeamLeadOptions(allUsers);
-      }).catch(error => {
-      });
-    }
-  }, [formData.branch, formData.department, tenantId]);
-  
-  // Update useEffect to load department head options
+  // Update useEffect to load user options
   useEffect(() => {
     const loadUserOptions = async () => {
-      if (!formData.branch || !formData.department || !tenantId) return;
+      if (!tenantId) return;
       
       try {
         setLoading(true);
         
-        // Just get all users for the tenant
+        // Get all users for the tenant
         const allUsers = await fetchAllUsers();
         
-        // Set department head options to all users
+        // Set all users for both department heads and managers
         setDepartmentHeadOptions(allUsers);
-        
-        // Set all users as potential managers too
         setManagerOptions(allUsers);
         
         setLoading(false);
@@ -184,7 +205,20 @@ const CreateTeam = () => {
     };
     
     loadUserOptions();
-  }, [formData.branch, formData.department, tenantId]);
+  }, [tenantId]); // Only depend on tenantId, not branch or department
+  
+  // Simplified load member options
+  useEffect(() => {
+    // Load all users regardless of branch or department selection
+    if (tenantId) {
+      fetchAllUsers().then(allUsers => {
+        setMemberOptions(allUsers);
+        setTeamLeadOptions(allUsers);
+      }).catch(error => {
+        // Silently handle error
+      });
+    }
+  }, [tenantId]);
   
   // Updated dialog open handler
   const handleOpenDialog = (type, managerId = null, teamLeadId = null) => {
@@ -199,8 +233,9 @@ const CreateTeam = () => {
     // Show loading indicator in dialog
     setLoading(true);
     
-    // Simply fetch all users for any dialog type
+    // Fetch all users for any dialog type
     fetchAllUsers().then(allUsers => {
+      // Use the same users list for all dialog types
       switch(type) {
         case 'manager':
           setManagerOptions(allUsers);
@@ -244,6 +279,31 @@ const CreateTeam = () => {
         ...errors,
         [name]: ''
       });
+    }
+  };
+  
+  // Handle blur event for team name field to check for duplicates
+  const handleTeamNameBlur = async () => {
+    if (!formData.name || !formData.department || !formData.branch) return;
+    
+    const normalizedName = normalizeTeamName(formData.name);
+    
+    // Check for exact match
+    const teamExists = await checkTeamExists(normalizedName, formData.department, formData.branch);
+    
+    if (teamExists) {
+      setErrors({
+        ...errors,
+        name: 'A team with this name already exists in the selected department and branch'
+      });
+      return;
+    }
+    
+    // Check for similar names
+    const similarTeams = await checkSimilarTeamNames(normalizedName, formData.department, formData.branch);
+    
+    if (similarTeams.length > 0) {
+      message.info(`Found ${similarTeams.length} team(s) with similar names in this department/branch.`);
     }
   };
   
@@ -437,6 +497,161 @@ const CreateTeam = () => {
     return Object.keys(newErrors).length === 0;
   };
   
+  // Helper function to normalize team name (trim and convert to title case)
+  const normalizeTeamName = (name) => {
+    if (!name) return '';
+    
+    // Trim and remove extra spaces
+    const trimmed = name.trim().replace(/\s+/g, ' ');
+    
+    // Convert to title case (capitalize first letter of each word)
+    return trimmed.replace(/\w\S*/g, (txt) => {
+      return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+    });
+  };
+  
+  // New function to check if a team with the same name already exists
+  const checkTeamExists = async (teamName, departmentId, branchId) => {
+    try {
+      // Normalize the team name
+      const normalizedName = normalizeTeamName(teamName);
+      
+      // Prepare params for filtering teams
+      const params = {
+        tenant: tenantId,
+        department: departmentId,
+        branch: branchId
+      };
+      
+      // Try both endpoints
+      const endpoints = ['teams/', 'auth/teams/'];
+      
+      for (const endpoint of endpoints) {
+        try {
+          const response = await api.get(endpoint, { params });
+          
+          let teamsArray = [];
+          if (Array.isArray(response.data)) {
+            teamsArray = response.data;
+          } else if (response.data?.results && Array.isArray(response.data.results)) {
+            teamsArray = response.data.results;
+          } else if (response.data && typeof response.data === 'object') {
+            teamsArray = Object.values(response.data).filter(item => typeof item === 'object');
+          }
+          
+          // Check if any team matches our criteria (case-insensitive name comparison)
+          const existingTeam = teamsArray.find(team => 
+            normalizeTeamName(team.name) === normalizedName && 
+            team.department === departmentId &&
+            team.branch === branchId &&
+            team.tenant === tenantId
+          );
+          
+          if (existingTeam) {
+            return true;
+          }
+        } catch (error) {
+          // Continue to next endpoint
+        }
+      }
+      
+      return false;
+    } catch (error) {
+      return false; // Assume no conflict if there's an error
+    }
+  };
+  
+  // Helper function to check for similar team names
+  const checkSimilarTeamNames = async (teamName, departmentId, branchId) => {
+    try {
+      // Normalize the team name
+      const normalizedName = normalizeTeamName(teamName).toLowerCase();
+      
+      // Prepare params for filtering teams
+      const params = {
+        tenant: tenantId,
+        department: departmentId,
+        branch: branchId
+      };
+      
+      // Try both endpoints
+      const endpoints = ['teams/', 'auth/teams/'];
+      let allTeams = [];
+      
+      for (const endpoint of endpoints) {
+        try {
+          const response = await api.get(endpoint, { params });
+          
+          let teamsArray = [];
+          if (Array.isArray(response.data)) {
+            teamsArray = response.data;
+          } else if (response.data?.results && Array.isArray(response.data.results)) {
+            teamsArray = response.data.results;
+          } else if (response.data && typeof response.data === 'object') {
+            teamsArray = Object.values(response.data).filter(item => typeof item === 'object');
+          }
+          
+          if (teamsArray.length > 0) {
+            allTeams = teamsArray;
+            break;
+          }
+        } catch (error) {
+          // Continue to next endpoint
+        }
+      }
+      
+      // Find teams with similar names
+      const similarTeams = allTeams.filter(team => {
+        const teamNameLower = normalizeTeamName(team.name).toLowerCase();
+        
+        // Check if names are similar (contain each other or have Levenshtein distance < 3)
+        return (
+          teamNameLower.includes(normalizedName) || 
+          normalizedName.includes(teamNameLower) ||
+          levenshteinDistance(teamNameLower, normalizedName) < 3
+        );
+      });
+      
+      return similarTeams;
+    } catch (error) {
+      return []; // Return empty array if there's an error
+    }
+  };
+  
+  // Helper function to calculate Levenshtein distance between two strings
+  const levenshteinDistance = (a, b) => {
+    if (a.length === 0) return b.length;
+    if (b.length === 0) return a.length;
+    
+    const matrix = [];
+    
+    // Initialize the matrix
+    for (let i = 0; i <= b.length; i++) {
+      matrix[i] = [i];
+    }
+    
+    for (let j = 0; j <= a.length; j++) {
+      matrix[0][j] = j;
+    }
+    
+    // Fill in the rest of the matrix
+    for (let i = 1; i <= b.length; i++) {
+      for (let j = 1; j <= a.length; j++) {
+        if (b.charAt(i - 1) === a.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] = Math.min(
+            matrix[i - 1][j - 1] + 1, // substitution
+            matrix[i][j - 1] + 1,     // insertion
+            matrix[i - 1][j] + 1      // deletion
+          );
+        }
+      }
+    }
+    
+    return matrix[b.length][a.length];
+  };
+  
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -450,9 +665,32 @@ const CreateTeam = () => {
     try {
       setSubmitting(true);
       
+      // Normalize the team name
+      const normalizedName = normalizeTeamName(formData.name);
+      
+      // Check if a team with the same name, department, branch, and tenant already exists
+      const teamExists = await checkTeamExists(normalizedName, formData.department, formData.branch);
+      
+      if (teamExists) {
+        setSubmitting(false);
+        setErrors({
+          name: 'A team with this name already exists in the selected department and branch'
+        });
+        message.error('A team with this name already exists in the selected department and branch');
+        return;
+      }
+      
+      // Check for similar team names and warn the user
+      const similarTeams = await checkSimilarTeamNames(normalizedName, formData.department, formData.branch);
+      
+      if (similarTeams.length > 0) {
+        // Show warning but don't block submission
+        message.warning(`Found ${similarTeams.length} team(s) with similar names in this department/branch. Please verify this is not a duplicate.`);
+      }
+      
       // 1. Create the team
       const teamData = {
-        name: formData.name,
+        name: normalizedName,
         description: formData.description,
         tenant: tenantId,
         department: formData.department,
@@ -502,8 +740,8 @@ const CreateTeam = () => {
       setSubmitting(false);
       message.success('Team created successfully!');
       
-      // Navigate to the team detail page
-      navigate(`/dashboard/teams/${teamId}`);
+      // Navigate back to the teams index page instead of team detail page
+      navigate('/dashboard/teams');
     } catch (error) {
       setSubmitting(false);
       
@@ -535,16 +773,21 @@ const CreateTeam = () => {
   // Format user display name
   const formatUserName = (user) => {
     if (!user) return 'Unknown';
-    const name = `${user.first_name || ''} ${user.last_name || ''}`.trim();
-    return name || user.email || user.id;
+    
+    // Check if we have first/last name
+    const firstName = user.first_name || '';
+    const lastName = user.last_name || '';
+    const fullName = `${firstName} ${lastName}`.trim();
+    
+    // If we have a name, return it, otherwise try email
+    if (fullName) {
+      return fullName;
+    } else if (user.email) {
+      return user.email.split('@')[0]; // Just the username part of email
+    }
+    
+    return `User ${user.id}`;
   };
-  
-  // Add this to your component to track state changes
-  useEffect(() => {
-  }, [departmentHeadOptions]);
-
-  useEffect(() => {
-  }, [managerOptions]);
   
   if (loading && !branchOptions.length && !departmentOptions.length) {
     return (
@@ -602,6 +845,7 @@ const CreateTeam = () => {
                     error={!!errors.name}
                     helperText={errors.name}
                     required
+                    onBlur={handleTeamNameBlur}
                   />
                 </Grid>
                 
@@ -683,11 +927,11 @@ const CreateTeam = () => {
                           value={formData.department_head}
                           onChange={handleInputChange}
                           label="Department Head"
-                          disabled={!formData.branch || !formData.department || loading}
+                          disabled={loading}
                           MenuProps={{
                             PaperProps: {
                               style: {
-                                maxHeight: 300,
+                                maxHeight: 1000,  // Increased height to show more items
                                 overflow: 'auto',
                               },
                             },
@@ -710,9 +954,16 @@ const CreateTeam = () => {
                               <em>No users available</em>
                             </MenuItem>
                           ) : (
-                            departmentHeadOptions.map(head => (
-                              <MenuItem key={head.id} value={head.id}>
-                                {formatUserName(head)} {head.role && `(${head.role})`} {head.department?.name && `- ${head.department.name}`}
+                            departmentHeadOptions.map(user => (
+                              <MenuItem 
+                                key={user.id} 
+                                value={user.id}
+                              >
+                                {formatUserName(user)} 
+                                <Typography variant="caption" sx={{ ml: 1, color: 'text.secondary' }}>
+                                  ({user.email})
+                                  {user.role && ` - ${user.role}`}
+                                </Typography>
                               </MenuItem>
                             ))
                           )}
@@ -722,15 +973,9 @@ const CreateTeam = () => {
                           <FormHelperText>{errors.department_head}</FormHelperText>
                         )}
                         
-                        {(!formData.branch || !formData.department) && (
+                        {departmentHeadOptions.length === 0 && !loading && (
                           <FormHelperText>
-                            Please select branch and department first
-                          </FormHelperText>
-                        )}
-                        
-                        {formData.branch && formData.department && departmentHeadOptions.length === 0 && !loading && (
-                          <FormHelperText>
-                            No users found. Please make sure users exist for this tenant.
+                            No users found for this tenant.
                           </FormHelperText>
                         )}
                         
@@ -738,7 +983,6 @@ const CreateTeam = () => {
                         {departmentHeadOptions.length > 0 && (
                           <FormHelperText>
                             {departmentHeadOptions.length} users available
-                            {departmentHeadOptions.length > 10 && " - scroll to see all"}
                           </FormHelperText>
                         )}
                       </FormControl>
@@ -749,7 +993,7 @@ const CreateTeam = () => {
                 <Grid item xs={12}>
                   <Divider />
                 </Grid>
-                
+
                 {/* Team Hierarchy Section */}
                 <Grid item xs={12}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
@@ -924,129 +1168,76 @@ const CreateTeam = () => {
               </Typography>
             </Box>
           ) : (
-            <>
-              {/* Add search input for large lists */}
-              <TextField
-                fullWidth
-                label="Search..."
-                variant="outlined"
-                value={dialogSearch}
-                onChange={(e) => setDialogSearch(e.target.value)}
-                sx={{ mb: 2 }}
-                size="small"
-              />
-              
-              <FormControl fullWidth>
-                <InputLabel>
-                  {dialogType === 'manager' ? 'Select Manager' : 
-                   dialogType === 'teamLead' ? 'Select Team Lead' : 'Select Member'}
-                </InputLabel>
-                <Select
-                  value={dialogData.selectedOption}
-                  onChange={handleDialogOptionChange}
-                  label={dialogType === 'manager' ? 'Select Manager' : 
-                         dialogType === 'teamLead' ? 'Select Team Lead' : 'Select Member'}
-                  MenuProps={{
-                    PaperProps: {
-                      style: {
-                        maxHeight: 400,
-                        overflow: 'auto',
-                      },
+            <FormControl fullWidth>
+              <InputLabel>
+                {dialogType === 'manager' ? 'Select Manager' : 
+                 dialogType === 'teamLead' ? 'Select Team Lead' : 'Select Member'}
+              </InputLabel>
+              <Select
+                value={dialogData.selectedOption}
+                onChange={handleDialogOptionChange}
+                label={dialogType === 'manager' ? 'Select Manager' : 
+                       dialogType === 'teamLead' ? 'Select Team Lead' : 'Select Member'}
+                MenuProps={{
+                  PaperProps: {
+                    style: {
+                      maxHeight: 400,
+                      overflow: 'auto',
                     },
-                    disableScrollLock: false,
-                  }}
-                >
-                  {/* No users available conditions */}
-                  {dialogType === 'manager' && managerOptions.length === 0 ? (
-                    <MenuItem disabled>No managers available</MenuItem>
-                  ) : dialogType === 'teamLead' && teamLeadOptions.length === 0 ? (
-                    <MenuItem disabled>No team leads available</MenuItem>
-                  ) : dialogType === 'member' && memberOptions.length === 0 ? (
-                    <MenuItem disabled>No members available</MenuItem>
-                  ) : null}
-                  
-                  {/* Filter users based on search - for managers */}
-                  {dialogType === 'manager' && managerOptions
-                    .filter(option => {
-                      const searchText = dialogSearch.toLowerCase();
-                      return !searchText || 
-                             formatUserName(option).toLowerCase().includes(searchText) ||
-                             (option.email || '').toLowerCase().includes(searchText) ||
-                             (option.department?.name || '').toLowerCase().includes(searchText);
-                    })
-                    .map(option => (
-                      <MenuItem 
-                        key={option.id} 
-                        value={option.id}
-                        disabled={managers.some(m => m.id === option.id)}
-                      >
-                        {formatUserName(option)} {option.department?.name && `(${option.department.name})`}
-                      </MenuItem>
-                    ))}
-                  
-                  {/* Apply similar filtering to team leads and members */}
-                  {dialogType === 'teamLead' && teamLeadOptions
-                    .filter(option => {
-                      const searchText = dialogSearch.toLowerCase();
-                      return !searchText || 
-                             formatUserName(option).toLowerCase().includes(searchText) ||
-                             (option.email || '').toLowerCase().includes(searchText) ||
-                             (option.department?.name || '').toLowerCase().includes(searchText);
-                    })
-                    .map(option => (
-                      <MenuItem 
-                        key={option.id} 
-                        value={option.id}
-                        disabled={Object.values(teamLeadsMap).some(
-                          teamLeads => teamLeads.some(tl => tl.id === option.id)
-                        )}
-                      >
-                        {formatUserName(option)} {option.department?.name && `(${option.department.name})`}
-                      </MenuItem>
-                    ))}
-                  
-                  {dialogType === 'member' && memberOptions
-                    .filter(option => {
-                      const searchText = dialogSearch.toLowerCase();
-                      return !searchText || 
-                             formatUserName(option).toLowerCase().includes(searchText) ||
-                             (option.email || '').toLowerCase().includes(searchText) ||
-                             (option.role || '').toLowerCase().includes(searchText);
-                    })
-                    .map(option => (
-                      <MenuItem 
-                        key={option.id} 
-                        value={option.id}
-                        disabled={Object.values(teamMembersMap).some(
-                          members => members.some(m => m.id === option.id)
-                        )}
-                      >
-                        {formatUserName(option)} {option.role && `(${option.role})`}
-                      </MenuItem>
-                    ))}
-                </Select>
-              </FormControl>
-
-              {/* Show count of available options */}
-              {dialogType === 'manager' && (
-                <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
-                  {managerOptions.length} managers available
-                  {managerOptions.length > 10 && " - scroll to see all"}
-                </Typography>
-              )}
-              {dialogType === 'teamLead' && (
-                <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
-                  {teamLeadOptions.length} team leads available
-                  {teamLeadOptions.length > 10 && " - scroll to see all"}
-                </Typography>
-              )}
-              {dialogType === 'member' && (
-                <Typography variant="caption" sx={{ mt: 1, display: 'block' }}>
-                  {memberOptions.length} members available
-                  {memberOptions.length > 10 && " - scroll to see all"}
-                </Typography>
-              )}
-            </>
+                  },
+                  disableScrollLock: false,
+                }}
+              >
+                {/* Manager options */}
+                {dialogType === 'manager' && managerOptions.length === 0 ? (
+                  <MenuItem disabled>No managers available</MenuItem>
+                ) : dialogType === 'manager' && (
+                  managerOptions.map(option => (
+                    <MenuItem 
+                      key={option.id} 
+                      value={option.id}
+                      disabled={managers.some(m => m.id === option.id)}
+                    >
+                      {formatUserName(option)} {option.department?.name && `(${option.department.name})`}
+                    </MenuItem>
+                  ))
+                )}
+                
+                {/* Team lead options */}
+                {dialogType === 'teamLead' && teamLeadOptions.length === 0 ? (
+                  <MenuItem disabled>No team leads available</MenuItem>
+                ) : dialogType === 'teamLead' && (
+                  teamLeadOptions.map(option => (
+                    <MenuItem 
+                      key={option.id} 
+                      value={option.id}
+                      disabled={Object.values(teamLeadsMap).some(
+                        teamLeads => teamLeads.some(tl => tl.id === option.id)
+                      )}
+                    >
+                      {formatUserName(option)} {option.department?.name && `(${option.department.name})`}
+                    </MenuItem>
+                  ))
+                )}
+                
+                {/* Member options */}
+                {dialogType === 'member' && memberOptions.length === 0 ? (
+                  <MenuItem disabled>No members available</MenuItem>
+                ) : dialogType === 'member' && (
+                  memberOptions.map(option => (
+                    <MenuItem 
+                      key={option.id} 
+                      value={option.id}
+                      disabled={Object.values(teamMembersMap).some(
+                        members => members.some(m => m.id === option.id)
+                      )}
+                    >
+                      {formatUserName(option)} {option.role && `(${option.role})`}
+                    </MenuItem>
+                  ))
+                )}
+              </Select>
+            </FormControl>
           )}
         </DialogContent>
         <DialogActions>

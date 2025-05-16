@@ -42,12 +42,16 @@ const TableList = ({
   rowsPerPageOptions = [5, 10, 25, 50],
   defaultSortField = '',
   defaultSortDirection = 'asc',
-  getRowHighlight = null
+  getRowHighlight = null,
+  totalItems = null,
+  page: externalPage = null,
+  onPageChange: externalPageChange = null,
+  onRowsPerPageChange: externalRowsPerPageChange = null
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [selected, setSelected] = useState([]);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(externalPage || 1);
   const [sortField, setSortField] = useState(defaultSortField);
   const [sortDirection, setSortDirection] = useState(defaultSortDirection);
   const [localRowsPerPage, setLocalRowsPerPage] = useState(rowsPerPage);
@@ -56,10 +60,24 @@ const TableList = ({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
   
-  // Reset page when data changes
+  // Update local state when external page changes
   useEffect(() => {
-    setPage(1);
-  }, [data]);
+    if (externalPage !== null) {
+      setPage(externalPage);
+    }
+  }, [externalPage]);
+  
+  // Update local state when rowsPerPage prop changes
+  useEffect(() => {
+    setLocalRowsPerPage(rowsPerPage);
+  }, [rowsPerPage]);
+  
+  // Reset page when data changes and we're not using external pagination
+  useEffect(() => {
+    if (externalPage === null) {
+      setPage(1);
+    }
+  }, [data, externalPage]);
   
   // Handle row selection
   const handleSelectAllClick = (event) => {
@@ -103,15 +121,27 @@ const TableList = ({
 
   // Handle pagination
   const handleChangePage = (event, newPage) => {
-    if (newPage >= 1 && newPage <= Math.ceil(data.length / localRowsPerPage)) {
-      setPage(newPage);
+    if (externalPageChange) {
+      // If external page change handler is provided, use it
+      externalPageChange(event, newPage);
+    } else {
+      // Otherwise handle pagination internally
+      if (newPage >= 1 && newPage <= Math.ceil((totalItems || data.length) / localRowsPerPage)) {
+        setPage(newPage);
+      }
     }
   };
   
   // Handle rows per page change
   const handleRowsPerPageChange = (newRowsPerPage) => {
-    setLocalRowsPerPage(newRowsPerPage);
-    setPage(1); // Reset to first page when changing rows per page
+    if (externalRowsPerPageChange) {
+      // If external handler is provided, use it
+      externalRowsPerPageChange(newRowsPerPage);
+    } else {
+      // Otherwise handle internally
+      setLocalRowsPerPage(newRowsPerPage);
+      setPage(1); // Reset to first page when changing rows per page
+    }
   };
 
   // Apply sorting to data
@@ -136,13 +166,20 @@ const TableList = ({
     });
   }, [data, sortField, sortDirection]);
 
-  // Apply pagination
+  // Apply pagination - skip internal pagination if using server-side pagination
   const paginatedData = React.useMemo(() => {
     if (!pagination) return sortedData;
+    
+    // Use external pagination if totalItems is provided (server-side pagination)
+    if (externalPageChange && totalItems !== null) {
+      return sortedData; // Don't paginate client-side as server already did it
+    }
+    
+    // Otherwise do client-side pagination
     const startIndex = (page - 1) * localRowsPerPage;
     const endIndex = startIndex + localRowsPerPage;
     return sortedData.slice(startIndex, endIndex);
-  }, [sortedData, page, localRowsPerPage, pagination]);
+  }, [sortedData, page, localRowsPerPage, pagination, externalPageChange, totalItems]);
 
   // Filter columns based on mobile view
   const visibleColumns = React.useMemo(() => {
@@ -415,7 +452,7 @@ const TableList = ({
         
         {pagination && data.length > 0 && (
           <EnhancedPagination
-            totalItems={data.length}
+            totalItems={totalItems !== null ? totalItems : data.length}
             page={page}
             rowsPerPage={localRowsPerPage}
             onPageChange={handleChangePage}

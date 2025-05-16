@@ -18,6 +18,11 @@ const UserIndex = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState({});
+  
+  // Add pagination state
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Authentication check
   useEffect(() => {
@@ -130,108 +135,143 @@ const UserIndex = () => {
     }
   ];
 
-  // Fetch data from API
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        
-        // Get the tenant_id from localStorage
-        const tenantId = localStorage.getItem('tenant_id');
-        
-        if (!tenantId) {
-          message.error('Tenant information not found. Please log in again.');
-          navigate('/login');
-          return;
-        }
-        
-        // Use the correct endpoint with auth prefix
-        const response = await api.get('auth/users/', {
-          params: { tenant: tenantId }
-        });
-        
-        // Check if response.data is directly an array or has a results property
-        let usersArray = Array.isArray(response.data) 
-          ? response.data
-          : (response.data?.results && Array.isArray(response.data.results))
-            ? response.data.results
-            : [];
+  // Fetch users with pagination
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      
+      // Get the tenant_id from localStorage
+      const tenantId = localStorage.getItem('tenant_id');
+      
+      if (!tenantId) {
+        message.error('Tenant information not found. Please log in again.');
+        navigate('/login');
+        return;
+      }
+      
+      // Prepare query parameters
+      const params = {
+        tenant: tenantId,
+        page: page,
+        page_size: pageSize
+      };
+      
+      // Add search parameter if provided
+      if (searchQuery) {
+        params.search = searchQuery;
+        // Add extra search parameters to improve matching
+        params.search_fields = 'email,first_name,last_name,department__name';
+      }
+      
+      // Use the correct endpoint with auth prefix
+      const response = await api.get('auth/users/', { params });
+      
+      // Check if response.data has results property (DRF pagination)
+      let usersArray = [];
+      let total = 0;
+      
+      if (response.data?.results && Array.isArray(response.data.results)) {
+        usersArray = response.data.results;
+        total = response.data.count || 0;
+      } else if (Array.isArray(response.data)) {
+        usersArray = response.data;
+        total = response.data.length;
+      }
             
-        // Transform data for UI representation
-        const formattedData = usersArray.map(user => ({
-          ...user,
-          id: user.id,
-          // Create a full name field for display
-          full_name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
-          is_active: typeof user.is_active === 'boolean' ? user.is_active : true
-        }));
-        
-        setUsers(formattedData);
-        setFilteredUsers(formattedData);
-        setLoading(false);
-      } catch (error) {
-        // Try alternative endpoint if the first one fails with 404
-        if (error.response && error.response.status === 404) {
-          try {
-            const response = await api.get('users/', {
-              params: { tenant: tenantId }
-            });
-            
-            // Process data as before
-            let usersArray = Array.isArray(response.data) 
-              ? response.data
-              : (response.data?.results && Array.isArray(response.data.results))
-                ? response.data.results
-                : [];
-                
-            const formattedData = usersArray.map(user => ({
-              ...user,
-              id: user.id,
-              full_name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
-              is_active: typeof user.is_active === 'boolean' ? user.is_active : true
-            }));
-            
-            setUsers(formattedData);
-            setFilteredUsers(formattedData);
-          } catch (secondError) {
-            message.error('Failed to load users. Please try again.');
+      // Transform data for UI representation
+      const formattedData = usersArray.map(user => ({
+        ...user,
+        id: user.id,
+        // Create a full name field for display
+        full_name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
+        is_active: typeof user.is_active === 'boolean' ? user.is_active : true
+      }));
+      
+      setUsers(formattedData);
+      setFilteredUsers(formattedData);
+      setTotalCount(total);
+      setLoading(false);
+    } catch (error) {
+      // Try alternative endpoint if the first one fails with 404
+      if (error.response && error.response.status === 404) {
+        try {
+          const params = {
+            tenant: tenantId,
+            page: page,
+            page_size: pageSize
+          };
+          
+          if (searchQuery) {
+            params.search = searchQuery;
+            params.search_fields = 'email,first_name,last_name,department__name';
           }
-        } else {
+          
+          const response = await api.get('users/', { params });
+          
+          // Process data as before
+          let usersArray = [];
+          let total = 0;
+          
+          if (response.data?.results && Array.isArray(response.data.results)) {
+            usersArray = response.data.results;
+            total = response.data.count || 0;
+          } else if (Array.isArray(response.data)) {
+            usersArray = response.data;
+            total = response.data.length;
+          }
+                
+          const formattedData = usersArray.map(user => ({
+            ...user,
+            id: user.id,
+            full_name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
+            is_active: typeof user.is_active === 'boolean' ? user.is_active : true
+          }));
+          
+          setUsers(formattedData);
+          setFilteredUsers(formattedData);
+          setTotalCount(total);
+        } catch (secondError) {
           message.error('Failed to load users. Please try again.');
         }
-        
-        setLoading(false);
+      } else {
+        message.error('Failed to load users. Please try again.');
       }
-    };
+      
+      setLoading(false);
+    }
+  };
 
+  // Call fetchUsers when dependencies change
+  useEffect(() => {
     fetchUsers();
-  }, [navigate]);
+  }, [page, pageSize, searchQuery]);
+
+  // Handle page change
+  const handlePageChange = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  // Handle rows per page change
+  const handleRowsPerPageChange = (newPageSize) => {
+    setPageSize(newPageSize);
+    setPage(1); // Reset to first page when changing page size
+  };
 
   // Handle search
   const handleSearch = (query) => {
     setSearchQuery(query);
-    applyFiltersAndSearch(query, activeFilters);
+    setPage(1); // Reset to first page on new search
   };
 
   // Handle filter changes
   const handleFilterChange = (filters) => {
     setActiveFilters(filters);
-    applyFiltersAndSearch(searchQuery, filters);
+    applyFilters(filters);
   };
 
-  // Apply both filters and search
-  const applyFiltersAndSearch = (query, filters) => {
+  // Apply filters to the current dataset
+  const applyFilters = (filters) => {
     let results = [...users];
-    
-    // Apply search
-    if (query) {
-      const lowercasedQuery = query.toLowerCase();
-      results = results.filter(user => 
-        user.email?.toLowerCase().includes(lowercasedQuery) ||
-        user.full_name?.toLowerCase().includes(lowercasedQuery) ||
-        user.department_name?.toLowerCase().includes(lowercasedQuery)
-      );
-    }
     
     // Apply status filter
     if (filters.status?.length) {
@@ -343,10 +383,8 @@ const UserIndex = () => {
       // Show success message
       message.success(`User "${user.email}" deleted successfully`);
       
-      // Update the users list by removing the deleted user
-      const updatedUsers = users.filter(item => item.id !== user.id);
-      setUsers(updatedUsers);
-      setFilteredUsers(filteredUsers.filter(item => item.id !== user.id));
+      // Refresh users list
+      fetchUsers();
     } catch (error) {
       // Try alternative endpoint
       if (error.response && error.response.status === 404) {
@@ -359,10 +397,8 @@ const UserIndex = () => {
           // Show success message
           message.success(`User "${user.email}" deleted successfully`);
           
-          // Update the users list
-          const updatedUsers = users.filter(item => item.id !== user.id);
-          setUsers(updatedUsers);
-          setFilteredUsers(filteredUsers.filter(item => item.id !== user.id));
+          // Refresh users list
+          fetchUsers();
         } catch (secondError) {
           // Hide loading message
           message.destroy();
@@ -431,7 +467,12 @@ const UserIndex = () => {
               onEditClick={handleEditUser}
               onDeleteClick={handleDeleteUser}
               pagination={true}
-              rowsPerPage={10}
+              rowsPerPage={pageSize}
+              page={page}
+              onPageChange={handlePageChange}
+              onRowsPerPageChange={handleRowsPerPageChange}
+              rowsPerPageOptions={[5, 10, 25, 50, 100]}
+              totalItems={totalCount}
               defaultSortField="email"
               defaultSortDirection="asc"
             />

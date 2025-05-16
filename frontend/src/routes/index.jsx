@@ -72,7 +72,6 @@ import UserEdit from '../components/users/userEdit';
 // Teams Pages
 import TeamsIndex from '../components/teams/teamsIndex';
 import CreateTeam from '../components/teams/createTeam';
-import TeamDetail from '../components/teams/teamDetail';
 import EditTeam from '../components/teams/editTeam';
 
 // Branch Management Pages
@@ -185,7 +184,6 @@ const AppRoutes = () => {
           {/* Teams Routes */}
           <Route path="teams" element={<TeamsIndex />} />
           <Route path="teams/create" element={<CreateTeam />} />
-          <Route path="teams/:id" element={<TeamDetail />} />
           <Route path="teams/:id/edit" element={<EditTeam />} />
           
           {/* Department Management Routes */}

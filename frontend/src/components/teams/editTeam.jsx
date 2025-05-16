@@ -922,9 +922,8 @@ const EditTeam = () => {
       setSubmitting(false);
       message.success('Team updated successfully!');
       
-      // Navigate back to the teams list using a simple approach
-      // This avoids any potential issues with the navigation hooks
-      window.location.href = '/dashboard/teams';
+      // Navigate back to the teams list
+      navigate('/dashboard/teams');
       
     } catch (error) {
       setSubmitting(false);

@@ -589,7 +589,8 @@ const TeamsIndex = () => {
 
   // Handle view team
   const handleViewTeam = (team) => {
-    navigate(`/dashboard/teams/${team.id}`);
+    // Navigate to edit page instead of detail page
+    navigate(`/dashboard/teams/${team.id}/edit`);
   };
 
   // Handle edit team
