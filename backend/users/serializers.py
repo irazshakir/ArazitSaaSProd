@@ -65,6 +65,58 @@ class UserSerializer(serializers.ModelSerializer):
                 'name': obj.department.name
             }
         return None
+        
+    def update(self, instance, validated_data):
+        """
+        Custom update method to handle user updates including related fields.
+        """
+        print(f"Updating user {instance.id} with data: {validated_data}")
+        
+        # Update basic user fields
+        for attr, value in validated_data.items():
+            if attr not in ['branch', 'department']:  # Handle these separately
+                setattr(instance, attr, value)
+        
+        # Handle branch relationship
+        if 'branch' in validated_data:
+            branch_id = validated_data.get('branch')
+            if branch_id:
+                try:
+                    # If branch is provided as an ID, fetch the Branch instance
+                    if isinstance(branch_id, str):
+                        branch = Branch.objects.get(id=branch_id)
+                        instance.branch = branch
+                    else:
+                        # If branch is already a Branch instance, use it directly
+                        instance.branch = branch_id
+                except Branch.DoesNotExist:
+                    print(f"Branch with ID {branch_id} not found")
+            else:
+                # If branch is explicitly set to None, remove the relationship
+                instance.branch = None
+        
+        # Handle department relationship
+        if 'department' in validated_data:
+            department_id = validated_data.get('department')
+            if department_id:
+                try:
+                    # If department is provided as an ID, fetch the Department instance
+                    if isinstance(department_id, str):
+                        department = Department.objects.get(id=department_id)
+                        instance.department = department
+                    else:
+                        # If department is already a Department instance, use it directly
+                        instance.department = department_id
+                except Department.DoesNotExist:
+                    print(f"Department with ID {department_id} not found")
+            else:
+                # If department is explicitly set to None, remove the relationship
+                instance.department = None
+        
+        # Save the updated user
+        instance.save()
+        
+        return instance
 
 
 class UserRegistrationSerializer(serializers.ModelSerializer):

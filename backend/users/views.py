@@ -1,11 +1,11 @@
-from rest_framework import viewsets, permissions, status, generics
+from rest_framework import viewsets, permissions, status, generics, serializers
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
-from django.db import transaction
+from django.db import transaction, connection
 from .models import Tenant, TenantUser, Department, Branch
 from .serializers import (
     UserSerializer, 
@@ -16,6 +16,7 @@ from .serializers import (
     DepartmentSerializer,
     BranchSerializer
 )
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -122,6 +123,202 @@ class UserViewSet(viewsets.ModelViewSet):
         if self.action == 'register':
             return [permissions.AllowAny()]
         return super().get_permissions()
+    
+    def update(self, request, *args, **kwargs):
+        """
+        Custom update method to handle user updates.
+        """
+        print(f"Update request received for user {kwargs.get('pk')}")
+        print(f"Request data: {request.data}")
+        
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        
+        print(f"Processing update for user: {instance.email}")
+        
+        # Get data to update
+        data = request.data.copy() if hasattr(request.data, 'copy') else request.data
+        
+        # Preprocessing for department and branch
+        # If department is provided as an ID, use it directly
+        if 'department' in data and data['department']:
+            try:
+                # We're letting the serializer handle the relationship
+                print(f"Department ID provided: {data['department']}")
+            except Exception as e:
+                print(f"Error processing department: {str(e)}")
+        
+        # If branch is provided as an ID, use it directly
+        if 'branch' in data and data['branch']:
+            try:
+                # We're letting the serializer handle the relationship
+                print(f"Branch ID provided: {data['branch']}")
+            except Exception as e:
+                print(f"Error processing branch: {str(e)}")
+        
+        # Ensure tenant_id is set
+        if 'tenant_id' in data:
+            try:
+                print(f"Tenant ID provided: {data['tenant_id']}")
+            except:
+                # If there's an error, continue without changing tenant
+                pass
+        
+        # Initialize serializer with the instance and data
+        serializer = self.get_serializer(instance, data=data, partial=partial)
+        
+        # Validate data
+        try:
+            serializer.is_valid(raise_exception=True)
+            print(f"Validated data: {serializer.validated_data}")
+        except Exception as e:
+            print(f"Validation error: {str(e)}")
+            raise
+        
+        # Perform update
+        try:
+            self.perform_update(serializer)
+            print(f"User {instance.email} updated successfully")
+        except Exception as e:
+            print(f"Error during perform_update: {str(e)}")
+            raise
+        
+        if getattr(instance, '_prefetched_objects_cache', None):
+            # If 'prefetch_related' has been applied to a queryset, we need to
+            # forcibly invalidate the prefetch cache on the instance.
+            instance._prefetched_objects_cache = {}
+        
+        return Response(serializer.data)
+    
+    def partial_update(self, request, *args, **kwargs):
+        """
+        Custom partial update method with explicit PATCH handling.
+        """
+        print(f"Partial update request received for user {kwargs.get('pk')}")
+        print(f"Request data: {request.data}")
+        
+        # Set partial=True for PATCH requests
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
+    
+    @action(detail=True, methods=['post'])
+    def direct_update(self, request, pk=None):
+        """
+        Direct database update as a fallback when regular updates fail
+        """
+        user = self.get_object()
+        
+        # Get data for update
+        data = request.data.copy() if hasattr(request.data, 'copy') else request.data
+        
+        # Collect update fields
+        update_fields = []
+        field_values = []
+        
+        # Basic fields
+        field_map = {
+            'first_name': 'first_name',
+            'last_name': 'last_name',
+            'email': 'email',
+            'phone_number': 'phone_number',
+            'role': 'role',
+            'is_active': 'is_active',
+        }
+        
+        # Add updates for basic fields
+        for client_field, db_field in field_map.items():
+            if client_field in data:
+                value = data[client_field]
+                
+                # Handle boolean for is_active
+                if client_field == 'is_active':
+                    if isinstance(value, str):
+                        value = value.lower() == 'true'
+                    else:
+                        value = bool(value)
+                
+                update_fields.append(f"{db_field} = %s")
+                field_values.append(value)
+        
+        # Handle department if provided
+        if 'department' in data and data['department']:
+            try:
+                department = Department.objects.get(id=data['department'])
+                update_fields.append("department_id = %s")
+                field_values.append(str(department.id))
+            except Department.DoesNotExist:
+                return Response({
+                    'error': f"Department with ID {data['department']} not found"
+                }, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                return Response({
+                    'error': f"Error processing department: {str(e)}"
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Handle branch if provided
+        if 'branch' in data and data['branch']:
+            try:
+                branch = Branch.objects.get(id=data['branch'])
+                update_fields.append("branch_id = %s")
+                field_values.append(str(branch.id))
+            except Branch.DoesNotExist:
+                return Response({
+                    'error': f"Branch with ID {data['branch']} not found"
+                }, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                return Response({
+                    'error': f"Error processing branch: {str(e)}"
+                }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Ensure we have fields to update
+        if not update_fields:
+            return Response({
+                'error': 'No valid fields to update'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Build SQL query - Note that Django's User model might not have updated_at field
+        # Use the correct table name which could be auth_user or users_user
+        try:
+            # Get the table name from the model's _meta
+            table_name = User._meta.db_table
+            
+            # Check if the updated_at field exists
+            has_updated_at = any(field.name == 'updated_at' for field in User._meta.fields)
+            
+            # Build the SQL query with or without updated_at field
+            if has_updated_at:
+                sql = f"UPDATE {table_name} SET {', '.join(update_fields)}, updated_at = NOW() WHERE id = %s"
+            else:
+                sql = f"UPDATE {table_name} SET {', '.join(update_fields)} WHERE id = %s"
+        except Exception as e:
+            return Response({
+                'error': f"Error building query: {str(e)}"
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+        # Add user ID to parameters
+        field_values.append(str(user.id))
+        
+        try:
+            # Execute raw SQL query
+            with connection.cursor() as cursor:
+                cursor.execute(sql, field_values)
+                
+                # Check affected rows
+                rows_updated = cursor.rowcount
+            
+            # Refresh the user object
+            user.refresh_from_db()
+            serializer = self.get_serializer(user)
+            
+            return Response({
+                'success': True,
+                'message': f"User updated successfully.",
+                'user': serializer.data
+            })
+        except Exception as e:
+            return Response({
+                'error': f"Error executing direct update: {str(e)}"
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
     @action(detail=False, methods=['post'], permission_classes=[permissions.AllowAny])
     def register(self, request):

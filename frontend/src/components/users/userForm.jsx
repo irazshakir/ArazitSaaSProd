@@ -36,9 +36,10 @@ const UserForm = ({
   initialData = {}, 
   isEditMode = false,
   loading = false,
-  onSuccess 
+  onFinish,
+  form 
 }) => {
-  const [form] = Form.useForm();
+  const formInstance = form || Form.useForm()[0];
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
   const [imageLoading, setImageLoading] = useState(false);
@@ -47,6 +48,7 @@ const UserForm = ({
   const [branchesLoading, setBranchesLoading] = useState(false);
   const [departments, setDepartments] = useState([]);
   const [departmentsLoading, setDepartmentsLoading] = useState(false);
+  const [formValues, setFormValues] = useState(initialData);
   
   // Role options based on the User model
   const roleOptions = [
@@ -58,6 +60,16 @@ const UserForm = ({
     { value: 'support_agent', label: 'Support Agent' },
     { value: 'processor', label: 'Processor' }
   ];
+  
+  // Update local form values when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      setFormValues(initialData);
+      
+      // Ensure form is properly initialized with initial values
+      formInstance.setFieldsValue(initialData);
+    }
+  }, [initialData, formInstance]);
   
   // Fetch branches and departments when component mounts
   useEffect(() => {
@@ -166,7 +178,7 @@ const UserForm = ({
       const fileObj = info.file.originFileObj;
       if (fileObj) {
         // Store the file object in form state for submission
-        form.setFieldsValue({ profile_picture_file: fileObj });
+        formInstance.setFieldsValue({ profile_picture_file: fileObj });
         
         // Preview the image
         getBase64(fileObj, (url) => {
@@ -195,7 +207,7 @@ const UserForm = ({
   const customUploadRequest = async ({ file, onSuccess, onError }) => {
     try {
       // Store the original file for future use
-      form.setFieldsValue({ 
+      formInstance.setFieldsValue({ 
         profile_picture_file: file 
       });
       
@@ -214,131 +226,27 @@ const UserForm = ({
     }
   };
   
-  // Form submission function with improved tenant handling
-  const onFinish = async (values) => {
-    try {
-      setSubmitting(true);
-      
-      // Get tenant_id from localStorage
-      const tenantId = localStorage.getItem('tenant_id');
-      
-      if (!tenantId) {
-        message.error('Tenant information is missing. Please log in again.');
-        navigate('/login');
-        return;
-      }
-      
-      // Get the file from all possible sources
-      let profilePictureFile = null;
-      
-      // Check multiple sources for the file
-      if (values.profile_picture_file && values.profile_picture_file instanceof File) {
-        profilePictureFile = values.profile_picture_file;
-      } else if (window.uploadedPictureFile) {
-        profilePictureFile = window.uploadedPictureFile;
-      }
-      
-      // Create FormData object
-      const formData = new FormData();
-      
-      // Add all user fields to FormData
-      formData.append('email', values.email);
-      formData.append('first_name', values.first_name || '');
-      formData.append('last_name', values.last_name || '');
-      formData.append('phone_number', values.phone_number || '');
-      formData.append('role', values.role);
-      formData.append('tenant_id', tenantId); // IMPORTANT: ensure tenant_id is always included
-      formData.append('is_active', values.is_active ? 'true' : 'false');
-      
-      // Get tenant industry from localStorage - this is needed for TenantUser creation
-      const userStr = localStorage.getItem('user');
-      let industry = '';
-      
-      // Try to get industry from user object in localStorage
-      try {
-        if (userStr) {
-          const userObj = JSON.parse(userStr);
-          industry = userObj?.industry || '';
-          if (!industry && userObj?.userData?.industry) {
-            industry = userObj.userData.industry;
-          }
-        }
-      } catch (err) {
-        // Handle error silently
-      }
-      
-      // Fallback to direct industry key if needed
-      if (!industry) {
-        industry = localStorage.getItem('industry') || 'hajj_umrah'; // Default to hajj_umrah if nothing found
-      }
-      
-      // Use industry from form if provided, otherwise use the one from localStorage
-      const selectedIndustry = values.industry || industry;
-      
-      // Add industry to formData - this is required for TenantUser creation
-      formData.append('industry', selectedIndustry);
-      
-      if (values.department) {
-        formData.append('department_id', values.department);
-      }
-      
-      // Add branch_id if selected
-      if (values.branch) {
-        formData.append('branch_id', values.branch);
-      }
-      
-      // Add password for new users
-      if (!isEditMode && values.password) {
-        formData.append('password', values.password);
-      }
-      
-      // Append profile picture if available
-      if (profilePictureFile) {
-        formData.append('profile_picture', profilePictureFile, profilePictureFile.name);
-      }
-      
-      try {
-        const response = await api.post('auth/users/', formData, {
-          headers: {'Content-Type': 'multipart/form-data'}
-        });
-        
-        message.success(
-          isEditMode 
-            ? `User ${values.email} updated successfully!` 
-            : `User ${values.email} created successfully!`
-        );
-        
-        form.resetFields();
-        setImageUrl(null);
-        
-        if (onSuccess) {
-          onSuccess(response.data);
-        }
-        
-      } catch (error) {
-        // Provide detailed error message
-        let errorMessage = 'Failed to create user. ';
-        
-        if (error.response?.data) {
-          if (typeof error.response.data === 'object') {
-            const validationErrors = Object.entries(error.response.data)
-              .map(([field, msgs]) => `${field}: ${Array.isArray(msgs) ? msgs.join(', ') : msgs}`)
-              .join('\n');
-            
-            errorMessage += `\n\nValidation errors: ${validationErrors}`;
-          } else {
-            errorMessage += error.response.data;
-          }
-        } else {
-          errorMessage += error.message;
-        }
-        
-        message.error(errorMessage);
-      }
-    } catch (error) {
-      message.error('An unexpected error occurred. Please try again.');
-    } finally {
-      setSubmitting(false);
+  // When a field value changes, update our local state
+  const handleValuesChange = (changedValues, allValues) => {
+    setFormValues(prevValues => ({
+      ...prevValues,
+      ...changedValues
+    }));
+    
+    // Ensure the form instance is updated
+    Object.keys(changedValues).forEach(key => {
+      formInstance.setFieldValue(key, changedValues[key]);
+    });
+  };
+
+  // Enhanced form submission handler
+  const handleFormSubmit = (values) => {
+    // Make sure we're using the latest values from the form
+    const latestValues = formInstance.getFieldsValue(true);
+    
+    // Call the parent component's onFinish with the latest values
+    if (onFinish) {
+      onFinish(latestValues);
     }
   };
   
@@ -359,7 +267,7 @@ const UserForm = ({
   return (
     <Card bordered={false}>
       <Form
-        form={form}
+        form={formInstance}
         layout="vertical"
         initialValues={{
           ...initialData,
@@ -367,9 +275,10 @@ const UserForm = ({
           department: initialData.department || undefined,
           branch: initialData.branch || undefined,
           profile_picture: initialData.profile_picture ? { url: initialData.profile_picture } : undefined,
-          profile_picture_file: null // Add this hidden field
+          profile_picture_file: null
         }}
-        onFinish={onFinish}
+        onFinish={handleFormSubmit}
+        onValuesChange={handleValuesChange}
         requiredMark={false}
       >
         {/* Profile Picture Upload */}
@@ -385,7 +294,7 @@ const UserForm = ({
             customRequest={customUploadRequest}
             beforeUpload={(file) => {
               // Store the file directly in the form values
-              form.setFieldsValue({ profile_picture_file: file });
+              formInstance.setFieldsValue({ profile_picture_file: file });
               
               // Also store globally for backup
               window.uploadedPictureFile = file;
