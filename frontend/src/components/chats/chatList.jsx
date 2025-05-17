@@ -92,10 +92,12 @@ const ChatList = ({
         headers: {
           'Content-Type': 'application/json',
           'X-Tenant-ID': tenantId,
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'X-Request-Type': silentCheck ? 'background-check' : 'list-refresh'
         },
         body: JSON.stringify({
-          tenant_id: tenantId
+          tenant_id: tenantId,
+          is_background_check: silentCheck
         })
       });
       

@@ -258,10 +258,19 @@ class Lead(models.Model):
     #     except Exception as e:
     #         print(f"Error broadcasting lead update: {str(e)}")
 
+    def normalize_phone(self):
+        """Normalize phone number by removing all non-digit characters"""
+        if self.phone:
+            self.phone = ''.join(filter(str.isdigit, self.phone))
+        if self.whatsapp:
+            self.whatsapp = ''.join(filter(str.isdigit, self.whatsapp))
+    
     def save(self, *args, broadcast=True, **kwargs):
         """
         Override save method to broadcast updates
         """
+        # Normalize phone numbers
+        self.normalize_phone()
         is_new = not self.pk
         super().save(*args, **kwargs)
         
@@ -281,12 +290,27 @@ class Lead(models.Model):
     class Meta:
         ordering = ['-created_at']
         indexes = [
+            models.Index(fields=['tenant', 'phone']),
+            models.Index(fields=['tenant', 'whatsapp']),
+            models.Index(fields=['tenant', 'status']),
+            models.Index(fields=['tenant', 'created_at']),
             models.Index(fields=['lead_type']),
-            models.Index(fields=['status']),
             models.Index(fields=['created_at']),
             models.Index(fields=['lead_activity_status']),
             models.Index(fields=['chat_id']),  # Add index for chat_id
             models.Index(fields=['branch']),   # Add index for branch
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=['tenant', 'phone'],
+                name='unique_tenant_phone'
+            ),
+            # Add constraint for whatsapp if it's not null
+            models.UniqueConstraint(
+                fields=['tenant', 'whatsapp'],
+                condition=models.Q(whatsapp__isnull=False),
+                name='unique_tenant_whatsapp'
+            )
         ]
     
     def __str__(self):

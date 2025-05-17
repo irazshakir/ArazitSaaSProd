@@ -10,7 +10,7 @@ import pandas as pd
 import uuid
 import json
 from datetime import timedelta
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.utils.dateparse import parse_datetime
 from django_filters.rest_framework import DjangoFilterBackend
 import logging
@@ -302,63 +302,65 @@ class LeadViewSet(viewsets.ModelViewSet):
         
         return context
     
+    def create_or_update_lead(self, tenant, phone, data):
+        """
+        Create a new lead or update existing one with proper locking
+        """
+        try:
+            with transaction.atomic():
+                # Try to get existing lead with select_for_update to prevent race conditions
+                existing_lead = Lead.objects.select_for_update().filter(
+                    tenant=tenant,
+                    phone=phone
+                ).first()
+                
+                if existing_lead:
+                    logger.info(f"Found existing lead for phone {phone} in tenant {tenant.id}")
+                    # Update only if new data
+                    if data.get('source') == 'whatsapp' and existing_lead.chat_id != data.get('chat_id'):
+                        existing_lead.chat_id = data.get('chat_id')
+                        existing_lead.save()
+                    return existing_lead, False
+                
+                # No existing lead, create new one
+                logger.info(f"Creating new lead for phone {phone} in tenant {tenant.id}")
+                lead = Lead(tenant=tenant, phone=phone, **data)
+                lead.save()
+                return lead, True
+                
+        except IntegrityError as e:
+            logger.error(f"IntegrityError creating lead: {str(e)}")
+            # If we hit a race condition, try to fetch the existing lead
+            existing_lead = Lead.objects.filter(tenant=tenant, phone=phone).first()
+            if existing_lead:
+                return existing_lead, False
+            raise ValidationError("Could not create or update lead")
+    
     def perform_create(self, serializer):
-        """Set the tenant and department based on the user."""
-        user = self.request.user
-        tenant_user = user.tenant_users.filter(Q(role='owner') | Q(tenant__is_active=True)).first()
+        """Override perform_create to handle lead creation/update logic"""
+        tenant = self.request.user.tenant_users.first().tenant
+        data = serializer.validated_data
+        phone = data.get('phone')
         
-        if not tenant_user:
-            raise ValidationError("User does not belong to any tenant")
+        if not phone:
+            raise ValidationError("Phone number is required")
             
-        # Get the assigned_to user from request data
-        assigned_to_id = self.request.data.get('assigned_to')
-        department = None
-        branch = None
+        # Normalize phone number
+        phone = ''.join(filter(str.isdigit, phone))
         
-        # If assigned_to is provided, use that user's department and branch
-        if assigned_to_id:
-            try:
-                assigned_user = User.objects.get(id=assigned_to_id)
-                department = assigned_user.department
-                branch = assigned_user.branch
-            except User.DoesNotExist:
-                # If assigned user doesn't exist, don't set department or branch
+        # Create or update lead with proper locking
+        lead, created = self.create_or_update_lead(tenant, phone, data)
+        
+        if created:
+            # Handle new lead creation
+            logger.info(f"Successfully created new lead {lead.id}")
+            if data.get('source') == 'whatsapp':
+                # Additional WhatsApp-specific processing if needed
                 pass
         else:
-            # If no assigned_to, use the current user's department and branch
-            department = user.department
-            branch = user.branch
-        
-        lead = serializer.save(
-            tenant=tenant_user.tenant,
-            department=department,
-            branch=branch
-        )
-        
-        # Create notification for lead assignment if assigned_to is different from created_by
-        if lead.assigned_to and lead.assigned_to != lead.created_by:
-            Notification.objects.create(
-                tenant=lead.tenant,
-                user=lead.assigned_to,
-                notification_type=Notification.TYPE_LEAD_ASSIGNED,
-                title=f"New Lead Assigned: {lead.name}",
-                message=f"You have been assigned a new lead: {lead.name}",
-                lead=lead
-            )
-        
-        # --- BROADCAST HERE ---
-        # from asgiref.sync import async_to_sync
-        # from channels.layers import get_channel_layer
-        # channel_layer = get_channel_layer()
-        # group_name = f'leads_{lead.tenant.id}'
-        # lead_data = LeadSerializer(lead, context={'request': self.request}).data
-        # async_to_sync(channel_layer.group_send)(
-        #     group_name,
-        #     {
-        #         'type': 'lead_update',
-        #         'data': lead_data,
-        #     }
-        # )
+            logger.info(f"Using existing lead {lead.id}")
+            
+        return lead
     
     @action(detail=True, methods=['post'])
     def assign(self, request, pk=None):

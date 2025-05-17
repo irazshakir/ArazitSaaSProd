@@ -211,9 +211,6 @@ const UserForm = ({
         profile_picture_file: file 
       });
       
-      // Add as global reference for debugging
-      window.uploadedPictureFile = file;
-      
       // Generate preview
       getBase64(file, (url) => {
         setImageUrl(url);
@@ -295,9 +292,6 @@ const UserForm = ({
             beforeUpload={(file) => {
               // Store the file directly in the form values
               formInstance.setFieldsValue({ profile_picture_file: file });
-              
-              // Also store globally for backup
-              window.uploadedPictureFile = file;
               
               // Validate file type and size, but don't prevent upload
               const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';

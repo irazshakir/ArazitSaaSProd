@@ -186,10 +186,13 @@ const Chat = () => {
         headers: {
           'Content-Type': 'application/json',
           'X-Tenant-ID': tenantId,
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'X-Request-Type': 'background-poll'  // Add header to identify background poll
         },
         body: JSON.stringify({
-          tenant_id: tenantId
+          tenant_id: tenantId,
+          last_known_chats: chats.map(chat => chat.id), // Send existing chat IDs
+          is_background_poll: true
         })
       });
       
@@ -217,18 +220,42 @@ const Chat = () => {
         messages: []
       }));
       
-      // Set total conversations from summary if available
-      if (data.summary && data.summary.total_conversations) {
-        setTotalConversations(data.summary.total_conversations);
-        setRoleFilterActive(
-          data.summary.total_conversations !== data.summary.filtered_conversations
-        );
-      }
-      
-      // Find new chats and chats with updated messages
+      // Find new chats that weren't in the previous list
       const existingChatIds = new Set(chats.map(chat => chat.id));
       const newChats = transformedChats.filter(chat => !existingChatIds.has(chat.id));
       
+      // If we have new chats, fetch them with lead creation
+      if (newChats.length > 0) {
+        // Fetch full details for new chats (this will create leads)
+        const newChatsResponse = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/conversations/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Tenant-ID': tenantId,
+            'Authorization': `Bearer ${token}`,
+            'X-Request-Type': 'new-chats'  // Special header for new chats
+          },
+          body: JSON.stringify({
+            tenant_id: tenantId,
+            chat_ids: newChats.map(chat => chat.id),
+            is_new_chats: true
+          })
+        });
+        
+        if (newChatsResponse.ok) {
+          const newChatsData = await newChatsResponse.json();
+          if (newChatsData.status === 'success') {
+            // Update the transformedChats with any additional data from the full fetch
+            const newChatsMap = new Map(newChatsData.data.map(chat => [chat.id, chat]));
+            transformedChats.forEach(chat => {
+              if (newChatsMap.has(chat.id)) {
+                Object.assign(chat, newChatsMap.get(chat.id));
+              }
+            });
+          }
+        }
+      }
+
       // Find chats with new messages by comparing lastMessage
       const chatMap = chats.reduce((acc, chat) => {
         acc[chat.id] = chat.lastMessage;
@@ -388,10 +415,12 @@ const Chat = () => {
         headers: {
           'Content-Type': 'application/json',
           'X-Tenant-ID': tenantId,
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'X-Request-Type': forceFull ? 'initial-load' : 'manual-refresh'  // Add header to identify request type
         },
         body: JSON.stringify({
-          tenant_id: tenantId
+          tenant_id: tenantId,
+          is_initial_load: forceFull  // Add flag in body too
         })
       });
       

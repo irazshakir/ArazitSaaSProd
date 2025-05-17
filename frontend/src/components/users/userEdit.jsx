@@ -32,19 +32,16 @@ const UserEdit = () => {
         }
 
         // Direct API call to fetch user data
-        console.log(`Fetching user data for ID: ${id}`);
         const response = await axios.get(`${api.defaults.baseURL}/auth/users/${id}/`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
         
-        console.log('User data:', response.data);
         setInitialData(response.data);
         form.setFieldsValue(response.data);
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching user:', error.response?.data || error.message);
         if (error.response && error.response.status === 401) {
           message.error('Session expired. Please login again.');
           navigate('/login');
@@ -69,17 +66,14 @@ const UserEdit = () => {
           return;
         }
 
-        console.log('Fetching departments');
         const response = await axios.get(`${api.defaults.baseURL}/auth/departments/`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
         
-        console.log('Departments data:', response.data);
         setDepartments(response.data);
       } catch (error) {
-        console.error('Error fetching departments:', error.response?.data || error.message);
         if (error.response && error.response.status === 401) {
           message.error('Session expired. Please login again.');
           navigate('/login');
@@ -136,9 +130,6 @@ const UserEdit = () => {
         updatedFields.branch = latestValues.branch;
       }
       
-      // Show what's being sent for debugging
-      console.log('Submitting user update with data:', updatedFields);
-      
       try {
         // First try PATCH method
         const response = await axios.patch(
@@ -152,7 +143,6 @@ const UserEdit = () => {
           }
         );
         
-        console.log('PATCH response:', response.data);
         message.success('User updated successfully');
         
         // Navigate back
@@ -160,12 +150,10 @@ const UserEdit = () => {
           navigate('/dashboard/users');
         }, 1000);
       } catch (error) {
-        console.error('PATCH failed:', error.response?.data || error.message);
-        
         // If PATCH fails, try direct update
         try {
           const directResponse = await axios.post(
-            `${api.defaults.baseURL}/api/auth/users/${id}/direct_update/`,
+            `${api.defaults.baseURL}/auth/users/${id}/direct_update/`,
             updatedFields,
             {
               headers: {
@@ -175,7 +163,6 @@ const UserEdit = () => {
             }
           );
           
-          console.log('Direct update response:', directResponse.data);
           message.success('User updated successfully');
           
           // Navigate back
@@ -183,7 +170,6 @@ const UserEdit = () => {
             navigate('/dashboard/users');
           }, 1000);
         } catch (directError) {
-          console.error('Direct update failed:', directError.response?.data || directError.message);
           const errorMsg = directError.response?.data?.error || directError.message;
           message.error(`Failed to update user: ${errorMsg}`);
         }

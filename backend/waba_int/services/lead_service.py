@@ -8,12 +8,29 @@ from django.db import transaction
 import re
 from django.core.cache import cache
 import time
+from django.db import connection
+import logging
+import os
+
+# Set up a dedicated logger for lead creation
+lead_logger = logging.getLogger('lead_creation')
+lead_logger.setLevel(logging.DEBUG)
+
+# Add file handler if not already present
+if not lead_logger.handlers:
+    # Use the existing debug.log file in backend folder
+    log_file = os.path.join('backend', 'debug.log')
+    fh = logging.FileHandler(log_file)
+    fh.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - LEAD_CREATION - %(levelname)s - %(message)s')
+    fh.setFormatter(formatter)
+    lead_logger.addHandler(fh)
 
 class LeadService:
     """Service for handling lead creation and management from WhatsApp chats"""
     
-    # Lock timeout (10 seconds)
-    LOCK_TIMEOUT = 10
+    # Lock timeout (30 seconds)
+    LOCK_TIMEOUT = 30
     
     @staticmethod
     def normalize_phone(phone_str):
@@ -30,6 +47,9 @@ class LeadService:
         if not phone_str:
             return ""
             
+        # Log original phone number
+        lead_logger.debug(f"Normalizing phone number: {phone_str}")
+        
         # Remove all non-digit characters
         digits_only = re.sub(r'[^\d]', '', phone_str)
         
@@ -40,6 +60,11 @@ class LeadService:
         if digits_only.startswith('0'):
             digits_only = digits_only[1:]
             
+        # Always take the last 9 digits for comparison
+        if len(digits_only) > 9:
+            digits_only = digits_only[-9:]
+            
+        lead_logger.debug(f"Normalized phone number result: {digits_only}")
         return digits_only
     
     @staticmethod
@@ -103,10 +128,253 @@ class LeadService:
         return first_agent
     
     @staticmethod
+    def _find_existing_lead(contact_id, normalized_phone, tenant):
+        """Helper method to find an existing lead by either contact_id or phone"""
+        from leads.models import Lead
+        
+        request_id = str(uuid.uuid4())[:8]  # Generate a unique ID for this request
+        lead_logger.info(f"[{request_id}] Searching for existing lead - contact_id: {contact_id}, "
+                        f"normalized_phone: {normalized_phone}, tenant: {tenant.id}")
+        
+        try:
+            # First try to find by contact_id
+            lead = Lead.objects.filter(chat_id=contact_id, tenant=tenant).first()
+            if lead:
+                lead_logger.info(f"[{request_id}] Found existing lead by chat_id: {lead.id}")
+                return lead
+            
+            # Then try by normalized phone
+            if normalized_phone:
+                leads = Lead.objects.filter(
+                    tenant=tenant
+                ).extra(
+                    where=[
+                        "RIGHT(REGEXP_REPLACE(phone, '[^0-9]', ''), %s) = %s OR "
+                        "RIGHT(REGEXP_REPLACE(whatsapp, '[^0-9]', ''), %s) = %s"
+                    ],
+                    params=[len(normalized_phone), normalized_phone, len(normalized_phone), normalized_phone]
+                )
+                
+                # Log all found leads
+                if leads.exists():
+                    for found_lead in leads:
+                        lead_logger.info(
+                            f"[{request_id}] Found lead by phone match - "
+                            f"lead_id: {found_lead.id}, "
+                            f"phone: {found_lead.phone}, "
+                            f"whatsapp: {found_lead.whatsapp}"
+                        )
+                    
+                    lead = leads.first()
+                    # Update chat_id if needed
+                    if lead.chat_id != contact_id:
+                        lead_logger.info(f"[{request_id}] Updating chat_id for lead {lead.id}")
+                        lead.chat_id = contact_id
+                        lead.save(update_fields=['chat_id'])
+                    return lead
+            
+            lead_logger.info(f"[{request_id}] No existing lead found")
+            return None
+            
+        except Exception as e:
+            lead_logger.error(f"[{request_id}] Error in _find_existing_lead: {str(e)}")
+            lead_logger.error(traceback.format_exc())
+            return None
+
+    @staticmethod
+    def _assign_lead_to_agent(lead, tenant):
+        """Assign a lead to the next available sales agent"""
+        from users.models import User
+        
+        try:
+            # Get all active sales agents
+            sales_agents = User.objects.filter(
+                tenant_users__tenant=tenant,
+                role='sales_agent',
+                is_active=True
+            )
+            
+            if not sales_agents.exists():
+                return None
+            
+            # Get agent with least leads
+            from leads.models import Lead
+            
+            agent_lead_counts = {}
+            for agent in sales_agents:
+                lead_count = Lead.objects.filter(
+                    tenant=tenant,
+                    assigned_to=agent
+                ).count()
+                agent_lead_counts[agent.id] = {
+                    'agent': agent,
+                    'lead_count': lead_count
+                }
+            
+            # Find agent with minimum leads
+            min_count = float('inf')
+            selected_agent = None
+            
+            for agent_data in agent_lead_counts.values():
+                if agent_data['lead_count'] < min_count:
+                    min_count = agent_data['lead_count']
+                    selected_agent = agent_data['agent']
+            
+            if selected_agent:
+                lead.assigned_to = selected_agent
+                lead.save(update_fields=['assigned_to'])
+                
+                # Update chat assignment
+                chat_assignment = ChatAssignment.objects.filter(
+                    chat_id=lead.chat_id,
+                    tenant=tenant
+                ).first()
+                
+                if chat_assignment:
+                    chat_assignment.assigned_to = selected_agent
+                    chat_assignment.save()
+                else:
+                    ChatAssignment.objects.create(
+                        chat_id=lead.chat_id,
+                        tenant=tenant,
+                        assigned_to=selected_agent,
+                        is_active=True
+                    )
+                
+                return selected_agent
+            
+            return None
+            
+        except Exception as e:
+            print(f"Error in _assign_lead_to_agent: {str(e)}")
+            return None
+
+    @staticmethod
+    def _create_lead_without_assignment(contact_data, tenant, department_id=None):
+        """Create a lead without assigning to any agent"""
+        from leads.models import Lead
+        from users.models import Department, Branch, User
+        
+        request_id = str(uuid.uuid4())[:8]
+        lead_logger.info(f"[{request_id}] Attempting to create new lead - "
+                        f"contact_data: {json.dumps(contact_data)}, tenant: {tenant.id}")
+        
+        try:
+            name = contact_data.get('name', '') or contact_data.get('phone', 'Unknown Contact')
+            phone = contact_data.get('phone', '')
+            contact_id = contact_data.get('id')
+            
+            if not contact_id:
+                lead_logger.error(f"[{request_id}] No contact_id provided")
+                return None
+            
+            if not phone:
+                phone = "0000000000"
+            
+            normalized_phone = LeadService.normalize_phone(phone)
+            
+            # Double-check for existing lead before creation
+            existing = Lead.objects.filter(
+                Q(chat_id=contact_id) | 
+                Q(phone__endswith=normalized_phone) | 
+                Q(whatsapp__endswith=normalized_phone),
+                tenant=tenant
+            ).first()
+            
+            if existing:
+                lead_logger.warning(
+                    f"[{request_id}] Found existing lead during creation check - "
+                    f"lead_id: {existing.id}, phone: {existing.phone}"
+                )
+                return existing
+            
+            # Get creator
+            created_by = (User.objects.filter(tenant_users__tenant=tenant, is_active=True).first() or 
+                         User.objects.filter(is_superuser=True).first())
+            
+            if not created_by:
+                lead_logger.error(f"[{request_id}] No valid creator found")
+                return None
+            
+            # Get department
+            department = None
+            if department_id:
+                try:
+                    department = Department.objects.get(id=department_id)
+                except Department.DoesNotExist:
+                    lead_logger.warning(f"[{request_id}] Department {department_id} not found")
+            
+            if not department:
+                department = Department.objects.filter(
+                    tenant=tenant,
+                    name__icontains='sales'
+                ).first()
+            
+            # Get branch
+            branch = Branch.objects.filter(tenant=tenant).first()
+            
+            # Create lead with get_or_create to handle race conditions
+            lead, created = Lead.objects.get_or_create(
+                chat_id=contact_id,
+                tenant=tenant,
+                defaults={
+                    'lead_type': 'hajj_package',
+                    'name': name,
+                    'email': f"{normalized_phone}@gmail.com",
+                    'phone': phone,
+                    'whatsapp': phone,
+                    'query_for': json.dumps({}),
+                    'status': 'new',
+                    'source': 'whatsapp',
+                    'lead_activity_status': 'active',
+                    'last_contacted': timezone.now(),
+                    'next_follow_up': timezone.now(),
+                    'created_by': created_by,
+                    'department': department,
+                    'branch': branch
+                }
+            )
+            
+            lead_logger.info(
+                f"[{request_id}] Lead {'created' if created else 'retrieved'} - "
+                f"lead_id: {lead.id}, phone: {lead.phone}, created: {created}"
+            )
+            
+            if not created:
+                lead_logger.info(f"[{request_id}] Updating existing lead {lead.id}")
+                lead.name = name
+                lead.phone = phone
+                lead.whatsapp = phone
+                lead.save(update_fields=['name', 'phone', 'whatsapp'])
+            
+            # Create chat record
+            chat, chat_created = Chat.objects.get_or_create(
+                contact_id=contact_id,
+                tenant=tenant,
+                defaults={
+                    'phone': phone,
+                    'name': name,
+                    'lead': lead
+                }
+            )
+            
+            lead_logger.info(
+                f"[{request_id}] Chat record {'created' if chat_created else 'updated'} - "
+                f"chat_id: {chat.id}, lead_id: {lead.id}"
+            )
+            
+            return lead
+            
+        except Exception as e:
+            lead_logger.error(f"[{request_id}] Error in _create_lead_without_assignment: {str(e)}")
+            lead_logger.error(traceback.format_exc())
+            return None
+
+    @staticmethod
     @transaction.atomic
     def create_lead_from_contact(contact_data, tenant_id, department_id=None):
         """
-        Create a lead from WhatsApp contact data
+        Create a lead from WhatsApp contact data and assign to an agent
         
         Args:
             contact_data (dict): WhatsApp contact data
@@ -116,266 +384,86 @@ class LeadService:
         Returns:
             Lead: Created lead object or None if creation fails
         """
+        request_id = str(uuid.uuid4())[:8]
+        lead_logger.info(f"[{request_id}] Starting lead creation process - "
+                        f"contact_data: {json.dumps(contact_data)}, tenant_id: {tenant_id}")
+        
         try:
-            # Import here to avoid circular imports
-            from leads.models import Lead
-            from users.models import Tenant, Department, Branch, User
+            from users.models import Tenant
             
-            # Get tenant object
             try:
                 tenant = Tenant.objects.get(id=tenant_id)
             except Tenant.DoesNotExist:
+                lead_logger.error(f"[{request_id}] Tenant {tenant_id} not found")
                 return None
-            
-            # Format name from contact data, or use phone as name
-            name = contact_data.get('name', '')
-            if not name:
-                name = contact_data.get('phone', 'Unknown Contact')
             
             phone = contact_data.get('phone', '')
             contact_id = contact_data.get('id')
             
             if not contact_id:
+                lead_logger.error(f"[{request_id}] No contact_id provided")
                 return None
                 
-            if not phone:
-                # Use a placeholder phone number
-                phone = "0000000000"
-                
-            # STRICT: Normalize phone number for uniqueness check
             normalized_phone = LeadService.normalize_phone(phone)
             
-            # Create a lock key based on normalized phone to prevent concurrent lead creation
-            lock_key = f"lead_creation_lock:{tenant_id}:{normalized_phone}"
+            # Create a global lock key
+            global_lock_key = f"global_lead_lock:{tenant_id}:{normalized_phone}"
+            lead_logger.info(f"[{request_id}] Attempting to acquire lock: {global_lock_key}")
             
-            # Try to acquire the lock
-            acquired = False
+            # Try to acquire the global lock
+            if not cache.add(global_lock_key, request_id, LeadService.LOCK_TIMEOUT):
+                lead_logger.warning(f"[{request_id}] Could not acquire initial lock")
+                
+                # Check for existing lead
+                existing_lead = LeadService._find_existing_lead(contact_id, normalized_phone, tenant)
+                if existing_lead:
+                    lead_logger.info(f"[{request_id}] Found existing lead while waiting for lock: {existing_lead.id}")
+                    return existing_lead
+                
+                # Wait and try again
+                time.sleep(0.5)
+                if not cache.add(global_lock_key, request_id, LeadService.LOCK_TIMEOUT):
+                    lead_logger.error(f"[{request_id}] Failed to acquire lock after retry")
+                    return None
             
             try:
-                # Try to get the lock
-                acquired = cache.add(lock_key, "locked", LeadService.LOCK_TIMEOUT)
+                lead_logger.info(f"[{request_id}] Lock acquired, proceeding with lead creation")
                 
-                if not acquired:
-                    # Wait for a short time and try again
-                    time.sleep(0.5)
-                    
-                    # After waiting, see if an existing lead was created
-                    lead = LeadService._find_existing_lead(contact_id, normalized_phone, tenant)
-                    if lead:
-                        return lead
-                    
-                    # Otherwise, acquire the lock forcefully
-                    cache.set(lock_key, "locked", LeadService.LOCK_TIMEOUT)
-                    acquired = True
+                # Check for existing lead under lock
+                existing_lead = LeadService._find_existing_lead(contact_id, normalized_phone, tenant)
+                if existing_lead:
+                    lead_logger.info(f"[{request_id}] Found existing lead under lock: {existing_lead.id}")
+                    return existing_lead
                 
-                # Use a transaction for additional safety
-                with transaction.atomic():
-                    # EXTRA STRICT: First check for any lead with this exact phone number
-                    # This additional select_for_update provides a database-level lock
-                    existing_leads = Lead.objects.select_for_update().filter(
-                        Q(tenant=tenant) & (Q(phone=phone) | Q(whatsapp=phone))
-                    )
+                # Create new lead
+                lead = LeadService._create_lead_without_assignment(contact_data, tenant, department_id)
+                if lead:
+                    lead_logger.info(f"[{request_id}] Successfully created lead: {lead.id}")
                     
-                    if existing_leads.exists():
-                        lead = existing_leads.first()
-                        
-                        # Update chat_id if needed
-                        if lead.chat_id != contact_id:
-                            lead.chat_id = contact_id
-                            lead.save()
-                            
-                        # Update related chat record
-                        chat = Chat.objects.filter(contact_id=contact_id, tenant=tenant).first()
-                        if chat:
-                            chat.lead_id = lead.id
-                            chat.save()
-                        
-                        return lead
-                    
-                    # Then check by chat_id
-                    lead_by_chat = Lead.objects.select_for_update().filter(
-                        chat_id=contact_id, tenant=tenant
-                    ).first()
-                    
-                    if lead_by_chat:
-                        return lead_by_chat
-                    
-                    # MOST THOROUGH: Check for any lead with sufficiently similar phone number
-                    if normalized_phone:
-                        # Look for leads where the LAST 9 digits match
-                        # This ensures different formatting of the same number matches
-                        if len(normalized_phone) >= 9:
-                            last_9_digits = normalized_phone[-9:]
-                            
-                            matching_leads = []
-                            
-                            # This complex query checks for leads with phone numbers ending with the same digits
-                            all_leads = Lead.objects.select_for_update().filter(tenant=tenant)
-                            
-                            for lead in all_leads:
-                                # Check both phone fields
-                                lead_phone_norm = LeadService.normalize_phone(lead.phone)
-                                lead_whatsapp_norm = LeadService.normalize_phone(lead.whatsapp)
-                                
-                                # Match by last 9 digits
-                                if (lead_phone_norm and lead_phone_norm.endswith(last_9_digits)) or \
-                                   (lead_whatsapp_norm and lead_whatsapp_norm.endswith(last_9_digits)):
-                                    matching_leads.append(lead)
-                            
-                            if matching_leads:
-                                lead = matching_leads[0]
-                                
-                                # Update with the current contact_id
-                                if lead.chat_id != contact_id:
-                                    lead.chat_id = contact_id
-                                    lead.save()
-                                
-                                return lead
-                    
-                    # If we get here, no existing lead was found, create a new one
-                    # Create email from normalized phone number
-                    email = f"{normalized_phone}@gmail.com"
-                    
-                    # Handle department - prioritize the passed department_id
-                    department = None
-                    
-                    if department_id:
-                        try:
-                            # Use the provided department_id directly
-                            department = Department.objects.get(id=department_id)
-                        except Department.DoesNotExist:
-                            pass
-                    
-                    # If no department found, try to find Sales department
-                    if not department:
-                        department = Department.objects.filter(
-                            tenant=tenant,
-                            name__icontains='sales'
-                        ).first()
-                    
-                    # Get the first branch for this tenant as the default branch
-                    branch = None
-                    try:
-                        branch = Branch.objects.filter(tenant=tenant).first()
-                    except Exception:
-                        pass
-                    
-                    # Get next sales agent to assign using round-robin
-                    assigned_to = LeadService.get_next_sales_agent(tenant)
-                    if not assigned_to:
-                        # Attempt to find any active user from the tenant to use as a fallback
-                        assigned_to = User.objects.filter(tenant_users__tenant=tenant, is_active=True).first()
-                    
-                    # Get a default creator
-                    created_by = User.objects.filter(
-                        tenant_users__tenant=tenant,
-                        is_active=True
-                    ).first()
-                    
-                    if not created_by:
-                        # Use the first system admin as a last resort
-                        created_by = User.objects.filter(is_superuser=True).first()
-                        if not created_by:
-                            return None
-                    
-                    # Create lead with the required fields
-                    lead = Lead.objects.create(
-                        lead_type='hajj_package',
-                        name=name,
-                        email=email,
-                        phone=phone,
-                        whatsapp=phone,
-                        chat_id=contact_id,  # Store chat_id in Lead
-                        query_for=json.dumps({}),  # Empty JSONB
-                        status='new',
-                        source='whatsapp',
-                        lead_activity_status='active',
-                        last_contacted=timezone.now(),
-                        next_follow_up=timezone.now(),
-                        assigned_to_id=assigned_to.id if assigned_to else None,  # Use the ID instead of the object
-                        created_by_id=created_by.id if created_by else None,   # Use the ID instead of the object
-                        hajj_package_id=None,
-                        tenant=tenant,
-                        department=department,  # Set the department directly
-                        branch=branch  # Set the default branch
-                    )
-                    
-                    # Create or update chat assignment
-                    chat_assignment, created = ChatAssignment.objects.get_or_create(
-                        chat_id=contact_id,
-                        tenant=tenant,
-                        defaults={
-                            'assigned_to_id': assigned_to.id if assigned_to else None,
-                            'is_active': True
-                        }
-                    )
-                    
-                    # If chat assignment already existed, update the assigned_to if needed
-                    if not created and assigned_to and chat_assignment.assigned_to_id != assigned_to.id:
-                        chat_assignment.assigned_to_id = assigned_to.id
-                        chat_assignment.save()
-                    
-                    # CRITICAL: Check again for existing chat to avoid duplicate
-                    existing_chat = Chat.objects.filter(contact_id=contact_id, tenant=tenant).first()
-                    
-                    if existing_chat:
-                        # If chat exists but lead_id doesn't match, update it
-                        if existing_chat.lead_id != lead.id:
-                            existing_chat.lead_id = lead.id
-                            existing_chat.name = name
-                            existing_chat.assignment = chat_assignment
-                            existing_chat.save()
+                    # Assign lead to an agent using round-robin
+                    assigned_agent = LeadService._assign_lead_to_agent(lead, tenant)
+                    if assigned_agent:
+                        lead_logger.info(f"[{request_id}] Lead {lead.id} assigned to agent {assigned_agent.id}")
                     else:
-                        # Create new chat record
-                        Chat.objects.create(
-                            contact_id=contact_id,
-                            tenant=tenant,
-                            phone=phone,
-                            name=name,
-                            lead_id=lead.id,
-                            assignment=chat_assignment
-                        )
-                    
-                    return lead
+                        lead_logger.warning(f"[{request_id}] No agent available for assignment")
+                else:
+                    lead_logger.error(f"[{request_id}] Failed to create lead")
+                
+                return lead
+                
             finally:
-                # Ensure the lock is released even if an exception occurs
-                if acquired:
-                    cache.delete(lock_key)
+                # Release the lock
+                current_lock_value = cache.get(global_lock_key)
+                if current_lock_value == request_id:
+                    cache.delete(global_lock_key)
+                    lead_logger.info(f"[{request_id}] Lock released")
+                else:
+                    lead_logger.warning(
+                        f"[{request_id}] Lock value changed: expected {request_id}, "
+                        f"found {current_lock_value}"
+                    )
                 
         except Exception as e:
-            traceback.print_exc()
-            return None
-    
-    @staticmethod
-    def _find_existing_lead(contact_id, normalized_phone, tenant):
-        """Helper method to find an existing lead by either contact_id or phone"""
-        from leads.models import Lead
-        
-        # Look first by contact_id
-        lead = Lead.objects.filter(chat_id=contact_id, tenant=tenant).first()
-        if lead:
-            return lead
-            
-        # Then try by exact phone match
-        leads_by_phone = Lead.objects.filter(
-            Q(tenant=tenant) & 
-            (Q(phone__iendswith=normalized_phone) | Q(whatsapp__iendswith=normalized_phone))
-        )
-        
-        if leads_by_phone.exists():
-            return leads_by_phone.first()
-            
-        # Finally, check by normalized phone number
-        if normalized_phone and len(normalized_phone) >= 9:
-            # Match by last 9 digits for reliable matching regardless of prefix format
-            last_9_digits = normalized_phone[-9:]
-            
-            for lead in Lead.objects.filter(tenant=tenant):
-                lead_phone_norm = LeadService.normalize_phone(lead.phone)
-                lead_whatsapp_norm = LeadService.normalize_phone(lead.whatsapp)
-                
-                if (lead_phone_norm and lead_phone_norm.endswith(last_9_digits)) or \
-                   (lead_whatsapp_norm and lead_whatsapp_norm.endswith(last_9_digits)):
-                    return lead
-        
-        return None 
+            lead_logger.error(f"[{request_id}] Error in create_lead_from_contact: {str(e)}")
+            lead_logger.error(traceback.format_exc())
+            return None 

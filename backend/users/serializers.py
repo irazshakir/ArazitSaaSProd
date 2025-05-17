@@ -70,8 +70,6 @@ class UserSerializer(serializers.ModelSerializer):
         """
         Custom update method to handle user updates including related fields.
         """
-        print(f"Updating user {instance.id} with data: {validated_data}")
-        
         # Update basic user fields
         for attr, value in validated_data.items():
             if attr not in ['branch', 'department']:  # Handle these separately
@@ -90,7 +88,7 @@ class UserSerializer(serializers.ModelSerializer):
                         # If branch is already a Branch instance, use it directly
                         instance.branch = branch_id
                 except Branch.DoesNotExist:
-                    print(f"Branch with ID {branch_id} not found")
+                    pass
             else:
                 # If branch is explicitly set to None, remove the relationship
                 instance.branch = None
@@ -108,7 +106,7 @@ class UserSerializer(serializers.ModelSerializer):
                         # If department is already a Department instance, use it directly
                         instance.department = department_id
                 except Department.DoesNotExist:
-                    print(f"Department with ID {department_id} not found")
+                    pass
             else:
                 # If department is explicitly set to None, remove the relationship
                 instance.department = None
@@ -315,6 +313,4 @@ class UserCreateSerializer(serializers.ModelSerializer):
             
             return user
         except Exception as e:
-            import traceback
-            traceback.print_exc()
             raise serializers.ValidationError({"error": str(e)})
