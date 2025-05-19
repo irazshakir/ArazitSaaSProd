@@ -1,4 +1,6 @@
-#!/var/www/ArazitSaaS/backend/venv/bin/python3
+#!/bin/sh
+'''exec' "/Users/macbook/Documents/IT Project/ArazitSaaSProd/backend/venv/bin/python3.13" "$0" "$@"
+' '''
 # -*- coding: utf-8 -*-
 import re
 import sys

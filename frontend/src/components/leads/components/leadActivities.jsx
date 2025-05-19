@@ -43,10 +43,45 @@ const LeadActivities = ({ leadId, activities = [] }) => {
   const [submitting, setSubmitting] = useState(false);
   const [leadActivities, setLeadActivities] = useState(activities);
   
-  // Get user and tenant info from localStorage
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
-  const tenantId = user.tenant_id;
-  const userId = user.id;
+  // Updated user info retrieval
+  const getUserInfo = () => {
+    try {
+      const userStr = localStorage.getItem('user');
+      console.log('Raw user data from localStorage:', userStr);
+      
+      if (!userStr) {
+        console.error('No user data found in localStorage');
+        return { user: null, userId: null, tenantId: null };
+      }
+
+      const user = JSON.parse(userStr);
+      console.log('Parsed user data:', user);
+
+      // Check if we have the ID directly or in a nested structure
+      const userId = user.id || user.user_id;
+      const tenantId = user.tenant_id || (user.tenant_details && user.tenant_details.id);
+
+      console.log('Extracted IDs:', { userId, tenantId });
+
+      return { user, userId, tenantId };
+    } catch (error) {
+      console.error('Error parsing user data:', error);
+      return { user: null, userId: null, tenantId: null };
+    }
+  };
+
+  const { user, userId, tenantId } = getUserInfo();
+
+  // Add debug logging for initial values
+  useEffect(() => {
+    console.log('Initial Values:', {
+      leadId,
+      tenantId,
+      userId,
+      user,
+      activities
+    });
+  }, [leadId, tenantId, userId, activities]);
 
   // Fetch activities if not provided
   useEffect(() => {
@@ -96,87 +131,110 @@ const LeadActivities = ({ leadId, activities = [] }) => {
     }
   };
   
-  // Updated handleAddActivity function
+  // Updated handleAddActivity function with debugging
   const handleAddActivity = async (values) => {
     try {
       setSubmitting(true);
       
-      // Validate required IDs
+      // Debug logging for form values and session info
+      console.log('Form Values:', values);
+      console.log('Session Info:', {
+        leadId,
+        tenantId,
+        userId,
+        user: JSON.stringify(user)
+      });
+
+      // Validate required IDs with detailed logging
       if (!leadId) {
+        console.error('Missing leadId:', leadId);
         message.error('Lead ID is required');
         return false;
       }
 
-      // Validate tenant and user info
-      if (!tenantId || !userId) {
-        message.error('Session information not available. Please log in again.');
+      if (!tenantId) {
+        console.error('Missing tenantId:', tenantId);
+        message.error('Tenant ID is missing');
+        return false;
+      }
+
+      if (!userId) {
+        console.error('Missing userId:', userId);
+        message.error('User ID is missing');
         return false;
       }
       
       // Format dates
       const now = new Date().toISOString();
       
-      // Prepare data for submission with correct field names
+      // Prepare data for submission with debugging
       const activityData = {
         ...values,
         lead: leadId,
-        tenant: tenantId,        // Changed from tenant_id to tenant
-        user: userId,            // Changed from user_id to user
+        tenant: tenantId,
+        user: userId,
         created_at: now,
         updated_at: now,
         due_date: values.due_date ? values.due_date.toISOString() : null,
       };
 
-      // Make API call with explicit content type and prevent default
-      const response = await api.post(`/leads/${leadId}/add-activity/`, activityData, {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      // Debug logging for final request data
+      console.log('Activity Data being sent:', activityData);
+
+      // Make API call
+      const response = await api.post(`/leads/${leadId}/add-activity/`, activityData);
       
-      // Verify response data
+      // Debug logging for response
+      console.log('API Response:', response.data);
+
       if (!response.data) {
+        console.error('No data received from server');
         throw new Error('No data received from server');
       }
 
       // Update activities list
-      setLeadActivities(prevActivities => {
-        const newActivities = [response.data, ...prevActivities];
-        return newActivities;
-      });
+      setLeadActivities(prevActivities => [response.data, ...prevActivities]);
       
       // Reset form
       form.resetFields();
       
       message.success('Activity added successfully');
-      return false; // Explicitly return false to prevent form submission
+      return false;
     } catch (error) {
-      // More specific error messages
-      if (error.response?.status === 401) {
-        message.error('Authentication failed. Please log in again.');
-      } else if (error.response?.status === 400) {
-        message.error(`Validation error: ${JSON.stringify(error.response.data)}`);
+      // Enhanced error logging
+      console.error('Error adding activity:', {
+        error,
+        errorMessage: error.message,
+        errorResponse: error.response?.data,
+        status: error.response?.status
+      });
+      
+      // More specific error message based on the error
+      if (error.response?.data?.detail) {
+        message.error(error.response.data.detail);
+      } else if (error.response?.data?.message) {
+        message.error(error.response.data.message);
       } else {
-        message.error(`Failed to add activity: ${error.message || 'Unknown error'}`);
+        message.error('Failed to add activity. Please check console for details.');
       }
-      return false; // Explicitly return false even in case of error
+      return false;
     } finally {
       setSubmitting(false);
     }
   };
   
-  // Updated form submission wrapper with event prevention
+  // Updated form submission wrapper with debugging
   const onFormSubmit = async (values, event) => {
     // Prevent default form submission behavior
     if (event && event.preventDefault) {
       event.preventDefault();
     }
     
-    // Prevent form submission if we don't have required IDs
-    if (!leadId || !tenantId || !userId) {
-      message.error('Missing required information. Please try again.');
-      return;
-    }
+    // Debug logging for form submission
+    console.log('Form Submission:', {
+      values,
+      formData: form.getFieldsValue()
+    });
     
     await handleAddActivity(values);
   };
@@ -242,11 +300,21 @@ const LeadActivities = ({ leadId, activities = [] }) => {
           noValidate
           preventDefault
           style={{ width: '100%' }}
+          onValuesChange={(changedValues, allValues) => {
+            // Debug logging for form value changes
+            console.log('Form Values Changed:', {
+              changedValues,
+              allValues
+            });
+          }}
         >
           <Form.Item
             name="activity_type"
             label="Activity Type"
-            rules={[{ required: true, message: 'Please enter activity type' }]}
+            rules={[
+              { required: true, message: 'Please enter activity type' },
+              { min: 2, message: 'Activity type must be at least 2 characters' }
+            ]}
           >
             <Input 
               placeholder="Enter activity type (e.g., Call, Email, Meeting, Task)" 
@@ -256,7 +324,10 @@ const LeadActivities = ({ leadId, activities = [] }) => {
           <Form.Item
             name="description"
             label="Description"
-            rules={[{ required: true, message: 'Please enter a description' }]}
+            rules={[
+              { required: true, message: 'Please enter a description' },
+              { min: 10, message: 'Description must be at least 10 characters' }
+            ]}
           >
             <TextArea 
               rows={3} 
