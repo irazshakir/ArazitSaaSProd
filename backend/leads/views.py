@@ -261,6 +261,29 @@ class LeadViewSet(viewsets.ModelViewSet):
             team_user_ids.update(team_members)
             
             queryset = queryset.filter(assigned_to_id__in=team_user_ids)
+
+        # Handle no activity days filtering
+        no_activity_days = self.request.query_params.get('no_activity_days')
+        if no_activity_days:
+            try:
+                days = int(no_activity_days)
+                cutoff_date = timezone.now() - timezone.timedelta(days=days)
+                
+                # Get leads that are active but have no notes AND no activities in the specified period
+                active_leads_without_recent_activity = queryset.filter(
+                    lead_activity_status='active'
+                ).exclude(
+                    # Exclude leads that have notes after cutoff date
+                    notes__timestamp__gte=cutoff_date
+                ).exclude(
+                    # Exclude leads that have activities after cutoff date
+                    activities__created_at__gte=cutoff_date
+                ).distinct()
+                
+                queryset = active_leads_without_recent_activity
+                
+            except (ValueError, TypeError):
+                pass
             
         return queryset
     

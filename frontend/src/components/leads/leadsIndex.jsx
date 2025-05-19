@@ -39,6 +39,7 @@ const LeadsIndex = () => {
   const [columns, setColumns] = useState([]);
   const [isMobileView, setIsMobileView] = useState(false);
   const [isThemeReady, setIsThemeReady] = useState(false);
+  const [leadTypeOptions, setLeadTypeOptions] = useState([]);
   
   // WebSocket connection for real-time updates
   // const { lastMessage, sendMessage } = useWebSocket('leads');
@@ -358,7 +359,161 @@ const LeadsIndex = () => {
     return {};
   };
 
-  // Filter options
+  // Function to get lead type options based on industry
+  const getIndustryLeadTypes = async () => {
+    try {
+      // Try multiple possible localStorage keys for industry
+      const directIndustry = localStorage.getItem('industry') || 
+                           localStorage.getItem('user_industry') || 
+                           '';
+      
+      // Get the full user object to see what's actually stored
+      const userStr = localStorage.getItem('user');
+      let userObj = null;
+      
+      try {
+        if (userStr) {
+          userObj = JSON.parse(userStr);
+        }
+      } catch (err) {
+        // Silently handle error
+      }
+      
+      // Check if industry is available in the user object
+      const userIndustry = userObj?.industry || '';
+      // Also check for userData.industry which is seen in the screenshot
+      const userData = userObj?.userData || {};
+      const userDataIndustry = (userData && userData.industry) ? userData.industry : '';
+      
+      // Use the first available industry value
+      const effectiveIndustry = userDataIndustry || userIndustry || directIndustry || '';
+      
+      // Default lead types for any industry
+      const commonLeadTypes = [
+        { value: 'flight', label: 'Flight' },
+        { value: 'visa', label: 'Visa' },
+        { value: 'transfer', label: 'Transfer' }
+      ];
+      
+      // Convert to lowercase and remove quotes for comparison
+      const normalizedIndustry = effectiveIndustry ? effectiveIndustry.toLowerCase().replace(/"/g, '') : '';
+
+      // If industry is general, fetch lead types from generalProduct API
+      if (normalizedIndustry === 'general') {
+        try {
+          const tenantId = localStorage.getItem('tenant_id');
+          if (!tenantId) {
+            throw new Error('Tenant ID not found');
+          }
+
+          // Fetch products from generalProduct API
+          const response = await api.get(`/general-product/products/?tenant=${tenantId}`);
+          
+          // Map the products to lead type options format
+          const generalProducts = Array.isArray(response.data) 
+            ? response.data 
+            : (response.data?.results && Array.isArray(response.data.results))
+              ? response.data.results 
+              : [];
+
+          const leadTypes = generalProducts.map(product => ({
+            value: product.productName.toLowerCase().replace(/\s+/g, '_'),
+            label: product.productName
+          }));
+
+          return [...leadTypes, ...commonLeadTypes];
+        } catch (error) {
+          console.error('Error fetching general products:', error);
+          return commonLeadTypes;
+        }
+      }
+      
+      // Industry-specific lead types for other industries
+      let leadTypes = [];
+      
+      switch(normalizedIndustry) {
+        case 'hajj_umrah':
+          leadTypes = [
+            { value: 'hajj_package', label: 'Hajj Package' },
+            { value: 'custom_umrah', label: 'Custom Umrah' },
+            { value: 'readymade_umrah', label: 'Readymade Umrah' },
+            { value: 'ziyarat', label: 'Ziyarat' },
+            ...commonLeadTypes
+          ];
+          break;
+        case 'immigration':
+          leadTypes = [
+            { value: 'visit_visa', label: 'Visit Visa' },
+            { value: 'skilled_immigration', label: 'Skilled Immigration' },
+            { value: 'job_visa', label: 'Job Visa' },
+            { value: 'trc', label: 'TRC' },
+            { value: 'business_immigration', label: 'Business Immigration' },
+            { value: 'study_visa', label: 'Study Visa' }
+          ];
+          break;
+        case 'travel_tourism':
+          leadTypes = [
+            { value: 'travel_package', label: 'Travel Package' },
+            ...commonLeadTypes
+          ];
+          break;
+        case 'real_estate':
+          leadTypes = [
+            { value: 'development_project', label: 'Development Project' }
+          ];
+          break;
+        default:
+          // Default to hajj_umrah if no industry is specified
+          leadTypes = [
+            { value: 'hajj_package', label: 'Hajj Package' },
+            { value: 'custom_umrah', label: 'Custom Umrah' },
+            { value: 'readymade_umrah', label: 'Readymade Umrah' },
+            { value: 'ziyarat', label: 'Ziyarat' },
+            ...commonLeadTypes
+          ];
+      }
+      
+      return leadTypes;
+    } catch (error) {
+      // Return default lead types as fallback
+      return [
+        { value: 'hajj_package', label: 'Hajj Package' },
+        { value: 'custom_umrah', label: 'Custom Umrah' },
+        { value: 'readymade_umrah', label: 'Readymade Umrah' },
+        { value: 'flight', label: 'Flight' },
+        { value: 'visa', label: 'Visa' },
+        { value: 'transfer', label: 'Transfer' },
+        { value: 'ziyarat', label: 'Ziyarat' }
+      ];
+    }
+  };
+
+  // Initialize lead type options based on user's industry
+  useEffect(() => {
+    const initializeLeadTypes = async () => {
+      try {
+        // Get industry-specific lead types
+        const industryLeadTypes = await getIndustryLeadTypes();
+        setLeadTypeOptions(industryLeadTypes);
+      } catch (error) {
+        // Set default options as fallback
+        const defaultOptions = [
+          { value: 'hajj_package', label: 'Hajj Package' },
+          { value: 'custom_umrah', label: 'Custom Umrah' },
+          { value: 'readymade_umrah', label: 'Readymade Umrah' },
+          { value: 'flight', label: 'Flight' },
+          { value: 'visa', label: 'Visa' },
+          { value: 'transfer', label: 'Transfer' },
+          { value: 'ziyarat', label: 'Ziyarat' }
+        ];
+        setLeadTypeOptions(defaultOptions);
+      }
+    };
+
+    initializeLeadTypes();
+  }, []);
+
+  // Filter options - updated to use dynamic lead types
   const filterOptions = [
     {
       name: 'status',
@@ -376,20 +531,15 @@ const LeadsIndex = () => {
     {
       name: 'lead_type',
       label: 'Lead Type',
-      options: [
-        { value: 'hajj_package', label: 'Hajj Package' },
-        { value: 'custom_umrah', label: 'Custom Umrah' },
-        { value: 'readymade_umrah', label: 'Readymade Umrah' },
-        { value: 'flight', label: 'Flight' },
-        { value: 'visa', label: 'Visa' },
-        { value: 'transfer', label: 'Transfer' },
-        { value: 'ziyarat', label: 'Ziyarat' }
-      ]
+      options: leadTypeOptions
     },
     {
       name: 'follow_up_status',
       label: 'Follow Up Status',
       options: [
+        { value: 'today', label: 'Today' },
+        { value: 'this_week', label: 'This Week' },
+        { value: 'this_month', label: 'This Month' },
         { value: 'past_due', label: 'Past Due' },
         { value: 'scheduled', label: 'Scheduled' },
         { value: 'not_scheduled', label: 'Not Scheduled' }
@@ -402,10 +552,19 @@ const LeadsIndex = () => {
         { value: 'active', label: 'Active' },
         { value: 'inactive', label: 'Inactive' }
       ]
+    },
+    {
+      name: 'no_activity_period',
+      label: 'No Activity',
+      options: [
+        { value: '30', label: 'Past 30 Days' },
+        { value: '60', label: 'Past 60 Days' },
+        { value: '90', label: 'Past 90 Days' }
+      ]
     }
   ];
 
-  // Fetch data from API
+  // Fetch data from API with no activity filter
   useEffect(() => {
     if (user && userRole && tenantId) {
       const fetchLeads = async () => {
@@ -418,7 +577,12 @@ const LeadsIndex = () => {
           
           // Add page_size parameter for admin users to get more leads at once
           if (userRole === 'admin') {
-            apiParams.page_size = 100; // Request 100 leads for admin users
+            apiParams.page_size = 100;
+          }
+
+          // Add no activity filter if selected
+          if (activeFilters.no_activity_period?.length) {
+            apiParams.no_activity_days = activeFilters.no_activity_period[0];
           }
           
           // Use the by-role endpoint which now has our custom ordering
@@ -562,6 +726,7 @@ const LeadsIndex = () => {
             };
           });
           
+          // No need for client-side ordering as server provides sorted data
           setLeads(formattedData);
           setFilteredLeads(formattedData);
           setLoading(false);
@@ -573,7 +738,7 @@ const LeadsIndex = () => {
 
       fetchLeads();
     }
-  }, [user, userRole, tenantId]);
+  }, [user, userRole, tenantId, activeFilters.no_activity_period]);
 
   // Handle search
   const handleSearch = (query) => {
@@ -616,47 +781,64 @@ const LeadsIndex = () => {
       results = results.filter(lead => filters.lead_activity_status.includes(lead.lead_activity_status));
     }
 
-    // Apply follow up status filter
+    // Apply follow up status filter with new options
     if (filters.follow_up_status?.length) {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       
+      // Get start of current week (Sunday)
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay());
+      
+      // Get end of current week (Saturday)
+      const endOfWeek = new Date(today);
+      endOfWeek.setDate(today.getDate() + (6 - today.getDay()));
+      endOfWeek.setHours(23, 59, 59, 999);
+      
+      // Get start of current month
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+      
+      // Get end of current month
+      const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      endOfMonth.setHours(23, 59, 59, 999);
+      
       results = results.filter(lead => {
-        // Handle Past Due: Follow up date is in the past and status is not won/lost
-        if (filters.follow_up_status.includes('past_due')) {
-          if (lead.next_follow_up) {
-            const followUpDate = new Date(lead.next_follow_up);
-            followUpDate.setHours(0, 0, 0, 0);
+        if (!lead.next_follow_up) {
+          return filters.follow_up_status.includes('not_scheduled');
+        }
+
+        const followUpDate = new Date(lead.next_follow_up);
+        followUpDate.setHours(0, 0, 0, 0);
+        
+        // Check each selected filter option
+        return filters.follow_up_status.some(status => {
+          switch(status) {
+            case 'today':
+              return followUpDate.getTime() === today.getTime();
             
-            if (followUpDate < today && !['won', 'lost'].includes(lead.status)) {
-              return true;
-            }
-          }
-        }
-        
-        // Handle Scheduled: Follow up date exists and is today or in the future
-        if (filters.follow_up_status.includes('scheduled')) {
-          if (lead.next_follow_up) {
-            const followUpDate = new Date(lead.next_follow_up);
-            followUpDate.setHours(0, 0, 0, 0);
+            case 'this_week':
+              return followUpDate >= startOfWeek && followUpDate <= endOfWeek;
             
-            if (followUpDate >= today) {
-              return true;
-            }
+            case 'this_month':
+              return followUpDate >= startOfMonth && followUpDate <= endOfMonth;
+            
+            case 'past_due':
+              return followUpDate < today && !['won', 'lost'].includes(lead.status);
+            
+            case 'scheduled':
+              return followUpDate >= today;
+            
+            case 'not_scheduled':
+              return !lead.next_follow_up;
+            
+            default:
+              return false;
           }
-        }
-        
-        // Handle Not Scheduled: No follow up date exists
-        if (filters.follow_up_status.includes('not_scheduled')) {
-          if (!lead.next_follow_up) {
-            return true;
-          }
-        }
-        
-        // If none of the selected filters match this lead, exclude it
-        return filters.follow_up_status.length === 0;
+        });
       });
     }
+    
+    // No need to filter no_activity_period here as it's handled by the API
     
     setFilteredLeads(results);
   };

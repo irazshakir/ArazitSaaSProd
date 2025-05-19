@@ -17,6 +17,7 @@ import {
 import { FilterOutlined, ClearOutlined } from '@ant-design/icons';
 import { Box } from '@mui/material';
 import dayjs from 'dayjs';
+import api from '../../../services/api';
 
 const { RangePicker } = DatePicker;
 const { Panel } = Collapse;
@@ -30,7 +31,162 @@ const { Option } = Select;
 const LeadFilters = ({ initialFilters = {}, onFilterChange }) => {
   const [form] = Form.useForm();
   const [expanded, setExpanded] = useState(false);
+  const [leadTypeOptions, setLeadTypeOptions] = useState([]);
   
+  // Function to get lead type options based on industry
+  const getIndustryLeadTypes = async () => {
+    try {
+      // Try multiple possible localStorage keys for industry
+      const directIndustry = localStorage.getItem('industry') || 
+                           localStorage.getItem('user_industry') || 
+                           '';
+      
+      // Get the full user object to see what's actually stored
+      const userStr = localStorage.getItem('user');
+      let userObj = null;
+      
+      try {
+        if (userStr) {
+          userObj = JSON.parse(userStr);
+        }
+      } catch (err) {
+        // Silently handle error
+      }
+      
+      // Check if industry is available in the user object
+      const userIndustry = userObj?.industry || '';
+      // Also check for userData.industry which is seen in the screenshot
+      const userData = userObj?.userData || {};
+      const userDataIndustry = (userData && userData.industry) ? userData.industry : '';
+      
+      // Use the first available industry value
+      const effectiveIndustry = userDataIndustry || userIndustry || directIndustry || '';
+      
+      // Default lead types for any industry
+      const commonLeadTypes = [
+        { value: 'flight', label: 'Flight' },
+        { value: 'visa', label: 'Visa' },
+        { value: 'transfer', label: 'Transfer' }
+      ];
+      
+      // Convert to lowercase and remove quotes for comparison
+      const normalizedIndustry = effectiveIndustry ? effectiveIndustry.toLowerCase().replace(/"/g, '') : '';
+
+      // If industry is general, fetch lead types from generalProduct API
+      if (normalizedIndustry === 'general') {
+        try {
+          const tenantId = localStorage.getItem('tenant_id');
+          if (!tenantId) {
+            throw new Error('Tenant ID not found');
+          }
+
+          // Fetch products from generalProduct API
+          const response = await api.get(`/general-product/products/?tenant=${tenantId}`);
+          
+          // Map the products to lead type options format
+          const generalProducts = Array.isArray(response.data) 
+            ? response.data 
+            : (response.data?.results && Array.isArray(response.data.results))
+              ? response.data.results 
+              : [];
+
+          const leadTypes = generalProducts.map(product => ({
+            value: product.productName.toLowerCase().replace(/\s+/g, '_'),
+            label: product.productName
+          }));
+
+          return [...leadTypes, ...commonLeadTypes];
+        } catch (error) {
+          console.error('Error fetching general products:', error);
+          return commonLeadTypes;
+        }
+      }
+      
+      // Industry-specific lead types for other industries
+      let leadTypes = [];
+      
+      switch(normalizedIndustry) {
+        case 'hajj_umrah':
+          leadTypes = [
+            { value: 'hajj_package', label: 'Hajj Package' },
+            { value: 'custom_umrah', label: 'Custom Umrah' },
+            { value: 'readymade_umrah', label: 'Readymade Umrah' },
+            { value: 'ziyarat', label: 'Ziyarat' },
+            ...commonLeadTypes
+          ];
+          break;
+        case 'immigration':
+          leadTypes = [
+            { value: 'visit_visa', label: 'Visit Visa' },
+            { value: 'skilled_immigration', label: 'Skilled Immigration' },
+            { value: 'job_visa', label: 'Job Visa' },
+            { value: 'trc', label: 'TRC' },
+            { value: 'business_immigration', label: 'Business Immigration' },
+            { value: 'study_visa', label: 'Study Visa' }
+          ];
+          break;
+        case 'travel_tourism':
+          leadTypes = [
+            { value: 'travel_package', label: 'Travel Package' },
+            ...commonLeadTypes
+          ];
+          break;
+        case 'real_estate':
+          leadTypes = [
+            { value: 'development_project', label: 'Development Project' }
+          ];
+          break;
+        default:
+          // Default to hajj_umrah if no industry is specified
+          leadTypes = [
+            { value: 'hajj_package', label: 'Hajj Package' },
+            { value: 'custom_umrah', label: 'Custom Umrah' },
+            { value: 'readymade_umrah', label: 'Readymade Umrah' },
+            { value: 'ziyarat', label: 'Ziyarat' },
+            ...commonLeadTypes
+          ];
+      }
+      
+      return leadTypes;
+    } catch (error) {
+      // Return default lead types as fallback
+      return [
+        { value: 'hajj_package', label: 'Hajj Package' },
+        { value: 'custom_umrah', label: 'Custom Umrah' },
+        { value: 'readymade_umrah', label: 'Readymade Umrah' },
+        { value: 'flight', label: 'Flight' },
+        { value: 'visa', label: 'Visa' },
+        { value: 'transfer', label: 'Transfer' },
+        { value: 'ziyarat', label: 'Ziyarat' }
+      ];
+    }
+  };
+
+  // Initialize lead type options based on user's industry
+  useEffect(() => {
+    const initializeLeadTypes = async () => {
+      try {
+        // Get industry-specific lead types
+        const industryLeadTypes = await getIndustryLeadTypes();
+        setLeadTypeOptions(industryLeadTypes);
+      } catch (error) {
+        // Set default options as fallback
+        const defaultOptions = [
+          { value: 'hajj_package', label: 'Hajj Package' },
+          { value: 'custom_umrah', label: 'Custom Umrah' },
+          { value: 'readymade_umrah', label: 'Readymade Umrah' },
+          { value: 'flight', label: 'Flight' },
+          { value: 'visa', label: 'Visa' },
+          { value: 'transfer', label: 'Transfer' },
+          { value: 'ziyarat', label: 'Ziyarat' }
+        ];
+        setLeadTypeOptions(defaultOptions);
+      }
+    };
+
+    initializeLeadTypes();
+  }, []);
+
   // Set initial values when component mounts or initialFilters changes
   useEffect(() => {
     form.setFieldsValue({
@@ -72,17 +228,6 @@ const LeadFilters = ({ initialFilters = {}, onFilterChange }) => {
     { value: 'website_chat', label: 'Website Chat' },
     { value: 'referral', label: 'Referral' },
     { value: 'walk_in', label: 'Walk In' }
-  ];
-  
-  // Lead type options based on the model
-  const leadTypeOptions = [
-    { value: 'hajj_package', label: 'Hajj Package' },
-    { value: 'custom_umrah', label: 'Custom Umrah' },
-    { value: 'readymade_umrah', label: 'Readymade Umrah' },
-    { value: 'flight', label: 'Flight' },
-    { value: 'visa', label: 'Visa' },
-    { value: 'transfer', label: 'Transfer' },
-    { value: 'ziyarat', label: 'Ziyarat' }
   ];
   
   // Activity status options based on the model
