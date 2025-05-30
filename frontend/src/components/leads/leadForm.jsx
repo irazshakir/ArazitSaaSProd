@@ -27,7 +27,14 @@ import LeadActivities from './components/leadActivities';
 import FlightForm from './components/FlightForm';
 import StudyForm from './components/StudyForm';
 
-const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
+const LeadForm = ({ 
+  initialData = {}, 
+  isEditMode = false, 
+  onSuccess,
+  showProductTab = true,
+  showNotesTab = true,
+  showActivitiesTab = true
+}) => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -1702,10 +1709,10 @@ const fetchProjectTypes = async () => {
           
           <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 3 }}>
             <Tab label="Basic" value="basic" />
-            <Tab label="Product" value="product" />
-            <Tab label="Notes" value="notes" />
+            {showProductTab && <Tab label="Product" value="product" />}
+            {showNotesTab && <Tab label="Notes" value="notes" />}
             <Tab label="Documents" value="documents" />
-            <Tab label="Activities" value="activities" />
+            {showActivitiesTab && <Tab label="Activities" value="activities" />}
           </Tabs>
           
           {/* Basic Information Tab */}
@@ -1876,8 +1883,7 @@ const fetchProjectTypes = async () => {
             </FormSection>
           )}
           
-          {/* Product Details Tab */}
-          {activeTab === 'product' && (
+          {showProductTab && activeTab === 'product' && (
             <>
               {leadType === 'flight' ? (
                 <React.Fragment>
@@ -2068,8 +2074,7 @@ const fetchProjectTypes = async () => {
             </>
           )}
           
-          {/* Notes Tab */}
-          {activeTab === 'notes' && (
+          {showNotesTab && activeTab === 'notes' && (
             <FormSection title="Lead Notes">
               {isEditMode ? (
                 <Grid container spacing={3}>
@@ -2200,7 +2205,6 @@ const fetchProjectTypes = async () => {
             </FormSection>
           )}
           
-          {/* Documents Tab */}
           {activeTab === 'documents' && (
             <FormSection title="Lead Documents">
               {isEditMode ? (
@@ -2217,8 +2221,7 @@ const fetchProjectTypes = async () => {
             </FormSection>
           )}
           
-          {/* Activities Tab */}
-          {activeTab === 'activities' && (
+          {showActivitiesTab && activeTab === 'activities' && (
             <FormSection title="Lead Activities">
               {isEditMode ? (
                 <LeadActivities 

@@ -131,6 +131,9 @@ const LeadEdit = () => {
           initialData={leadData}
           isEditMode={true}
           onSuccess={handleSuccess}
+          showProductTab={false}
+          showNotesTab={false}
+          showActivitiesTab={false}
         />
       )}
     </Container>

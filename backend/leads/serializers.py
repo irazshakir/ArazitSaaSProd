@@ -47,13 +47,57 @@ class LeadNoteSerializer(serializers.ModelSerializer):
             'id', 'lead', 'tenant', 'note', 'timestamp', 
             'added_by', 'added_by_details'
         )
-        read_only_fields = ('id', 'timestamp', 'added_by')
+        read_only_fields = ('id', 'timestamp', 'added_by', 'tenant')
+    
+    def validate(self, attrs):
+        # Validate request context
+        request = self.context.get('request')
+        if not request or not request.user or not request.user.is_authenticated:
+            raise serializers.ValidationError({
+                'error': 'Authentication required',
+                'detail': 'Valid authenticated request is required'
+            })
+        
+        # Validate lead
+        lead = attrs.get('lead')
+        if not lead:
+            raise serializers.ValidationError({
+                'lead': 'Lead is required'
+            })
+        
+        # Validate user has access to lead's tenant
+        user_tenant_ids = request.user.tenant_users.values_list('tenant_id', flat=True)
+        if lead.tenant_id not in user_tenant_ids:
+            raise serializers.ValidationError({
+                'error': 'Invalid tenant access',
+                'detail': 'User does not have access to this lead\'s tenant'
+            })
+        
+        # Validate note content
+        note = attrs.get('note')
+        if not note or not note.strip():
+            raise serializers.ValidationError({
+                'note': 'Note content is required'
+            })
+        
+        return attrs
     
     def create(self, validated_data):
-        validated_data['added_by'] = self.context['request'].user
-        if 'lead' in validated_data and not 'tenant' in validated_data:
-            validated_data['tenant'] = validated_data['lead'].tenant
-        return super().create(validated_data)
+        request = self.context.get('request')
+        lead = validated_data.get('lead')
+        
+        # These should be validated already, but double-check
+        if not request or not request.user or not lead:
+            raise serializers.ValidationError("Invalid request data")
+        
+        # Set the tenant and user explicitly
+        validated_data['tenant'] = lead.tenant
+        validated_data['added_by'] = request.user
+        
+        try:
+            return super().create(validated_data)
+        except Exception as e:
+            raise serializers.ValidationError(f"Error creating note: {str(e)}")
 
 class LeadDocumentSerializer(serializers.ModelSerializer):
     """Serializer for the LeadDocument model."""

@@ -573,26 +573,89 @@ class LeadViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(lead)
         return Response(serializer.data)
     
+    @action(detail=True, methods=['get'])
+    def get_notes(self, request, pk=None):
+        """Get all notes for a specific lead."""
+        lead = self.get_object()
+        notes = LeadNote.objects.filter(lead=lead).order_by('-timestamp')
+        serializer = LeadNoteSerializer(notes, many=True, context={'request': request})
+        return Response(serializer.data)
+    
     @action(detail=True, methods=['post'])
     def add_note(self, request, pk=None):
         """Add a note to a lead."""
-        lead = self.get_object()
-        
-        serializer = LeadNoteSerializer(
-            data=request.data,
-            context={'request': request}
-        )
-        
-        if serializer.is_valid():
-            serializer.save(lead=lead, tenant=lead.tenant)
+        try:
+            # Debug information
+            logger.info(f"Adding note - User: {request.user.id if request.user else 'None'}")
+            logger.info(f"Headers: {request.headers}")
+            logger.info(f"Request data: {request.data}")
             
-            # Update last_contacted
-            lead.last_contacted = timezone.now()
-            lead.save()
+            # Verify authentication
+            if not request.user.is_authenticated:
+                return Response(
+                    {'error': 'Authentication required'},
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
             
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            # Get the lead
+            try:
+                lead = self.get_object()
+            except Exception as e:
+                logger.error(f"Error getting lead {pk}: {str(e)}")
+                return Response(
+                    {'error': f'Lead not found: {pk}'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            # Verify tenant access
+            user_tenant_ids = request.user.tenant_users.values_list('tenant_id', flat=True)
+            if lead.tenant_id not in user_tenant_ids:
+                return Response(
+                    {'error': 'User does not have access to this tenant'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Create the data with lead
+            data = request.data.copy()
+            data['lead'] = lead.id
+            
+            serializer = LeadNoteSerializer(
+                data=data,
+                context={'request': request}
+            )
+            
+            if serializer.is_valid():
+                # Save with explicit lead and tenant
+                note = serializer.save(
+                    lead=lead,
+                    tenant=lead.tenant,
+                    added_by=request.user
+                )
+                
+                # Update last_contacted
+                lead.last_contacted = timezone.now()
+                lead.save()
+                
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            
+            logger.error(f"Validation errors: {serializer.errors}")
+            return Response(
+                {
+                    'error': 'Validation failed',
+                    'details': serializer.errors
+                }, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+            
+        except Exception as e:
+            logger.error(f"Error adding note to lead {pk}: {str(e)}")
+            return Response(
+                {
+                    'error': 'Failed to add note',
+                    'details': str(e)
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
     
     @action(detail=True, methods=['post'])
     def add_activity(self, request, pk=None):

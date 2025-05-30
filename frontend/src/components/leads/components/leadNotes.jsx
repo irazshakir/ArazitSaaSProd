@@ -10,7 +10,8 @@ import {
   Divider, 
   Space, 
   Empty, 
-  message 
+  message,
+  App 
 } from 'antd';
 import { UserOutlined, SendOutlined, DeleteOutlined } from '@ant-design/icons';
 import { Box } from '@mui/material';
@@ -29,20 +30,12 @@ const LeadNotes = ({ leadId, notes = [] }) => {
   const [submitting, setSubmitting] = useState(false);
   const [leadNotes, setLeadNotes] = useState(notes);
   
-  // Fetch notes if not provided
-  useEffect(() => {
-    if (!notes || notes.length === 0) {
-      fetchNotes();
-    } else {
-      setLeadNotes(notes);
-    }
-  }, [notes, leadId]);
-  
   // Fetch notes from API
   const fetchNotes = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/lead-notes/?lead=${leadId}`);
+      // Use the correct endpoint that matches the backend URL pattern
+      const response = await api.get(`/leads/${leadId}/notes/`);
       
       // Process response data
       let notesArray = Array.isArray(response.data) 
@@ -61,23 +54,58 @@ const LeadNotes = ({ leadId, notes = [] }) => {
   
   // Add a new note
   const handleAddNote = async (values) => {
+    // Get tenant ID and user ID before doing anything else
+    const tenantId = localStorage.getItem('tenant_id');
+    const userId = localStorage.getItem('user_id');
+    
+    if (!tenantId || !userId) {
+      message.error("Authentication error: Missing tenant or user ID");
+      return;
+    }
+    
+    if (!values.note || !values.note.trim()) {
+      message.error("Please enter a note");
+      return;
+    }
+    
     try {
       setSubmitting(true);
       
-      const response = await api.post('/leads/' + leadId + '/add-note/', {
-        note: values.note,
-        lead: leadId
+      // Get the auth token
+      const token = localStorage.getItem('token') || localStorage.getItem('access_token');
+      
+      // Create request payload
+      const requestPayload = {
+        note: values.note.trim(),
+        lead: leadId,
+        tenant: tenantId,
+        added_by: userId
+      };
+      
+      // Make the API call with explicit headers
+      const response = await api.post(`/leads/${leadId}/add-note/`, requestPayload, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'X-Tenant-ID': tenantId
+        }
       });
       
-      // Add new note to the list
-      setLeadNotes([response.data, ...leadNotes]);
-      
-      // Reset form
-      form.resetFields();
-      
-      message.success('Note added successfully');
+      if (response.data) {
+        // Add new note to the list
+        setLeadNotes(prevNotes => [response.data, ...prevNotes]);
+        
+        // Reset form
+        form.resetFields();
+        
+        message.success('Note added successfully');
+        
+        // Refresh notes list
+        fetchNotes();
+      } else {
+        throw new Error('No data received from server');
+      }
     } catch (error) {
-      message.error('Failed to add note');
+      message.error(error.response?.data?.error || 'Failed to add note');
     } finally {
       setSubmitting(false);
     }
@@ -96,6 +124,15 @@ const LeadNotes = ({ leadId, notes = [] }) => {
       message.error('Failed to delete note');
     }
   };
+
+  // Remove the useEffect that was just for debugging
+  useEffect(() => {
+    if (!notes || notes.length === 0) {
+      fetchNotes();
+    } else {
+      setLeadNotes(notes);
+    }
+  }, [notes, leadId]);
   
   // Format date for display
   const formatDate = (dateString) => {
@@ -181,4 +218,9 @@ const LeadNotes = ({ leadId, notes = [] }) => {
   );
 };
 
-export default LeadNotes;
+// Wrap the component with App
+export default ({ leadId, notes = [] }) => (
+  <App>
+    <LeadNotes leadId={leadId} notes={notes} />
+  </App>
+);

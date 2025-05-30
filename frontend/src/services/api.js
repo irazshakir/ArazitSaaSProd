@@ -27,6 +27,17 @@ api.interceptors.request.use(
       config.headers.Authorization = `Bearer ${authToken}`;
     }
     
+    // Get current tenant from session storage
+    const currentTenant = sessionStorage.getItem('currentTenant');
+    if (currentTenant) {
+      try {
+        const tenant = JSON.parse(currentTenant);
+        config.headers['X-Tenant-ID'] = tenant.id;
+      } catch (e) {
+        console.error('Error parsing current tenant:', e);
+      }
+    }
+    
     // Get CSRF token from cookie if it exists
     const csrfToken = document.cookie
       .split('; ')
