@@ -14,11 +14,11 @@ from .views import (
 )
 
 router = DefaultRouter()
-router.register(r'users', UserViewSet)
-router.register(r'tenants', TenantViewSet)
-router.register(r'tenant-users', TenantUserViewSet)
-router.register(r'departments', DepartmentViewSet)
-router.register(r'branches', BranchViewSet)
+router.register(r'users', UserViewSet, basename='user')
+router.register(r'tenants', TenantViewSet, basename='tenant')
+router.register(r'tenant-users', TenantUserViewSet, basename='tenant-user')
+router.register(r'departments', DepartmentViewSet, basename='department')
+router.register(r'branches', BranchViewSet, basename='branch')
 
 urlpatterns = [
     # JWT Authentication - Using our custom token view
@@ -41,6 +41,6 @@ urlpatterns = [
     # Active Users by Tenant
     path('active-by-tenant/', UserViewSet.as_view({'get': 'active_by_tenant'}), name='active_by_tenant'),
     
-    # Router URLs
+    # Router URLs - Include them at the root level
     path('', include(router.urls)),
 ] 

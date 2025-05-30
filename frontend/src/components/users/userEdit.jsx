@@ -31,12 +31,8 @@ const UserEdit = () => {
           return;
         }
 
-        // Direct API call to fetch user data
-        const response = await axios.get(`${api.defaults.baseURL}/auth/users/${id}/`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+        // Use api service with correct endpoint
+        const response = await api.get(`/api/auth/users/${id}/`);
         
         setInitialData(response.data);
         form.setFieldsValue(response.data);
@@ -66,11 +62,7 @@ const UserEdit = () => {
           return;
         }
 
-        const response = await axios.get(`${api.defaults.baseURL}/auth/departments/`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+        const response = await api.get('/api/auth/departments/');
         
         setDepartments(response.data);
       } catch (error) {
@@ -131,17 +123,8 @@ const UserEdit = () => {
       }
       
       try {
-        // First try PATCH method
-        const response = await axios.patch(
-          `${api.defaults.baseURL}/auth/users/${id}/`, 
-          updatedFields, 
-          {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          }
-        );
+        // First try PATCH method using the api service
+        const response = await api.patch(`/api/auth/users/${id}/`, updatedFields);
         
         message.success('User updated successfully');
         
@@ -152,16 +135,7 @@ const UserEdit = () => {
       } catch (error) {
         // If PATCH fails, try direct update
         try {
-          const directResponse = await axios.post(
-            `${api.defaults.baseURL}/auth/users/${id}/direct_update/`,
-            updatedFields,
-            {
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
-            }
-          );
+          const directResponse = await api.post(`/api/auth/users/${id}/direct_update/`, updatedFields);
           
           message.success('User updated successfully');
           
