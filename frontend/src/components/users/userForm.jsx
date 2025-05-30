@@ -48,7 +48,6 @@ const UserForm = ({
   const [branchesLoading, setBranchesLoading] = useState(false);
   const [departments, setDepartments] = useState([]);
   const [departmentsLoading, setDepartmentsLoading] = useState(false);
-  const [formValues, setFormValues] = useState(initialData);
   
   // Role options based on the User model
   const roleOptions = [
@@ -61,16 +60,6 @@ const UserForm = ({
     { value: 'processor', label: 'Processor' }
   ];
   
-  // Update local form values when initialData changes
-  useEffect(() => {
-    if (initialData) {
-      setFormValues(initialData);
-      
-      // Ensure form is properly initialized with initial values
-      formInstance.setFieldsValue(initialData);
-    }
-  }, [initialData, formInstance]);
-  
   // Fetch branches and departments when component mounts
   useEffect(() => {
     const fetchData = async () => {
@@ -80,66 +69,22 @@ const UserForm = ({
       try {
         const tenantId = localStorage.getItem('tenant_id');
         if (!tenantId) {
-          setBranchesLoading(false);
-          setDepartmentsLoading(false);
+          message.error('Tenant ID is missing. Please log in again.');
+          navigate('/login');
           return;
         }
         
-        // Fetch branches using the service function
-        try {
-          const branchResponse = await branchService.getBranches(tenantId);
-          
-          // Ensure branchData is an array
-          let branchData = [];
-          
-          if (Array.isArray(branchResponse)) {
-            branchData = branchResponse;
-          } else if (branchResponse && typeof branchResponse === 'object') {
-            // Handle possible pagination response from DRF
-            if (Array.isArray(branchResponse.results)) {
-              branchData = branchResponse.results;
-            } else {
-              branchData = Object.values(branchResponse);
-            }
-          }
-          
-          setBranches(branchData);
-        } catch (branchError) {
-          message.error('Failed to load branches. Please try again later.');
-          // Ensure branches is set to an empty array on error
-          setBranches([]);
-        }
+        // Fetch branches and departments in parallel
+        const [branchesData, departmentsData] = await Promise.all([
+          branchService.getBranches(tenantId),
+          departmentService.getDepartments(tenantId)
+        ]);
         
-        // Fetch departments using the service function
-        try {
-          const deptResponse = await departmentService.getDepartments(tenantId);
-          
-          // Ensure departmentData is an array
-          let departmentData = [];
-          
-          if (Array.isArray(deptResponse)) {
-            departmentData = deptResponse;
-          } else if (deptResponse && typeof deptResponse === 'object') {
-            // Handle possible pagination response from DRF
-            if (Array.isArray(deptResponse.results)) {
-              departmentData = deptResponse.results;
-            } else {
-              departmentData = Object.values(deptResponse);
-            }
-          }
-          
-          setDepartments(departmentData);
-        } catch (deptError) {
-          message.error('Failed to load departments. Please try again later.');
-          // Ensure departments is set to an empty array on error
-          setDepartments([]);
-        }
-        
+        setBranches(branchesData || []);
+        setDepartments(departmentsData || []);
       } catch (error) {
-        message.error('Failed to fetch organization data');
-        // Ensure both arrays are empty on error
-        setBranches([]);
-        setDepartments([]);
+        console.error('Error fetching form data:', error);
+        message.error('Failed to load form data. Please try again.');
       } finally {
         setBranchesLoading(false);
         setDepartmentsLoading(false);
@@ -147,7 +92,21 @@ const UserForm = ({
     };
     
     fetchData();
-  }, []);
+  }, [navigate]); // Only depend on navigate
+  
+  // Update form with initial data when it changes
+  useEffect(() => {
+    if (initialData && Object.keys(initialData).length > 0) {
+      formInstance.setFieldsValue({
+        ...initialData,
+        is_active: initialData.is_active !== undefined ? initialData.is_active : true,
+        department: initialData.department || undefined,
+        branch: initialData.branch || undefined,
+        profile_picture: initialData.profile_picture ? { url: initialData.profile_picture } : undefined,
+        profile_picture_file: null
+      });
+    }
+  }, [initialData, formInstance]);
   
   // Image upload configuration
   const beforeUpload = (file) => {
@@ -223,31 +182,44 @@ const UserForm = ({
     }
   };
   
-  // When a field value changes, update our local state
-  const handleValuesChange = (changedValues, allValues) => {
-    setFormValues(prevValues => ({
-      ...prevValues,
-      ...changedValues
-    }));
-    
-    // Ensure the form instance is updated
-    Object.keys(changedValues).forEach(key => {
-      formInstance.setFieldValue(key, changedValues[key]);
-    });
+  // Simplified values change handler
+  const handleValuesChange = (changedValues) => {
+    // No need to maintain separate state, form instance handles it
+    console.log('Form values changed:', changedValues);
   };
 
-  // Enhanced form submission handler
-  const handleFormSubmit = (values) => {
-    // Make sure we're using the latest values from the form
-    const latestValues = formInstance.getFieldsValue(true);
+  // Handle form submission
+  const handleFormSubmit = async (values) => {
+    if (loading || submitting) return;
     
-    // Call the parent component's onFinish with the latest values
-    if (onFinish) {
-      onFinish(latestValues);
+    try {
+      setSubmitting(true);
+      
+      // Prepare form data
+      const formData = new FormData();
+      
+      // Add all form values to FormData
+      Object.keys(values).forEach(key => {
+        if (key === 'profile_picture_file' && values[key]) {
+          formData.append('profile_picture', values[key]);
+        } else if (values[key] !== undefined && values[key] !== null) {
+          formData.append(key, values[key]);
+        }
+      });
+      
+      // Call the onFinish callback with the form data
+      if (onFinish) {
+        await onFinish(formData);
+      }
+    } catch (error) {
+      console.error('Form submission error:', error);
+      message.error('Failed to submit form. Please try again.');
+    } finally {
+      setSubmitting(false);
     }
   };
   
-  // Handle cancellation
+  // Handle form cancellation
   const handleCancel = () => {
     navigate('/dashboard/users');
   };
@@ -262,7 +234,7 @@ const UserForm = ({
   }
 
   return (
-    <Card bordered={false}>
+    <Card variant="default">
       <Form
         form={formInstance}
         layout="vertical"
@@ -521,12 +493,13 @@ const UserForm = ({
             <Button 
               type="primary" 
               htmlType="submit" 
-              loading={submitting}
+              loading={submitting || loading}
               style={{ backgroundColor: '#9d277c', borderColor: '#9d277c' }}
+              disabled={submitting || loading}
             >
               {isEditMode ? 'Update User' : 'Create User'}
             </Button>
-            <Button onClick={handleCancel}>
+            <Button onClick={handleCancel} disabled={submitting || loading}>
               Cancel
             </Button>
           </Space>

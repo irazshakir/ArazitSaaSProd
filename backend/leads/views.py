@@ -29,6 +29,9 @@ from teams.models import TeamManager, TeamLead, TeamMember
 from location_routing.models import LocationRouting
 from .tasks import schedule_activity_notifications  # Import at top of file
 
+# Configure logger
+logger = logging.getLogger('leads')
+
 # Create your views here.
 
 # Custom pagination class that increases page size for admin users
@@ -326,43 +329,32 @@ class LeadViewSet(viewsets.ModelViewSet):
         return context
     
     def create_or_update_lead(self, tenant, phone, data):
-        """
-        Create a new lead or update existing one with proper locking
-        """
         try:
-            with transaction.atomic():
-                # Try to get existing lead with select_for_update to prevent race conditions
-                existing_lead = Lead.objects.select_for_update().filter(
-                    tenant=tenant,
-                    phone=phone
-                ).first()
+            logger.info(f"Creating new lead for phone {phone} in tenant {tenant.id}")
+            
+            # Remove tenant and phone from data if they exist to avoid duplicates
+            if 'tenant' in data:
+                data.pop('tenant')
+            if 'phone' in data:
+                data.pop('phone')
                 
-                if existing_lead:
-                    logger.info(f"Found existing lead for phone {phone} in tenant {tenant.id}")
-                    # Update only if new data
-                    if data.get('source') == 'whatsapp' and existing_lead.chat_id != data.get('chat_id'):
-                        existing_lead.chat_id = data.get('chat_id')
-                        existing_lead.save()
-                    return existing_lead, False
-                
-                # No existing lead, create new one
-                logger.info(f"Creating new lead for phone {phone} in tenant {tenant.id}")
-                lead = Lead(tenant=tenant, phone=phone, **data)
-                lead.save()
-                return lead, True
-                
-        except IntegrityError as e:
-            logger.error(f"IntegrityError creating lead: {str(e)}")
-            # If we hit a race condition, try to fetch the existing lead
-            existing_lead = Lead.objects.filter(tenant=tenant, phone=phone).first()
-            if existing_lead:
-                return existing_lead, False
-            raise ValidationError("Could not create or update lead")
-    
+            # Create new lead with tenant and phone passed separately
+            lead = Lead.objects.create(
+                tenant=tenant,
+                phone=phone,
+                **data
+            )
+            logger.info(f"Successfully created lead with ID: {lead.id}")
+            return lead, True
+            
+        except Exception as e:
+            logger.error(f"Error creating lead: {str(e)}")
+            raise
+            
     def perform_create(self, serializer):
         """Override perform_create to handle lead creation/update logic"""
         tenant = self.request.user.tenant_users.first().tenant
-        data = serializer.validated_data
+        data = serializer.validated_data.copy()  # Make a copy to avoid modifying the original
         phone = data.get('phone')
         
         if not phone:
@@ -371,19 +363,26 @@ class LeadViewSet(viewsets.ModelViewSet):
         # Normalize phone number
         phone = ''.join(filter(str.isdigit, phone))
         
-        # Create or update lead with proper locking
-        lead, created = self.create_or_update_lead(tenant, phone, data)
-        
-        if created:
-            # Handle new lead creation
-            logger.info(f"Successfully created new lead {lead.id}")
-            if data.get('source') == 'whatsapp':
-                # Additional WhatsApp-specific processing if needed
-                pass
-        else:
-            logger.info(f"Using existing lead {lead.id}")
+        try:
+            # Create or update lead with proper locking
+            lead, created = self.create_or_update_lead(tenant, phone, data)
             
-        return lead
+            if created:
+                # Handle new lead creation
+                logger.info(f"Successfully created new lead {lead.id}")
+                if data.get('source') == 'whatsapp':
+                    # Additional WhatsApp-specific processing if needed
+                    pass
+            else:
+                logger.info(f"Using existing lead {lead.id}")
+            
+            # Update the serializer with the actual lead instance
+            serializer.instance = lead
+            return lead
+            
+        except Exception as e:
+            logger.error(f"Error in perform_create: {str(e)}")
+            raise
     
     @action(detail=True, methods=['post'])
     def assign(self, request, pk=None):

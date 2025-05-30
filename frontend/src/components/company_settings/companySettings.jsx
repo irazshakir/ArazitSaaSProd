@@ -199,6 +199,7 @@ const CompanySettings = () => {
         <Card 
           title="Company Settings" 
           className="company-settings-card"
+          variant="default"
           extra={
             companyData && (
               <Switch

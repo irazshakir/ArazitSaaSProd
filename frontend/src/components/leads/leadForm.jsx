@@ -50,22 +50,26 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   const [projectTypes, setProjectTypes] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
   
-  // Add this state to track form values directly
-  const [formValues, setFormValues] = useState({
-    name: initialData.name || '',
-    email: initialData.email || '',
-    phone: initialData.phone || '',
-    whatsapp: initialData.whatsapp || '',
-    lead_type: initialData.lead_type || 'hajj_package',
-    source: initialData.source || 'website_form',
-    status: initialData.status || 'new',
-    lead_activity_status: initialData.lead_activity_status || 'active',
-    last_contacted: initialData.last_contacted || null,
-    next_follow_up: initialData.next_follow_up || null,
-    assigned_to: initialData.assigned_to || null,
-    branch: initialData.branch || null,
-    study: initialData.study || {}
-  });
+  // Get form values helper function
+  const getFormValues = () => form.getFieldsValue(true);
+
+  // Handle input changes
+  const handleInputChange = (field, value) => {
+    form.setFieldValue(field, value);
+  };
+
+  // Update form initialization
+  useEffect(() => {
+    if (initialData && Object.keys(initialData).length > 0) {
+      const formattedValues = {
+        ...initialData,
+        last_contacted: initialData.last_contacted ? dayjs(initialData.last_contacted) : null,
+        next_follow_up: initialData.next_follow_up ? dayjs(initialData.next_follow_up) : null,
+        // Format other date fields as needed
+      };
+      form.setFieldsValue(formattedValues);
+    }
+  }, [initialData, form]);
   
   // Status options
   const statusOptions = [
@@ -93,76 +97,55 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   // Function to get lead type options based on industry
   const getIndustryLeadTypes = async () => {
     try {
-      // Try multiple possible localStorage keys for industry
-      const directIndustry = localStorage.getItem('industry') || 
-                           localStorage.getItem('user_industry') || 
-                           '';
-      
-      // Get the full user object to see what's actually stored
+      // Get industry from localStorage - try multiple possible keys
       const userStr = localStorage.getItem('user');
-      let userObj = null;
-      
-      try {
-        if (userStr) {
-          userObj = JSON.parse(userStr);
-        }
-      } catch (err) {
-        // Silently handle error
-      }
-      
-      // Check if industry is available in the user object
-      const userIndustry = userObj?.industry || '';
-      // Also check for userData.industry which is seen in the screenshot
+      const userObj = userStr ? JSON.parse(userStr) : {};
       const userData = userObj?.userData || {};
-      const userDataIndustry = (userData && userData.industry) ? userData.industry : '';
       
-      // Use the first available industry value
-      const effectiveIndustry = userDataIndustry || userIndustry || directIndustry || '';
-      
+      // Try multiple sources for industry
+      const industry = (
+        userData.industry || 
+        userObj.industry || 
+        localStorage.getItem('industry') || 
+        localStorage.getItem('user_industry') || 
+        ''
+      ).toLowerCase();
+
+      console.log('Detected industry:', industry); // Debug log
+
       // Default lead types for any industry
       const commonLeadTypes = [
         { value: 'flight', label: 'Flight' },
         { value: 'visa', label: 'Visa' },
         { value: 'transfer', label: 'Transfer' }
       ];
-      
-      // Convert to lowercase and remove quotes for comparison
-      const normalizedIndustry = effectiveIndustry ? effectiveIndustry.toLowerCase().replace(/"/g, '') : '';
 
       // If industry is general, fetch lead types from generalProduct API
-      if (normalizedIndustry === 'general') {
-        try {
-          const tenantId = localStorage.getItem('tenant_id');
-          if (!tenantId) {
-            throw new Error('Tenant ID not found');
-          }
-
-          // Fetch products from generalProduct API
-          const response = await api.get(`/general-product/products/?tenant=${tenantId}`);
-          
-          // Map the products to lead type options format
-          const generalProducts = Array.isArray(response.data) 
-            ? response.data 
-            : (response.data?.results && Array.isArray(response.data.results))
-              ? response.data.results 
-              : [];
-
-          const leadTypes = generalProducts.map(product => ({
-            value: product.productName.toLowerCase().replace(/\s+/g, '_'),
-            label: product.productName
-          }));
-
-          return [...leadTypes, ...commonLeadTypes];
-        } catch (error) {
-          console.error('Error fetching general products:', error);
-          return commonLeadTypes;
+      if (industry === 'general') {
+        const tenantId = localStorage.getItem('tenant_id');
+        if (!tenantId) {
+          throw new Error('Tenant ID not found');
         }
+
+        const response = await api.get(`/general-product/products/?tenant=${tenantId}`);
+        const generalProducts = Array.isArray(response.data) 
+          ? response.data 
+          : (response.data?.results && Array.isArray(response.data.results))
+            ? response.data.results 
+            : [];
+
+        const leadTypes = generalProducts.map(product => ({
+          value: product.productName.toLowerCase().replace(/\s+/g, '_'),
+          label: product.productName
+        }));
+
+        return [...leadTypes, ...commonLeadTypes];
       }
-      
-      // Industry-specific lead types for other industries
+
+      // Industry-specific lead types
       let leadTypes = [];
       
-      switch(normalizedIndustry) {
+      switch(industry) {
         case 'hajj_umrah':
           leadTypes = [
             { value: 'hajj_package', label: 'Hajj Package' },
@@ -203,9 +186,11 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
             ...commonLeadTypes
           ];
       }
-      
+
+      console.log('Generated lead types:', leadTypes); // Debug log
       return leadTypes;
     } catch (error) {
+      console.error('Error in getIndustryLeadTypes:', error);
       // Return default lead types as fallback
       return [
         { value: 'hajj_package', label: 'Hajj Package' },
@@ -256,134 +241,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     { value: 'low', label: 'Low' },
     { value: 'very_low', label: 'Very Low' }
   ];
-  
-  // Set initial form values
-  useEffect(() => {
-    if (initialData && Object.keys(initialData).length > 0) {
-      // Parse query_for if it's a string or object
-      let queryFor = initialData.query_for || {};
-      if (typeof queryFor === 'string') {
-        try {
-          queryFor = JSON.parse(queryFor);
-        } catch (e) {
-          queryFor = { notes: queryFor };
-        }
-      }
-      
-      // Check if dates are already dayjs objects
-      const isDayjsObject = (obj) => obj && typeof obj === 'object' && typeof obj.isValid === 'function';
-      
-      const updatedValues = {
-        ...initialData,
-        // Format dates as dayjs objects for Ant Design DatePicker if they aren't already
-        last_contacted: initialData.last_contacted ? 
-          (isDayjsObject(initialData.last_contacted) ? 
-            initialData.last_contacted : 
-            dayjs(initialData.last_contacted)) : 
-          null,
-        next_follow_up: initialData.next_follow_up ? 
-          (isDayjsObject(initialData.next_follow_up) ? 
-            initialData.next_follow_up : 
-            dayjs(initialData.next_follow_up)) : 
-          null,
-        // Set query_for fields
-        adults: queryFor.adults || 0,
-        children: queryFor.children || 0,
-        infants: queryFor.infants || 0,
-        query_notes: queryFor.notes || '',
-        // Set branch value
-        branch: initialData.branch || null,
-        // Set development_project value if exists
-        development_project: initialData.development_project || null
-      };
-      
-      form.setFieldsValue(updatedValues);
-      setFormValues(updatedValues);
-      
-      // Set lead type
-      if (initialData.lead_type) {
-        setLeadType(initialData.lead_type);
-      }
-
-      // If it's a development project lead, fetch the project details
-      if (initialData.lead_type === 'development_project' && initialData.development_project) {
-        try {
-          // Set timeout to ensure lead type is set first so correct endpoint is used
-          setTimeout(() => {
-            handlePackageSelect(initialData.development_project);
-          }, 500);
-        } catch (error) {
-          console.error('Error loading development project:', error);
-        }
-      }
-    }
-  }, [initialData, form]);
-  
-  // Initialize lead type options based on user's industry
-  useEffect(() => {
-    const initializeLeadTypes = async () => {
-      try {
-        // Get industry-specific lead types
-        const industryLeadTypes = await getIndustryLeadTypes();
-        setLeadTypeOptions(industryLeadTypes);
-        
-        // Set default lead type if none is provided
-        if ((!initialData.lead_type || initialData.lead_type === '') && industryLeadTypes.length > 0) {
-          const defaultLeadType = industryLeadTypes[0].value;
-          setLeadType(defaultLeadType);
-          form.setFieldValue('lead_type', defaultLeadType);
-          
-          // Update formValues
-          setFormValues(prev => ({
-            ...prev,
-            lead_type: defaultLeadType
-          }));
-        } else if (initialData.lead_type) {
-          // Check if the provided lead_type is compatible with the industry
-          const isValidType = industryLeadTypes.some(option => option.value === initialData.lead_type);
-          
-          if (!isValidType) {
-            // Use the first valid lead type instead
-            if (industryLeadTypes.length > 0) {
-              const defaultType = industryLeadTypes[0].value;
-              setLeadType(defaultType);
-              form.setFieldValue('lead_type', defaultType);
-              
-              // Update formValues
-              setFormValues(prev => ({
-                ...prev,
-                lead_type: defaultType
-              }));
-            }
-          } else {
-            // Valid type, make sure it's set everywhere
-            setLeadType(initialData.lead_type);
-            form.setFieldValue('lead_type', initialData.lead_type);
-          }
-        }
-      } catch (error) {
-        // Set default options as fallback
-        const defaultOptions = [
-          { value: 'hajj_package', label: 'Hajj Package' },
-          { value: 'custom_umrah', label: 'Custom Umrah' },
-          { value: 'readymade_umrah', label: 'Readymade Umrah' },
-          { value: 'flight', label: 'Flight' },
-          { value: 'visa', label: 'Visa' },
-          { value: 'transfer', label: 'Transfer' },
-          { value: 'ziyarat', label: 'Ziyarat' }
-        ];
-        
-        setLeadTypeOptions(defaultOptions);
-        
-        // Set a safe default lead type
-        const safeDefaultType = 'hajj_package';
-        setLeadType(safeDefaultType);
-        form.setFieldValue('lead_type', safeDefaultType);
-      }
-    };
-
-    initializeLeadTypes();
-  }, []);
   
   // Fetch product options based on lead type
   useEffect(() => {
@@ -1143,8 +1000,16 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       await form.validateFields();
       setLoading(true);
 
+      // Get tenant ID from localStorage
+      const tenantId = localStorage.getItem('tenant_id');
+      if (!tenantId) {
+        message.error('Tenant information not available');
+        setLoading(false);
+        return;
+      }
+
       // If it's a study visa lead and we have a studyFormRef, save study data first
-      if (formValues.lead_type === 'study_visa' && studyFormRef.current) {
+      if (getFormValues().lead_type === 'study_visa' && studyFormRef.current) {
         try {
           await studyFormRef.current.saveStudyData();
         } catch (error) {
@@ -1157,16 +1022,20 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       // Check if dates are dayjs objects and convert them to ISO strings
       const isDayjsObject = (obj) => obj && typeof obj === 'object' && typeof obj.isValid === 'function';
 
+      // Get form values
+      const formValues = form.getFieldsValue(true);
+
       // Create the lead data object
       const leadData = {
+        tenant: tenantId,
         name: formValues.name,
         email: formValues.email || null,
         phone: formValues.phone,
         whatsapp: formValues.whatsapp || null,
         lead_type: formValues.lead_type,
-        source: formValues.source,
-        status: formValues.status,
-        lead_activity_status: formValues.lead_activity_status,
+        source: formValues.source || 'website_form',
+        status: formValues.status || 'new',
+        lead_activity_status: formValues.lead_activity_status || 'active',
         last_contacted: formValues.last_contacted ? 
           (isDayjsObject(formValues.last_contacted) ? 
             formValues.last_contacted.toISOString() : 
@@ -1179,8 +1048,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
           null,
         assigned_to: formValues.assigned_to,
         branch: formValues.branch || null,
-        tenant: localStorage.getItem('tenant_id'),
-        created_by: localStorage.getItem('user_id'),
         query_for: {
           adults: formValues.adults || 0,
           children: formValues.children || 0,
@@ -1189,12 +1056,9 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
         }
       };
 
-      // In edit mode, ensure non-admin users don't modify protected fields
-      if (isEditMode && !isAdmin) {
-        // If not admin, replace protected fields with original values from initialData
-        leadData.email = initialData.email;
-        leadData.phone = initialData.phone;
-        leadData.whatsapp = initialData.whatsapp;
+      // Add development project if it exists
+      if (formValues.development_project) {
+        leadData.development_project = formValues.development_project;
       }
 
       // If this is a general industry lead, we need to include the general_product reference
@@ -1211,7 +1075,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
               : [];
 
           const matchingProduct = products.find(
-            product => product.productName.toLowerCase().replace(/\s+/g, '_') === formValues.lead_type
+            product => product.productName.toLowerCase().replace(/\s+/g, '_') === getFormValues().lead_type
           );
 
           if (matchingProduct) {
@@ -1224,25 +1088,25 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
 
       // Add other product-specific fields based on lead type
       if (!isGeneralIndustry()) {
-        switch(formValues.lead_type) {
+        switch(getFormValues().lead_type) {
           case 'hajj_package':
-            leadData.hajj_package = formValues.hajj_package;
+            leadData.hajj_package = getFormValues().hajj_package;
             break;
           case 'development_project':
-            leadData.development_project = formValues.development_project;
+            leadData.development_project = getFormValues().development_project;
             break;
           case 'flight':
             leadData.flight = {
-              travelling_from: formValues.travelling_from,
-              travelling_to: formValues.travelling_to,
-              travel_date: formValues.travel_date?.format('YYYY-MM-DD'),
-              return_date: formValues.return_date?.format('YYYY-MM-DD'),
-              pnr: formValues.pnr,
-              ticket_status: formValues.ticket_status,
-              carrier: formValues.carrier,
-              passengers: formValues.passengers,
-              passenger_details: formValues.passenger_details,
-              cost_details: formValues.cost_details
+              travelling_from: getFormValues().travelling_from,
+              travelling_to: getFormValues().travelling_to,
+              travel_date: getFormValues().travel_date?.format('YYYY-MM-DD'),
+              return_date: getFormValues().return_date?.format('YYYY-MM-DD'),
+              pnr: getFormValues().pnr,
+              ticket_status: getFormValues().ticket_status,
+              carrier: getFormValues().carrier,
+              passengers: getFormValues().passengers,
+              passenger_details: getFormValues().passenger_details,
+              cost_details: getFormValues().cost_details
             };
             break;
           // Add other cases as needed
@@ -1268,9 +1132,9 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
     } catch (error) {
       console.error("Error submitting lead:", error);
       if (error.response?.data) {
-        const errorMessage = Object.values(error.response.data)
-          .flat()
-          .join(' ');
+        const errorMessage = Object.entries(error.response.data)
+          .map(([key, value]) => `${key}: ${value.join(', ')}`)
+          .join('\n');
         message.error(errorMessage || 'Failed to save lead. Please check the form and try again.');
       } else {
         message.error('Failed to save lead. Please check the form and try again.');
@@ -1360,16 +1224,6 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
       case 'development_project': return 'Select Development Project';
       default: return 'Select Product';
     }
-  };
-  
-  // Handle input changes for basic fields
-  const handleInputChange = (field, value) => {
-    // Update both form and local state
-    form.setFieldsValue({ [field]: value });
-    setFormValues(prev => ({
-      ...prev,
-      [field]: value
-    }));
   };
   
   // Fetch current user and check if admin
@@ -1543,7 +1397,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
   const handleUserAssignment = async (userId) => {
     try {
       // Store previous assigned user for comparison
-      const previousAssignedTo = formValues.assigned_to;
+      const previousAssignedTo = getFormValues().assigned_to;
       
       // Update form values with new assigned user
       handleInputChange('assigned_to', userId);
@@ -1556,7 +1410,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
           
           // If user has a branch assigned, update the branch field
           if (userData.branch) {
-            form.setFieldValue('branch', userData.branch);
+            form.setFieldsValue({ branch: userData.branch });
             setFormValues(prev => ({
               ...prev,
               branch: userData.branch
@@ -1596,7 +1450,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
             
             // Update formValues with flight data
             const updatedValues = {
-              ...formValues,
+              ...getFormValues(),
               travelling_from: flightData.travelling_from || '',
               travelling_to: flightData.travelling_to || '',
               travel_date: flightData.travel_date ? 
@@ -1653,7 +1507,7 @@ const LeadForm = ({ initialData = {}, isEditMode = false, onSuccess }) => {
                 
                 // Update formValues with all flight data
                 const updatedValues = {
-                  ...formValues,
+                  ...getFormValues(),
                   travelling_from: flightData.travelling_from || '',
                   travelling_to: flightData.travelling_to || '',
                   travel_date: flightData.travel_date ? 
@@ -1776,35 +1630,52 @@ const fetchProjectTypes = async () => {
     setIsAdmin(false);
   }, []);
   
+  // Add useEffect to load lead type options when component mounts
+  useEffect(() => {
+    const loadLeadTypeOptions = async () => {
+      try {
+        const options = await getIndustryLeadTypes();
+        setLeadTypeOptions(options);
+      } catch (error) {
+        console.error('Error loading lead type options:', error);
+        message.error('Failed to load lead types');
+      }
+    };
+
+    loadLeadTypeOptions();
+  }, []); // Run once when component mounts
+  
   return (
     <Box>
       <Paper sx={{ p: 3, mb: 3 }}>
         <Form
           form={form}
           layout="vertical"
+          onFinish={handleSubmit}
           initialValues={{
             name: initialData.name || '',
             email: initialData.email || '',
             phone: initialData.phone || '',
             whatsapp: initialData.whatsapp || '',
             lead_type: leadType,
-            source: 'website_form',
-            status: 'new',
-            lead_activity_status: 'active',
+            source: initialData.source || 'website_form',
+            status: initialData.status || 'new',
+            lead_activity_status: initialData.lead_activity_status || 'active',
             branch: initialData.branch || null,
             development_project: initialData.development_project || null,
+            last_contacted: initialData.last_contacted ? dayjs(initialData.last_contacted) : null,
+            next_follow_up: initialData.next_follow_up ? dayjs(initialData.next_follow_up) : null,
+            adults: initialData.adults || 0,
+            children: initialData.children || 0,
+            infants: initialData.infants || 0,
+            query_notes: initialData.query_notes || '',
+            assigned_to: initialData.assigned_to || null,
             ...initialData
           }}
-          onValuesChange={(changedValues, allValues) => {
-            // Update formValues when form values change
-            setFormValues(prev => ({
-              ...prev,
-              ...changedValues
-            }));
-            
-            // If development_project is changed, also update formValues.development_project
-            if (changedValues.development_project !== undefined) {
-              console.log('Development project changed to:', changedValues.development_project);
+          onValuesChange={(changedValues) => {
+            // Handle lead type change
+            if (changedValues.lead_type && changedValues.lead_type !== leadType) {
+              setLeadType(changedValues.lead_type);
             }
           }}
         >
@@ -1847,127 +1718,35 @@ const fetchProjectTypes = async () => {
                     name="name"
                     rules={[{ required: true, message: 'Please enter lead name' }]}
                   >
-                    <Input 
-                      placeholder="Enter lead's full name"
-                      value={formValues.name}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        form.setFieldsValue({ name: value });
-                        setFormValues(prev => ({ ...prev, name: value }));
-                      }}
-                    />
+                    <Input placeholder="Enter lead's full name" />
                   </Form.Item>
                 </Grid>
                 
                 <Grid item xs={12} md={6}>
                   <Form.Item
-                    label={
-                      <span>
-                        Email
-                        {isEditMode && !isAdmin && (
-                          <span style={{ fontSize: '12px', color: '#9d277c', marginLeft: '8px' }}>
-                            (Admin only)
-                          </span>
-                        )}
-                      </span>
-                    }
+                    label="Email"
                     name="email"
                   >
-                    <Input 
-                      placeholder="Enter email address"
-                      value={formValues.email}
-                      disabled={isEditMode && !isAdmin}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        form.setFieldsValue({ email: value });
-                        setFormValues(prev => ({ ...prev, email: value }));
-                      }}
-                    />
+                    <Input placeholder="Enter email address" />
                   </Form.Item>
                 </Grid>
                 
                 <Grid item xs={12} md={6}>
                   <Form.Item
-                    label={
-                      <span>
-                        Phone
-                        {isEditMode && !isAdmin && (
-                          <span style={{ fontSize: '12px', color: '#9d277c', marginLeft: '8px' }}>
-                            (Admin only)
-                          </span>
-                        )}
-                      </span>
-                    }
+                    label="Phone"
                     name="phone"
                     rules={[{ required: true, message: 'Please enter phone number' }]}
                   >
-                    <Input 
-                      placeholder="Enter phone number"
-                      value={formValues.phone}
-                      disabled={isEditMode && !isAdmin}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        form.setFieldsValue({ phone: value });
-                        setFormValues(prev => ({ ...prev, phone: value }));
-                      }}
-                      suffix={
-                        formValues.phone ? (
-                          <a 
-                            href={`tel:${formValues.phone}`}
-                            style={{ 
-                              color: '#9d277c',
-                              display: 'flex',
-                              alignItems: 'center'
-                            }}
-                          >
-                            <PhoneOutlined />
-                          </a>
-                        ) : null
-                      }
-                    />
+                    <Input placeholder="Enter phone number" />
                   </Form.Item>
                 </Grid>
                 
                 <Grid item xs={12} md={6}>
                   <Form.Item
-                    label={
-                      <span>
-                        WhatsApp
-                        {isEditMode && !isAdmin && (
-                          <span style={{ fontSize: '12px', color: '#9d277c', marginLeft: '8px' }}>
-                            (Admin only)
-                          </span>
-                        )}
-                      </span>
-                    }
+                    label="WhatsApp"
                     name="whatsapp"
                   >
-                    <Input 
-                      placeholder="Enter WhatsApp number (if different)"
-                      value={formValues.whatsapp}
-                      disabled={isEditMode && !isAdmin}
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        form.setFieldsValue({ whatsapp: value });
-                        setFormValues(prev => ({ ...prev, whatsapp: value }));
-                      }}
-                      suffix={
-                        formValues.whatsapp ? (
-                          <a 
-                            href={`https://wa.me/${formValues.whatsapp?.replace(/[^0-9]/g, '')}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ 
-                              color: '#25D366',
-                              display: 'flex',
-                              alignItems: 'center'
-                            }}
-                          >
-                            <WhatsAppOutlined />
-                          </a>
-                        ) : null
-                      }
-                    />
+                    <Input placeholder="Enter WhatsApp number (if different)" />
                   </Form.Item>
                 </Grid>
                 
@@ -1980,7 +1759,6 @@ const fetchProjectTypes = async () => {
                     <Select
                       placeholder="Select lead type"
                       options={leadTypeOptions}
-                      value={formValues.lead_type}
                       onChange={(value) => {
                         handleInputChange('lead_type', value);
                         handleLeadTypeChange(value);
@@ -1998,7 +1776,7 @@ const fetchProjectTypes = async () => {
                     <Select
                       placeholder="Select lead source"
                       options={sourceOptions}
-                      value={formValues.source}
+                      value={getFormValues().source}
                       onChange={(value) => handleInputChange('source', value)}
                     />
                   </Form.Item>
@@ -2013,7 +1791,7 @@ const fetchProjectTypes = async () => {
                     <Select
                       placeholder="Select status"
                       options={statusOptions}
-                      value={formValues.status}
+                      value={getFormValues().status}
                       onChange={(value) => handleInputChange('status', value)}
                     />
                   </Form.Item>
@@ -2028,7 +1806,7 @@ const fetchProjectTypes = async () => {
                     <Select
                       placeholder="Select activity status"
                       options={activityStatusOptions}
-                      value={formValues.lead_activity_status}
+                      value={getFormValues().lead_activity_status}
                       onChange={(value) => handleInputChange('lead_activity_status', value)}
                     />
                   </Form.Item>
@@ -2042,12 +1820,8 @@ const fetchProjectTypes = async () => {
                     <DatePicker 
                       style={{ width: '100%' }}
                       onChange={(date) => {
-                        // Handle the date value properly
                         form.setFieldValue('last_contacted', date);
-                        setFormValues(prev => ({
-                          ...prev,
-                          last_contacted: date
-                        }));
+                        handleInputChange('last_contacted', date);
                       }}
                     />
                   </Form.Item>
@@ -2061,12 +1835,8 @@ const fetchProjectTypes = async () => {
                     <DatePicker 
                       style={{ width: '100%' }}
                       onChange={(date) => {
-                        // Handle the date value properly
                         form.setFieldValue('next_follow_up', date);
-                        setFormValues(prev => ({
-                          ...prev,
-                          next_follow_up: date
-                        }));
+                        handleInputChange('next_follow_up', date);
                       }}
                     />
                   </Form.Item>
@@ -2080,7 +1850,7 @@ const fetchProjectTypes = async () => {
                     <Select
                       placeholder="Select user to assign"
                       options={userOptions}
-                      value={formValues.assigned_to}
+                      value={getFormValues().assigned_to}
                       onChange={(value) => handleUserAssignment(value)}
                     />
                   </Form.Item>
@@ -2095,7 +1865,7 @@ const fetchProjectTypes = async () => {
                       placeholder="Select branch"
                       options={branchOptions}
                       defaultValue={initialData.branch}
-                      value={formValues.branch || initialData.branch}
+                      value={getFormValues().branch || initialData.branch}
                       onChange={(value) => {
                         handleInputChange('branch', value);
                       }}
@@ -2116,12 +1886,12 @@ const fetchProjectTypes = async () => {
                     isEditMode={isEditMode}
                     initialData={{
                       lead_id: initialData.id || null,
-                      airline: formValues.airline || '',
-                      departure_date: formValues.departure_date || null,
-                      return_date: formValues.return_date || null,
-                      from_city: formValues.from_city || '',
-                      to_city: formValues.to_city || '',
-                      flight_class: formValues.flight_class || ''
+                      airline: getFormValues().airline || '',
+                      departure_date: getFormValues().departure_date || null,
+                      return_date: getFormValues().return_date || null,
+                      from_city: getFormValues().from_city || '',
+                      to_city: getFormValues().to_city || '',
+                      flight_class: getFormValues().flight_class || ''
                     }}
                     onSuccess={(data) => {
                       message.success('Flight details saved successfully!');
@@ -2131,7 +1901,7 @@ const fetchProjectTypes = async () => {
                     }}
                     handleInputChange={handleInputChange} 
                     form={form}
-                    formValues={formValues}
+                    formValues={getFormValues()}
                   />
                 </FormSection>
                 </React.Fragment>
@@ -2140,7 +1910,7 @@ const fetchProjectTypes = async () => {
                 <FormSection title="Study Visa Details">
                   <StudyForm
                     form={form}
-                    formValues={formValues}
+                    formValues={getFormValues()}
                     handleInputChange={handleInputChange}
                     initialData={{
                       lead_id: initialData.id || null
@@ -2163,7 +1933,7 @@ const fetchProjectTypes = async () => {
                       <FormSelect
                         label={getProductFieldLabel()}
                         name={getProductFieldName()}
-                        value={formValues[getProductFieldName()]}
+                        value={getFormValues()[getProductFieldName()]}
                         onChange={(value) => handlePackageSelect(value)}
                         options={productOptions}
                       />
@@ -2183,7 +1953,7 @@ const fetchProjectTypes = async () => {
                             <InputNumber 
                               min={0} 
                               style={{ width: '100%' }} 
-                              value={formValues.adults}
+                              value={getFormValues().adults}
                               onChange={(value) => handleInputChange('adults', value)}
                             />
                           </Form.Item>
@@ -2197,7 +1967,7 @@ const fetchProjectTypes = async () => {
                             <InputNumber 
                               min={0} 
                               style={{ width: '100%' }} 
-                              value={formValues.children}
+                              value={getFormValues().children}
                               onChange={(value) => handleInputChange('children', value)}
                             />
                           </Form.Item>
@@ -2211,7 +1981,7 @@ const fetchProjectTypes = async () => {
                             <InputNumber 
                               min={0} 
                               style={{ width: '100%' }} 
-                              value={formValues.infants}
+                              value={getFormValues().infants}
                               onChange={(value) => handleInputChange('infants', value)}
                             />
                           </Form.Item>

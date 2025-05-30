@@ -87,8 +87,6 @@ const Login = () => {
         
         if (tenantId) {
           localStorage.setItem('tenant_id', tenantId);
-          
-          // Also store in sessionStorage for redundancy
           sessionStorage.setItem('tenant_id', tenantId);
           
           // Store as current_tenant object for compatibility
@@ -112,14 +110,27 @@ const Login = () => {
               }
             }
           } catch (error) {
-            // Handle error silently
+            console.error('Error fetching additional user details:', error);
           }
         }
       }
       
       navigate('/dashboard');
     } catch (err) {
-      setError(err.response?.data?.detail || 'Login failed. Please check your credentials.');
+      console.error('Login error:', err);
+      let errorMessage = 'Login failed. Please check your credentials.';
+      
+      if (err.response) {
+        if (err.response.status === 404) {
+          errorMessage = 'Login service is not available. Please try again later.';
+        } else if (err.response.data?.detail) {
+          errorMessage = err.response.data.detail;
+        } else if (err.response.data?.error) {
+          errorMessage = err.response.data.error;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

@@ -265,27 +265,31 @@ class Lead(models.Model):
         if self.whatsapp:
             self.whatsapp = ''.join(filter(str.isdigit, self.whatsapp))
     
-    def save(self, *args, broadcast=True, **kwargs):
-        """
-        Override save method to broadcast updates
-        """
-        # Normalize phone numbers
+    def save(self, *args, **kwargs):
+        # Normalize phone numbers before saving
         self.normalize_phone()
-        is_new = not self.pk
-        super().save(*args, **kwargs)
         
-        # Broadcast update if requested
-        if broadcast:
-            self.broadcast_update()
-            
-        # Continue with existing event creation logic
-        if is_new:
-            LeadEvent.objects.create(
-                lead=self,
-                tenant=self.tenant,
-                event_type=LeadEvent.EVENT_OPEN,
-                updated_by=self.assigned_to if self.assigned_to else self.created_by
-            )
+        # Ensure query_for is a dict
+        if not self.query_for:
+            self.query_for = {}
+        
+        # Convert query_for values to proper types
+        if isinstance(self.query_for, dict):
+            self.query_for = {
+                'adults': int(self.query_for.get('adults', 0)),
+                'children': int(self.query_for.get('children', 0)),
+                'infants': int(self.query_for.get('infants', 0)),
+                'notes': str(self.query_for.get('notes', ''))
+            }
+        
+        # Ensure flight data is properly formatted if present
+        if self.flight and isinstance(self.flight, dict):
+            if 'travel_date' in self.flight and self.flight['travel_date']:
+                self.flight['travel_date'] = str(self.flight['travel_date'])
+            if 'return_date' in self.flight and self.flight['return_date']:
+                self.flight['return_date'] = str(self.flight['return_date'])
+        
+        super().save(*args, **kwargs)
     
     class Meta:
         ordering = ['-created_at']

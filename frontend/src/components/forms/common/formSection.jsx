@@ -56,7 +56,7 @@ const FormSection = ({
     <Card
       title={title}
       style={{ marginBottom: 24, ...sx }}
-      bordered={elevation > 0}
+      variant={elevation > 0 ? 'outlined' : 'default'}
       bodyStyle={{ padding: padding ? 24 : 0 }}
     >
       {description && (

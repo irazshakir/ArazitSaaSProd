@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Typography, Breadcrumb, message, Alert } from 'antd';
 import { HomeOutlined, UserOutlined } from '@ant-design/icons';
@@ -12,10 +12,10 @@ const UserCreate = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [tenantId, setTenantId] = useState(null);
+  const [error, setError] = useState(null);
   
   // Check for tenant_id on component mount
   useEffect(() => {
-    // Verify tenant_id exists in localStorage
     const storedTenantId = localStorage.getItem('tenant_id');
     
     if (!storedTenantId) {
@@ -29,11 +29,41 @@ const UserCreate = () => {
     setTenantId(storedTenantId);
   }, [navigate]);
   
-  // Handle successful form submission
-  const handleSuccess = () => {
-    message.success('User created successfully!');
-    navigate('/dashboard/users');
-  };
+  // Memoize form submission handler
+  const handleFormSubmit = useCallback(async (formData) => {
+    if (loading) return;
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Add tenant_id to the form data if not present
+      if (!formData.has('tenant_id')) {
+        formData.append('tenant_id', tenantId);
+      }
+      
+      // Make API call to create user
+      const response = await api.post('/api/auth/users/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      
+      if (response.data) {
+        message.success('User created successfully!');
+        navigate('/dashboard/users');
+      }
+    } catch (err) {
+      console.error('Error creating user:', err);
+      const errorMessage = err.response?.data?.error || 
+                         err.response?.data?.detail ||
+                         'Failed to create user. Please try again.';
+      setError(errorMessage);
+      message.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, [loading, tenantId, navigate]);
   
   // If no tenant ID is found, show error message
   if (!tenantId) {
@@ -79,10 +109,20 @@ const UserCreate = () => {
         style={{ marginBottom: '24px' }}
       />
       
+      {error && (
+        <Alert
+          message="Error"
+          description={error}
+          type="error"
+          showIcon
+          style={{ marginBottom: '24px' }}
+        />
+      )}
+      
       <UserForm 
         isEditMode={false}
         loading={loading}
-        onSuccess={handleSuccess}
+        onFinish={handleFormSubmit}
       />
     </div>
   );

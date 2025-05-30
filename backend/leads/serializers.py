@@ -214,13 +214,83 @@ class LeadSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ('id', 'created_at', 'updated_at', 'created_by')
 
+    def validate(self, data):
+        """
+        Custom validation for lead data.
+        """
+        # Ensure query_for is a dict
+        if 'query_for' in data:
+            if not isinstance(data['query_for'], dict):
+                raise serializers.ValidationError({'query_for': 'Must be a dictionary'})
+            
+            # Convert numeric values to integers
+            query_for = data['query_for']
+            try:
+                data['query_for'] = {
+                    'adults': int(query_for.get('adults', 0)),
+                    'children': int(query_for.get('children', 0)),
+                    'infants': int(query_for.get('infants', 0)),
+                    'notes': str(query_for.get('notes', ''))
+                }
+            except (ValueError, TypeError):
+                raise serializers.ValidationError({'query_for': 'Invalid numeric values'})
+        
+        # Validate flight data if present
+        if 'flight' in data and data['flight']:
+            if not isinstance(data['flight'], dict):
+                raise serializers.ValidationError({'flight': 'Must be a dictionary'})
+            
+            # Convert dates to strings
+            flight_data = data['flight']
+            if 'travel_date' in flight_data and flight_data['travel_date']:
+                flight_data['travel_date'] = str(flight_data['travel_date'])
+            if 'return_date' in flight_data and flight_data['return_date']:
+                flight_data['return_date'] = str(flight_data['return_date'])
+            
+            data['flight'] = flight_data
+        
+        return data
+
+    def create(self, validated_data):
+        # Set created_by from request user
+        validated_data['created_by'] = self.context['request'].user
+        
+        # Create the lead
+        lead = super().create(validated_data)
+        
+        # Create initial lead event
+        LeadEvent.objects.create(
+            lead=lead,
+            tenant=lead.tenant,
+            event_type=LeadEvent.EVENT_OPEN,
+            updated_by=lead.assigned_to if lead.assigned_to else lead.created_by
+        )
+        
+        return lead
+
     def get_general_product_name(self, obj):
         if obj.general_product:
             return obj.general_product.productName
         return None
 
     def get_department_details(self, obj):
-        if obj.department:
+        # Handle both model instances and dictionaries
+        if isinstance(obj, dict):
+            department_id = obj.get('department')
+            if department_id:
+                from users.models import Department
+                try:
+                    department = Department.objects.get(id=department_id)
+                    return {
+                        'id': department.id,
+                        'name': department.name
+                    }
+                except Department.DoesNotExist:
+                    return None
+            return None
+        
+        # Handle model instance
+        if hasattr(obj, 'department') and obj.department:
             return {
                 'id': obj.department.id,
                 'name': obj.department.name
@@ -228,7 +298,23 @@ class LeadSerializer(serializers.ModelSerializer):
         return None
         
     def get_branch_details(self, obj):
-        if obj.branch:
+        # Handle both model instances and dictionaries
+        if isinstance(obj, dict):
+            branch_id = obj.get('branch')
+            if branch_id:
+                from users.models import Branch
+                try:
+                    branch = Branch.objects.get(id=branch_id)
+                    return {
+                        'id': branch.id,
+                        'name': branch.name
+                    }
+                except Branch.DoesNotExist:
+                    return None
+            return None
+            
+        # Handle model instance
+        if hasattr(obj, 'branch') and obj.branch:
             return {
                 'id': obj.branch.id,
                 'name': obj.branch.name

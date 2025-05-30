@@ -1,16 +1,16 @@
 import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 
-// Use the API_BASE_URL from config, defaulting to the deployed API URL if not available
-const API_URL = API_BASE_URL || 'https://api.arazit.com';
+// Use the API_BASE_URL from environment, with proper fallback
+const API_URL = import.meta.env.VITE_API_BASE_URL || API_BASE_URL || 'https://api.arazit.com';
 
-// Create axios instance with /api/ prefix in baseURL
+// Create axios instance with proper base URL configuration
 const api = axios.create({
-  baseURL: `${API_URL}/api`,  // Add /api to the base URL
+  baseURL: API_URL,  // Base URL without /api prefix
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Important for CSRF cookies
+  withCredentials: true, // Important for CORS
 });
 
 // Add a request interceptor to add the auth token to requests
@@ -37,14 +37,14 @@ api.interceptors.request.use(
       config.headers['X-CSRFToken'] = csrfToken;
     }
     
-    // Ensure URL has leading slash but doesn't duplicate /api/
+    // Ensure URL has leading slash
     if (!config.url.startsWith('/')) {
       config.url = `/${config.url}`;
     }
     
-    // Fix duplicate /api/api/ issue
-    if (config.url.startsWith('/api/api/')) {
-      config.url = config.url.replace('/api/api/', '/api/');
+    // Ensure URL starts with /api/ unless it's already there
+    if (!config.url.startsWith('/api/')) {
+      config.url = `/api${config.url}`;
     }
     
     return config;
@@ -83,8 +83,8 @@ export const authService = {
   // Login user
   login: async (email, password) => {
     try {
-      // Get the authentication token using only email
-      const response = await api.post('/auth/token/', { 
+      // Get the authentication token using email and password
+      const response = await api.post('/api/auth/token/', { 
         email: email,
         password: password
       });
@@ -99,17 +99,17 @@ export const authService = {
           api.defaults.headers.common['Authorization'] = `Bearer ${response.data.access}`;
           
           // Get user details
-          const userResponse = await api.get('/auth/me/');
+          const userResponse = await api.get('/api/auth/me/');
           Object.assign(userData, userResponse.data);
         } catch (err) {
-          // Error fetching user details
+          console.error('Error fetching user details:', err);
         }
       }
       
       // Try to get tenant information for the user
       try {
         if (userData.id) {
-          const tenantsResponse = await api.get('/auth/user-tenants/');
+          const tenantsResponse = await api.get('/api/auth/user-tenants/');
           
           if (tenantsResponse.data && Array.isArray(tenantsResponse.data) && tenantsResponse.data.length > 0) {
             userData.tenant_id = tenantsResponse.data[0].tenant.id;
@@ -121,7 +121,7 @@ export const authService = {
           }
         }
       } catch (err) {
-        // Error fetching tenant information
+        console.error('Error fetching tenant information:', err);
       }
       
       return {
@@ -195,80 +195,52 @@ export const departmentService = {
     try {
       const params = tenantId ? { tenant: tenantId } : {};
       
-      // Try these endpoints in order
-      const endpoints = [
-        '/departments/',
-        '/auth/departments/',
-        '/users/departments/'
-      ];
+      // Use the correct endpoint from the backend URLs
+      const response = await api.get('/auth/departments/', { params });
       
-      let lastError = null;
-      
-      for (const endpoint of endpoints) {
-        try {
-          const response = await api.get(endpoint, { params });
-          
-          // Ensure we return an array
-          if (Array.isArray(response.data)) {
-            return response.data;
-          } else if (response.data && typeof response.data === 'object') {
-            // Check if it's a paginated response
-            if (Array.isArray(response.data.results)) {
-              return response.data.results;
-            } else {
-              // Try to convert object to array if possible
-              return Object.values(response.data);
-            }
-          }
-          
-          // If none of the above, return empty array
-          return [];
-          
-        } catch (error) {
-          lastError = error;
-          // Only continue if it's a 404
-          if (error.response && error.response.status !== 404) {
-            throw error;
-          }
+      // Ensure we return an array
+      if (Array.isArray(response.data)) {
+        return response.data;
+      } else if (response.data && typeof response.data === 'object') {
+        // Check if it's a paginated response
+        if (Array.isArray(response.data.results)) {
+          return response.data.results;
+        } else {
+          // Try to convert object to array if possible
+          return Object.values(response.data);
         }
       }
       
-      // If we get here, all endpoints failed
-      throw lastError;
+      // If none of the above, return empty array
+      return [];
+      
     } catch (error) {
+      console.error('Error fetching departments:', error);
       throw error;
     }
   },
 
   // Get department by ID
   getDepartment: async (id) => {
-    try {
-      const response = await api.get(`/departments/${id}/`);
-      return response.data;
-    } catch (error) {
-      if (error.response && error.response.status === 404) {
-        const authResponse = await api.get(`/auth/departments/${id}/`);
-        return authResponse.data;
-      }
-      throw error;
-    }
+    const response = await api.get(`/auth/departments/${id}/`);
+    return response.data;
   },
 
   // Create department
   createDepartment: async (departmentData) => {
-    const response = await api.post('/departments/', departmentData);
+    const response = await api.post('/auth/departments/', departmentData);
     return response.data;
   },
 
   // Update department
   updateDepartment: async (id, departmentData) => {
-    const response = await api.put(`/departments/${id}/`, departmentData);
+    const response = await api.put(`/auth/departments/${id}/`, departmentData);
     return response.data;
   },
 
   // Delete department
   deleteDepartment: async (id) => {
-    const response = await api.delete(`/departments/${id}/`);
+    const response = await api.delete(`/auth/departments/${id}/`);
     return response.data;
   }
 };
@@ -281,12 +253,17 @@ export const branchService = {
       throw new Error('Tenant ID is required to fetch branches');
     }
     
-    const response = await api.get('/auth/branches/', { 
-      params: { tenant: tenantId }
-    });
-    
-    return Array.isArray(response.data) ? response.data : 
-           (response.data?.results || []);
+    try {
+      const response = await api.get('/auth/branches/', { 
+        params: { tenant: tenantId }
+      });
+      
+      return Array.isArray(response.data) ? response.data : 
+             (response.data?.results || []);
+    } catch (error) {
+      console.error('Error fetching branches:', error);
+      throw error;
+    }
   },
 
   // Get branch by ID
