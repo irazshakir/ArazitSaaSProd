@@ -234,8 +234,8 @@ const Sidebar = ({ mobileOpen, handleDrawerToggle, user, userRole }) => {
       <Toolbar sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <img 
-            src="/ArazitCRM-logo.svg" 
-            alt="Arazit CRM Logo" 
+            src="/BluSkyLogo.png" 
+            alt="BluSky Logo" 
             style={{ height: 40, marginRight: 8 }} 
           />
         </Box>

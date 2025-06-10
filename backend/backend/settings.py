@@ -24,8 +24,9 @@ DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
-    'api.arazit.com',
-    '194.164.149.219',  # Added server IP
+    'crm.bluskyvas.com',
+    'api.bluskyvas.com',  # Added API domain
+    '194.163.44.95',  # Added server IP
 ]
 
 # Force Django to append slashes to URLs
@@ -216,49 +217,22 @@ SIMPLE_JWT = {
     'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
 }
 
-# CORS settings
-# CORS_ALLOW_ALL_ORIGINS = False
-# CORS_ALLOWED_ORIGINS = [
-#     "https://app.arazit.com",
-#     "http://localhost:5173",
-#     "http://127.0.0.1:5173"
-# ]
 
-# CORS_ALLOW_CREDENTIALS = True
-# CORS_ALLOW_METHODS = [
-#     'DELETE',
-#     'GET',
-#     'OPTIONS',
-#     'PATCH',
-#     'POST',
-#     'PUT',
-# ]
-
-# CORS_ALLOW_HEADERS = [
-#     'accept',
-#     'accept-encoding',
-#     'authorization',
-#     'content-type',
-#     'dnt',
-#     'origin',
-#     'user-agent',
-#     'x-csrftoken',
-#     'x-requested-with',
-#     'x-tenant-id',
-#     'x-request-type',
-# ]
-
-# Ensure CORS headers are handled by Django
-# CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 
 # Security Headers
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 USE_X_FORWARDED_HOST = True
 USE_X_FORWARDED_PORT = True
+ALLOWED_HOST_HEADERS = ['X-Forwarded-Host']
+
+# CORS settings - Let Nginx handle CORS
+CORS_ALLOW_ALL_ORIGINS = False  # Since Nginx is handling CORS
+CORS_REPLACE_HTTPS_REFERER = True
 
 # CSRF settings
 CSRF_TRUSTED_ORIGINS = [
-    "https://app.arazit.com",
+    "https://crm.bluskyvas.com",
+    "https://api.bluskyvas.com",
     "http://localhost:5173",
     "http://localhost:5174",
 ]
@@ -314,10 +288,6 @@ LOGGING = {
     },
 }
 
-# OnCloud API settings
-# ONCLOUD_API_URL = os.environ.get('ONCLOUD_API_URL', 'https://apps.oncloudapi.com')
-# ONCLOUD_EMAIL = os.environ.get('ONCLOUD_EMAIL', 'info@easyvisapk.com')
-# ONCLOUD_PASSWORD = os.environ.get('ONCLOUD_PASSWORD', '7Axcrb888MvBzEQ')
 
 # Redis Configuration
 REDIS_HOST = '127.0.0.1'  # Keep this for backward compatibility

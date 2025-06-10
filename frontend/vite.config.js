@@ -29,4 +29,4 @@ export default defineConfig({
     force: true
   },
   clearScreen: false
-}) 
+})

@@ -162,8 +162,8 @@ const Login = () => {
         >
           <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
             <img 
-              src="/ArazitCRM-logo.svg" 
-              alt="Arazit CRM Logo" 
+              src="/BluSkyLogo.png" 
+              alt="BluSky Logo" 
               style={{ height: 45 }} 
             />
           </Box>
@@ -345,9 +345,9 @@ const Login = () => {
                 py: 1, 
                 mb: 2,
                 fontSize: '0.9rem',
-                backgroundColor: '#9d277c',
+                backgroundColor: '#0024a8',
                 '&:hover': {
-                  backgroundColor: '#85114e'
+                  backgroundColor: '#001c85'
                 }
               }}
             >

@@ -27,6 +27,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """
     def validate(self, attrs):
         print("Starting token validation")
+        print("Received attrs:", {k: '***' if k == 'password' else v for k, v in attrs.items()})
         try:
             data = super().validate(attrs)
             print("Parent validation successful")

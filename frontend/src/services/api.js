@@ -2,7 +2,7 @@ import axios from 'axios';
 import { API_BASE_URL } from '../config/api';
 
 // Use the API_BASE_URL from environment, with proper fallback
-const API_URL = import.meta.env.VITE_API_BASE_URL || API_BASE_URL || 'https://api.arazit.com';
+const API_URL = import.meta.env.VITE_API_BASE_URL || API_BASE_URL;
 
 // Create axios instance with proper base URL configuration
 const api = axios.create({
@@ -94,11 +94,16 @@ export const authService = {
   // Login user
   login: async (email, password) => {
     try {
+      console.log('Login attempt with:', { email, password: '***' });
+      console.log('API URL:', API_URL);
+      
       // Get the authentication token using email and password
       const response = await api.post('/api/auth/token/', { 
         email: email,
         password: password
       });
+      
+      console.log('Login response:', response.data);
       
       // Extract user data from response
       const userData = response.data.user || { email };
